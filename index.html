@@ -253,6 +253,11 @@
       <label for="worldInput">Nama world</label>
       <div class="input-row">
         <input id="worldInput" type="text" placeholder="cth: PAPAZIA" maxlength="20" autocomplete="off">
+      </div>
+
+      <label for="doorInput">Door ID <span style="opacity:.6">(opsional — kosongkan kalau tidak perlu)</span></label>
+      <div class="input-row">
+        <input id="doorInput" type="text" placeholder="cth: 1" maxlength="20" autocomplete="off" style="text-transform:none;">
         <button id="saveBtn">Simpan</button>
       </div>
 
@@ -261,6 +266,10 @@
       <div class="current">
         <span class="k">Aktif sekarang</span>
         <span class="v" id="currentWorld">memuat…</span>
+      </div>
+      <div class="current" style="margin-top:8px;">
+        <span class="k">Door ID</span>
+        <span class="v" id="currentDoor">memuat…</span>
       </div>
 
       <p class="setup-note">
@@ -312,14 +321,17 @@
   // "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app"
   const FIREBASE_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
   const TARGET_PATH = "target_world.json";
+  const DOOR_PATH = "target_door.json";
   const STATUS_PATH = "world_status.json";
   const STATUS_POLL_MS = 5000;
 
-  // ----- Target world control -----
+  // ----- Target world + door control -----
   const input = document.getElementById('worldInput');
+  const doorInput = document.getElementById('doorInput');
   const btn = document.getElementById('saveBtn');
   const statusEl = document.getElementById('status');
   const currentEl = document.getElementById('currentWorld');
+  const currentDoorEl = document.getElementById('currentDoor');
 
   function setStatus(kind, html){
     statusEl.className = 'status ' + kind;
@@ -335,10 +347,19 @@
     }catch(e){
       currentEl.textContent = 'gagal memuat';
     }
+    try{
+      const res = await fetch(`${FIREBASE_URL}/${DOOR_PATH}`);
+      const data = await res.json();
+      currentDoorEl.textContent = data || '(tidak ada)';
+      if(data) doorInput.value = data;
+    }catch(e){
+      currentDoorEl.textContent = 'gagal memuat';
+    }
   }
 
   async function saveWorld(){
     const name = input.value.trim().toUpperCase();
+    const door = doorInput.value.trim();
     if(!name){
       setStatus('err', 'Nama world tidak boleh kosong.');
       return;
@@ -352,8 +373,18 @@
         body: JSON.stringify(name)
       });
       if(!res.ok) throw new Error('HTTP ' + res.status);
-      setStatus('ok', `Tersimpan. Bot akan warp ke <b>${name}</b> dalam beberapa detik.`);
+
+      const res2 = await fetch(`${FIREBASE_URL}/${DOOR_PATH}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(door)
+      });
+      if(!res2.ok) throw new Error('HTTP ' + res2.status);
+
+      const label = door ? `<b>${name}</b> lewat door <b>${door}</b>` : `<b>${name}</b>`;
+      setStatus('ok', `Tersimpan. Bot akan warp ke ${label} dalam beberapa detik.`);
       currentEl.textContent = name;
+      currentDoorEl.textContent = door || '(tidak ada)';
     }catch(e){
       setStatus('err', 'Gagal menyimpan: ' + e.message);
     }finally{
@@ -363,6 +394,7 @@
 
   btn.addEventListener('click', saveWorld);
   input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') saveWorld(); });
+  doorInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') saveWorld(); });
 
   // ----- Live world status (growID + growscan) -----
   const scanWorldEl = document.getElementById('scanWorld');
