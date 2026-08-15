@@ -7,722 +7,731 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --soil:#161210;
-    --soil-1:#1c1712;
-    --soil-2:#221b15;
-    --soil-3:#33281f;
-    --soil-4:#443626;
-    --sprout:#8fd14f;
-    --sprout-dim:#5c8f3a;
-    --sprout-glow:rgba(143,209,79,0.14);
-    --clay:#c97b4a;
-    --clay-dim:rgba(201,123,74,0.14);
-    --paper:#efe6d8;
-    --paper-dim:#9c8d78;
-    --paper-faint:#6b5f4f;
-    --danger:#e0605a;
-    --mono:'JetBrains Mono', 'Courier New', monospace;
-    --sans:'Inter', -apple-system, sans-serif;
-    --display:'Space Grotesk', 'Inter', sans-serif;
-  }
-  *{box-sizing:border-box;}
-  html,body{height:100%;}
-  body{
-    margin:0;
-    background:
-      radial-gradient(ellipse 900px 500px at 12% -10%, rgba(143,209,79,0.07), transparent 55%),
-      radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,123,74,0.06), transparent 55%),
-      var(--soil);
-    color:var(--paper);
-    font-family:var(--sans);
-    -webkit-font-smoothing:antialiased;
-  }
+  :root{
+    --soil:#161210;
+    --soil-1:#1c1712;
+    --soil-2:#221b15;
+    --soil-3:#33281f;
+    --soil-4:#443626;
+    --sprout:#8fd14f;
+    --sprout-dim:#5c8f3a;
+    --sprout-glow:rgba(143,209,79,0.14);
+    --clay:#c97b4a;
+    --clay-dim:rgba(201,123,74,0.14);
+    --paper:#efe6d8;
+    --paper-dim:#9c8d78;
+    --paper-faint:#6b5f4f;
+    --danger:#e0605a;
+    --mono:'JetBrains Mono', 'Courier New', monospace;
+    --sans:'Inter', -apple-system, sans-serif;
+    --display:'Space Grotesk', 'Inter', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 900px 500px at 12% -10%, rgba(143,209,79,0.07), transparent 55%),
+      radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,123,74,0.06), transparent 55%),
+      var(--soil);
+    color:var(--paper);
+    font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
 
-  .app{
-    display:grid;
-    grid-template-columns:232px 1fr;
-    min-height:100vh;
-  }
+  .app{
+    display:grid;
+    grid-template-columns:232px 1fr;
+    min-height:100vh;
+  }
 
-  .sidebar{
-    background:var(--soil-1);
-    border-right:1px solid var(--soil-3);
-    padding:22px 16px;
-    display:flex;
-    flex-direction:column;
-    gap:28px;
-  }
-  .brand{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:0 6px;
-  }
-  .brand-mark{
-    width:26px;height:26px;
-    border-radius:7px;
-    background:linear-gradient(155deg, var(--sprout), var(--sprout-dim));
-    display:flex;align-items:center;justify-content:center;
-    font-family:var(--display);
-    font-weight:700;
-    font-size:14px;
-    color:#14210a;
-    flex:none;
-  }
-  .brand-name{
-    font-family:var(--display);
-    font-weight:600;
-    font-size:15.5px;
-    letter-spacing:-0.01em;
-  }
-  .brand-tag{
-    font-family:var(--mono);
-    font-size:10px;
-    color:var(--paper-faint);
-    letter-spacing:0.06em;
-  }
+  .sidebar{
+    background:var(--soil-1);
+    border-right:1px solid var(--soil-3);
+    padding:22px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:28px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:0 6px;
+  }
+  .brand-mark{
+    width:26px;height:26px;
+    border-radius:7px;
+    background:linear-gradient(155deg, var(--sprout), var(--sprout-dim));
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--display);
+    font-weight:700;
+    font-size:14px;
+    color:#14210a;
+    flex:none;
+  }
+  .brand-name{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:15.5px;
+    letter-spacing:-0.01em;
+  }
+  .brand-tag{
+    font-family:var(--mono);
+    font-size:10px;
+    color:var(--paper-faint);
+    letter-spacing:0.06em;
+  }
 
-  nav.navlist{
-    display:flex;
-    flex-direction:column;
-    gap:3px;
-  }
-  .nav-label{
-    font-family:var(--mono);
-    font-size:10px;
-    letter-spacing:0.14em;
-    text-transform:uppercase;
-    color:var(--paper-faint);
-    padding:0 10px;
-    margin:4px 0 8px;
-  }
-  .nav-btn{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    width:100%;
-    background:transparent;
-    border:none;
-    color:var(--paper-dim);
-    font-family:var(--sans);
-    font-size:13.5px;
-    font-weight:500;
-    text-align:left;
-    padding:9px 10px;
-    border-radius:7px;
-    cursor:pointer;
-    transition:background .12s, color .12s;
-  }
-  .nav-btn .ic{
-    width:16px;height:16px;flex:none;
-    opacity:.75;
-  }
-  .nav-btn:hover{background:var(--soil-2);color:var(--paper);}
-  .nav-btn.active{
-    background:var(--sprout-glow);
-    color:var(--sprout);
-  }
-  .nav-btn.active .ic{opacity:1;}
+  nav.navlist{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+  }
+  .nav-label{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--paper-faint);
+    padding:0 10px;
+    margin:4px 0 8px;
+  }
+  .nav-btn{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    width:100%;
+    background:transparent;
+    border:none;
+    color:var(--paper-dim);
+    font-family:var(--sans);
+    font-size:13.5px;
+    font-weight:500;
+    text-align:left;
+    padding:9px 10px;
+    border-radius:7px;
+    cursor:pointer;
+    transition:background .12s, color .12s;
+  }
+  .nav-btn .ic{
+    width:16px;height:16px;flex:none;
+    opacity:.75;
+  }
+  .nav-btn:hover{background:var(--soil-2);color:var(--paper);}
+  .nav-btn.active{
+    background:var(--sprout-glow);
+    color:var(--sprout);
+  }
+  .nav-btn.active .ic{opacity:1;}
 
-  .sidebar-foot{
-    margin-top:auto;
-    padding:12px 10px;
-    border-top:1px solid var(--soil-3);
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-  }
-  .foot-row{display:flex;align-items:center;justify-content:space-between;}
-  .foot-k{font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);}
-  .foot-v{font-family:var(--mono);font-size:11.5px;color:var(--paper-dim);}
-  .live-dot{
-    width:6px;height:6px;border-radius:50%;
-    background:var(--sprout);
-    box-shadow:0 0 0 3px var(--sprout-glow);
-    animation:breathe 2.2s infinite ease-in-out;
-    flex:none;
-  }
-  @keyframes breathe{0%,100%{opacity:1;}50%{opacity:.35;}}
+  .sidebar-foot{
+    margin-top:auto;
+    padding:12px 10px;
+    border-top:1px solid var(--soil-3);
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .foot-row{display:flex;align-items:center;justify-content:space-between;}
+  .foot-k{font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);}
+  .foot-v{font-family:var(--mono);font-size:11.5px;color:var(--paper-dim);}
+  .live-dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--sprout);
+    box-shadow:0 0 0 3px var(--sprout-glow);
+    animation:breathe 2.2s infinite ease-in-out;
+    flex:none;
+  }
+  @keyframes breathe{0%,100%{opacity:1;}50%{opacity:.35;}}
 
-  .main{
-    padding:26px 34px 40px;
-    max-width:920px;
-  }
-  .topbar{
-    display:flex;
-    align-items:flex-end;
-    justify-content:space-between;
-    margin-bottom:26px;
-    gap:16px;
-    flex-wrap:wrap;
-  }
-  .topbar-eyebrow{
-    font-family:var(--mono);
-    font-size:11px;
-    letter-spacing:0.14em;
-    text-transform:uppercase;
-    color:var(--sprout);
-    margin:0 0 6px;
-  }
-  .topbar h1{
-    font-family:var(--display);
-    font-size:26px;
-    font-weight:600;
-    letter-spacing:-0.015em;
-    margin:0;
-  }
-  .topbar p.sub{
-    margin:6px 0 0;
-    color:var(--paper-dim);
-    font-size:13.5px;
-    max-width:52ch;
-  }
-  .badge{
-    font-family:var(--mono);
-    font-size:11.5px;
-    padding:6px 12px;
-    border-radius:999px;
-    border:1px solid var(--soil-4);
-    color:var(--paper-dim);
-    display:flex;
-    align-items:center;
-    gap:7px;
-    white-space:nowrap;
-  }
+  .main{
+    padding:26px 34px 40px;
+    max-width:920px;
+  }
+  .topbar{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    margin-bottom:26px;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .topbar-eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--sprout);
+    margin:0 0 6px;
+  }
+  .topbar h1{
+    font-family:var(--display);
+    font-size:26px;
+    font-weight:600;
+    letter-spacing:-0.015em;
+    margin:0;
+  }
+  .topbar p.sub{
+    margin:6px 0 0;
+    color:var(--paper-dim);
+    font-size:13.5px;
+    max-width:52ch;
+  }
+  .badge{
+    font-family:var(--mono);
+    font-size:11.5px;
+    padding:6px 12px;
+    border-radius:999px;
+    border:1px solid var(--soil-4);
+    color:var(--paper-dim);
+    display:flex;
+    align-items:center;
+    gap:7px;
+    white-space:nowrap;
+  }
 
-  .view{display:none;}
-  .view.active{display:block;}
+  .view{display:none;}
+  .view.active{display:block;}
 
-  .stat-grid{
-    display:grid;
-    grid-template-columns:repeat(3, 1fr);
-    gap:12px;
-    margin-bottom:22px;
-  }
-  .stat-card{
-    background:var(--soil-1);
-    border:1px solid var(--soil-3);
-    border-radius:10px;
-    padding:16px 18px;
-  }
-  .stat-card .k{
-    font-family:var(--mono);
-    font-size:10.5px;
-    letter-spacing:0.08em;
-    text-transform:uppercase;
-    color:var(--paper-faint);
-    margin-bottom:8px;
-  }
-  .stat-card .v{
-    font-family:var(--display);
-    font-size:21px;
-    font-weight:600;
-    color:var(--paper);
-  }
-  .stat-card .v.accent{color:var(--sprout);}
+  .stat-grid{
+    display:grid;
+    grid-template-columns:repeat(3, 1fr);
+    gap:12px;
+    margin-bottom:22px;
+  }
+  .stat-card{
+    background:var(--soil-1);
+    border:1px solid var(--soil-3);
+    border-radius:10px;
+    padding:16px 18px;
+  }
+  .stat-card .k{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--paper-faint);
+    margin-bottom:8px;
+  }
+  .stat-card .v{
+    font-family:var(--display);
+    font-size:21px;
+    font-weight:600;
+    color:var(--paper);
+  }
+  .stat-card .v.accent{color:var(--sprout);}
 
-  .panel{
-    background:var(--soil-1);
-    border:1px solid var(--soil-3);
-    border-radius:10px;
-    overflow:hidden;
-    margin-bottom:16px;
-  }
-  .panel-head{
-    padding:14px 20px;
-    border-bottom:1px solid var(--soil-3);
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-  }
-  .panel-head h2{
-    font-family:var(--display);
-    font-size:15px;
-    font-weight:600;
-    margin:0;
-  }
-  .panel-head .hint{
-    font-size:11.5px;
-    color:var(--paper-faint);
-  }
-  .panel-body{padding:20px;}
+  .panel{
+    background:var(--soil-1);
+    border:1px solid var(--soil-3);
+    border-radius:10px;
+    overflow:hidden;
+    margin-bottom:16px;
+  }
+  .panel-head{
+    padding:14px 20px;
+    border-bottom:1px solid var(--soil-3);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .panel-head h2{
+    font-family:var(--display);
+    font-size:15px;
+    font-weight:600;
+    margin:0;
+  }
+  .panel-head .hint{
+    font-size:11.5px;
+    color:var(--paper-faint);
+  }
+  .panel-body{padding:20px;}
 
-  label{
-    display:block;
-    font-size:12.5px;
-    color:var(--paper-dim);
-    margin-bottom:7px;
-    font-weight:500;
-  }
-  label .opt{color:var(--paper-faint);font-weight:400;}
-  .field{margin-bottom:16px;}
-  .field:last-of-type{margin-bottom:0;}
-  input[type=text]{
-    width:100%;
-    background:var(--soil);
-    border:1px solid var(--soil-3);
-    color:var(--sprout);
-    font-family:var(--mono);
-    font-size:15px;
-    letter-spacing:0.02em;
-    padding:11px 13px;
-    border-radius:7px;
-    outline:none;
-    transition:border-color .15s;
-  }
-  input[type=text].upper{text-transform:uppercase;}
-  input[type=text]:focus{border-color:var(--sprout-dim);}
-  input[type=text]::placeholder{color:var(--paper-faint);text-transform:none;}
+  label{
+    display:block;
+    font-size:12.5px;
+    color:var(--paper-dim);
+    margin-bottom:7px;
+    font-weight:500;
+  }
+  label .opt{color:var(--paper-faint);font-weight:400;}
+  .field{margin-bottom:16px;}
+  .field:last-of-type{margin-bottom:0;}
+  input[type=text]{
+    width:100%;
+    background:var(--soil);
+    border:1px solid var(--soil-3);
+    color:var(--sprout);
+    font-family:var(--mono);
+    font-size:15px;
+    letter-spacing:0.02em;
+    padding:11px 13px;
+    border-radius:7px;
+    outline:none;
+    transition:border-color .15s;
+  }
+  input[type=text].upper{text-transform:uppercase;}
+  input[type=text]:focus{border-color:var(--sprout-dim);}
+  input[type=text]::placeholder{color:var(--paper-faint);text-transform:none;}
 
-  .form-actions{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin-top:18px;
-  }
-  button.primary{
-    background:var(--sprout);
-    color:#14210a;
-    border:none;
-    font-family:var(--sans);
-    font-weight:600;
-    font-size:13.5px;
-    padding:11px 20px;
-    border-radius:7px;
-    cursor:pointer;
-    transition:filter .15s, transform .05s;
-  }
-  button.primary:hover{filter:brightness(1.08);}
-  button.primary:active{transform:scale(0.97);}
-  button.primary:disabled{background:var(--soil-3);color:var(--paper-faint);cursor:not-allowed;}
-  button.ghost{
-    background:transparent;
-    border:1px solid var(--soil-3);
-    color:var(--paper-dim);
-    font-family:var(--sans);
-    font-weight:500;
-    font-size:12.5px;
-    padding:7px 13px;
-    border-radius:7px;
-    cursor:pointer;
-    transition:border-color .15s, color .15s;
-  }
-  button.ghost:hover{border-color:var(--sprout-dim);color:var(--sprout);}
+  .form-actions{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-top:18px;
+  }
+  button.primary{
+    background:var(--sprout);
+    color:#14210a;
+    border:none;
+    font-family:var(--sans);
+    font-weight:600;
+    font-size:13.5px;
+    padding:11px 20px;
+    border-radius:7px;
+    cursor:pointer;
+    transition:filter .15s, transform .05s;
+  }
+  button.primary:hover{filter:brightness(1.08);}
+  button.primary:active{transform:scale(0.97);}
+  button.primary:disabled{background:var(--soil-3);color:var(--paper-faint);cursor:not-allowed;}
+  button.ghost{
+    background:transparent;
+    border:1px solid var(--soil-3);
+    color:var(--paper-dim);
+    font-family:var(--sans);
+    font-weight:500;
+    font-size:12.5px;
+    padding:7px 13px;
+    border-radius:7px;
+    cursor:pointer;
+    transition:border-color .15s, color .15s;
+  }
+  button.ghost:hover{border-color:var(--sprout-dim);color:var(--sprout);}
 
-  .msg{
-    font-family:var(--mono);
-    font-size:12px;
-    padding:9px 12px;
-    border-radius:7px;
-    border:1px solid transparent;
-    min-height:36px;
-    display:flex;
-    align-items:center;
-    gap:8px;
-    flex:1;
-  }
-  .msg.idle{color:var(--paper-faint);}
-  .msg.ok{color:var(--sprout);background:var(--sprout-glow);border-color:rgba(143,209,79,0.25);}
-  .msg.err{color:var(--danger);background:rgba(224,96,90,0.08);border-color:rgba(224,96,90,0.25);}
-  .msg.busy{color:var(--clay);}
-  .dot-pulse{
-    width:6px;height:6px;border-radius:50%;background:currentColor;
-    animation:pulse 1s infinite ease-in-out;
-  }
-  @keyframes pulse{0%,100%{opacity:.3;}50%{opacity:1;}}
+  .msg{
+    font-family:var(--mono);
+    font-size:12px;
+    padding:9px 12px;
+    border-radius:7px;
+    border:1px solid transparent;
+    min-height:36px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex:1;
+  }
+  .msg.idle{color:var(--paper-faint);}
+  .msg.ok{color:var(--sprout);background:var(--sprout-glow);border-color:rgba(143,209,79,0.25);}
+  .msg.err{color:var(--danger);background:rgba(224,96,90,0.08);border-color:rgba(224,96,90,0.25);}
+  .msg.busy{color:var(--clay);}
+  .dot-pulse{
+    width:6px;height:6px;border-radius:50%;background:currentColor;
+    animation:pulse 1s infinite ease-in-out;
+  }
+  @keyframes pulse{0%,100%{opacity:.3;}50%{opacity:1;}}
 
-  .current-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:12px;
-    margin-top:18px;
-    padding-top:18px;
-    border-top:1px solid var(--soil-3);
-  }
-  .current-item .k{font-size:10.5px;color:var(--paper-faint);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;}
-  .current-item .v{font-family:var(--mono);font-size:15px;color:var(--paper);}
+  .current-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    margin-top:18px;
+    padding-top:18px;
+    border-top:1px solid var(--soil-3);
+  }
+  .current-item .k{font-size:10.5px;color:var(--paper-faint);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;}
+  .current-item .v{font-family:var(--mono);font-size:15px;color:var(--paper);}
 
-  .subhead{
-    font-size:10.5px;
-    letter-spacing:0.1em;
-    text-transform:uppercase;
-    color:var(--paper-faint);
-    margin:0 0 10px;
-  }
-  .pill-row{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
-  }
-  .pill{
-    font-family:var(--mono);
-    font-size:12px;
-    background:var(--soil);
-    border:1px solid var(--soil-3);
-    color:var(--paper);
-    padding:5px 10px;
-    border-radius:999px;
-  }
-  .empty-note{
-    font-size:12.5px;
-    color:var(--paper-faint);
-    font-style:italic;
-  }
-  .scan-cols{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:18px;
-    margin-top:18px;
-  }
-  table.scan-table{
-    width:100%;
-    border-collapse:collapse;
-    font-family:var(--mono);
-    font-size:12px;
-  }
-  table.scan-table th{
-    text-align:left;
-    color:var(--paper-faint);
-    font-weight:500;
-    font-size:10px;
-    letter-spacing:0.05em;
-    text-transform:uppercase;
-    padding:0 0 8px;
-    border-bottom:1px solid var(--soil-3);
-  }
-  table.scan-table td{
-    padding:7px 0;
-    border-bottom:1px solid var(--soil-3);
-    color:var(--paper);
-  }
-  table.scan-table td.count{color:var(--clay);text-align:right;}
-  table.scan-table tr:last-child td{border-bottom:none;}
+  .setup-note{
+    margin-top:18px;
+    font-size:11.5px;
+    color:var(--paper-faint);
+    line-height:1.6;
+  }
+  .setup-note code{
+    background:var(--soil);
+    padding:1px 5px;
+    border-radius:4px;
+    color:var(--clay);
+  }
 
-  @media (max-width: 760px){
-    .app{grid-template-columns:1fr;}
-    .sidebar{
-      flex-direction:row;
-      align-items:center;
-      padding:14px 16px;
-      gap:16px;
-      overflow-x:auto;
-      border-right:none;
-      border-bottom:1px solid var(--soil-3);
-    }
-    .brand{flex:none;}
-    nav.navlist{flex-direction:row;}
-    .nav-label{display:none;}
-    .sidebar-foot{display:none;}
-    .main{padding:20px 18px 32px;}
-    .stat-grid{grid-template-columns:1fr 1fr;}
-    .current-grid{grid-template-columns:1fr;}
-    .scan-cols{grid-template-columns:1fr;}
-  }
+  .subhead{
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--paper-faint);
+    margin:0 0 10px;
+  }
+  .pill-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .pill{
+    font-family:var(--mono);
+    font-size:12px;
+    background:var(--soil);
+    border:1px solid var(--soil-3);
+    color:var(--paper);
+    padding:5px 10px;
+    border-radius:999px;
+  }
+  .empty-note{
+    font-size:12.5px;
+    color:var(--paper-faint);
+    font-style:italic;
+  }
+  .scan-cols{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+    margin-top:18px;
+  }
+  table.scan-table{
+    width:100%;
+    border-collapse:collapse;
+    font-family:var(--mono);
+    font-size:12px;
+  }
+  table.scan-table th{
+    text-align:left;
+    color:var(--paper-faint);
+    font-weight:500;
+    font-size:10px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    padding:0 0 8px;
+    border-bottom:1px solid var(--soil-3);
+  }
+  table.scan-table td{
+    padding:7px 0;
+    border-bottom:1px solid var(--soil-3);
+    color:var(--paper);
+  }
+  table.scan-table td.count{color:var(--clay);text-align:right;}
+  table.scan-table tr:last-child td{border-bottom:none;}
+
+  @media (max-width: 760px){
+    .app{grid-template-columns:1fr;}
+    .sidebar{
+      flex-direction:row;
+      align-items:center;
+      padding:14px 16px;
+      gap:16px;
+      overflow-x:auto;
+      border-right:none;
+      border-bottom:1px solid var(--soil-3);
+    }
+    .brand{flex:none;}
+    nav.navlist{flex-direction:row;}
+    .nav-label{display:none;}
+    .sidebar-foot{display:none;}
+    .main{padding:20px 18px 32px;}
+    .stat-grid{grid-template-columns:1fr 1fr;}
+    .current-grid{grid-template-columns:1fr;}
+    .scan-cols{grid-template-columns:1fr;}
+  }
 </style>
 </head>
 <body>
 
 <div class="app">
 
-  <aside class="sidebar">
-    <div class="brand">
-      <div class="brand-mark">L</div>
-      <div>
-        <div class="brand-name">Lucifer</div>
-        <div class="brand-tag">CONTROL PANEL</div>
-      </div>
-    </div>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">L</div>
+      <div>
+        <div class="brand-name">Lucifer</div>
+        <div class="brand-tag">CONTROL PANEL</div>
+      </div>
+    </div>
 
-    <nav class="navlist">
-      <div class="nav-label">Menu</div>
-      <button class="nav-btn active" data-view="world">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9s1.3-6.4 3.8-9z"/></svg>
-        World Control
-      </button>
-      <button class="nav-btn" data-view="scan">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 9.5h17M9.5 20.5v-11"/></svg>
-        Growscan Monitor
-      </button>
-    </nav>
+    <nav class="navlist">
+      <div class="nav-label">Menu</div>
+      <button class="nav-btn active" data-view="world">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9s1.3-6.4 3.8-9z"/></svg>
+        World Control
+      </button>
+      <button class="nav-btn" data-view="scan">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 9.5h17M9.5 20.5v-11"/></svg>
+        Growscan Monitor
+      </button>
+    </nav>
 
-    <div class="sidebar-foot">
-      <div class="foot-row">
-        <span class="foot-k">Bot</span>
-        <span class="foot-v">AxiqejelPa</span>
-      </div>
-      <div class="foot-row">
-        <span class="foot-k">Sync</span>
-        <span class="foot-v" style="display:flex;align-items:center;gap:6px;"><span class="live-dot"></span>live</span>
-      </div>
-    </div>
-  </aside>
+    <div class="sidebar-foot">
+      <div class="foot-row">
+        <span class="foot-k">Bot</span>
+        <span class="foot-v">AxiqejelPa</span>
+      </div>
+      <div class="foot-row">
+        <span class="foot-k">Sync</span>
+        <span class="foot-v" style="display:flex;align-items:center;gap:6px;"><span class="live-dot"></span>live</span>
+      </div>
+    </div>
+  </aside>
 
-  <main class="main">
+  <main class="main">
 
-    <section class="view active" id="view-world">
-      <div class="topbar">
-        <div>
-          <p class="topbar-eyebrow">Navigation</p>
-          <h1>World Control</h1>
-          <p class="sub">Atur world &amp; door tujuan bot. Perubahan tersimpan ke Firebase dan diambil bot dalam beberapa detik.</p>
-        </div>
-        <span class="badge"><span class="live-dot"></span> Firebase tersambung</span>
-      </div>
+    <section class="view active" id="view-world">
+      <div class="topbar">
+        <div>
+          <p class="topbar-eyebrow">Navigation</p>
+          <h1>World Control</h1>
+          <p class="sub">Atur world &amp; door tujuan bot. Perubahan tersimpan ke Firebase dan diambil bot dalam beberapa detik.</p>
+        </div>
+        <span class="badge"><span class="live-dot"></span> Firebase tersambung</span>
+      </div>
 
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Warp target</h2>
-          <span class="hint">Dibaca ulang tiap 10 detik oleh bot</span>
-        </div>
-        <div class="panel-body">
-          <div class="field">
-            <label for="worldInput">Nama world</label>
-            <input id="worldInput" type="text" class="upper" placeholder="cth: PAPAZIA" maxlength="20" autocomplete="off">
-          </div>
-          <div class="field">
-            <label for="doorInput">Door ID <span class="opt">(opsional — kosongkan kalau tidak perlu)</span></label>
-            <input id="doorInput" type="text" placeholder="cth: 1" maxlength="20" autocomplete="off">
-          </div>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Warp target</h2>
+          <span class="hint">Dibaca ulang tiap 10 detik oleh bot</span>
+        </div>
+        <div class="panel-body">
+          <div class="field">
+            <label for="worldInput">Nama world</label>
+            <input id="worldInput" type="text" class="upper" placeholder="cth: PAPAZIA" maxlength="20" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="doorInput">Door ID <span class="opt">(opsional — kosongkan kalau tidak perlu)</span></label>
+            <input id="doorInput" type="text" placeholder="cth: 1" maxlength="20" autocomplete="off">
+          </div>
 
-          <div class="form-actions">
-            <button class="primary" id="saveBtn">Simpan &amp; warp</button>
-            <div id="status" class="msg idle">Belum ada perubahan.</div>
-          </div>
+          <div class="form-actions">
+            <button class="primary" id="saveBtn">Simpan &amp; warp</button>
+            <div id="status" class="msg idle">Belum ada perubahan.</div>
+          </div>
 
-          <div class="current-grid">
-            <div class="current-item">
-              <div class="k">World aktif</div>
-              <div class="v" id="currentWorld">memuat…</div>
-            </div>
-            <div class="current-item">
-              <div class="k">Door ID</div>
-              <div class="v" id="currentDoor">memuat…</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+          <div class="current-grid">
+            <div class="current-item">
+              <div class="k">World aktif</div>
+              <div class="v" id="currentWorld">memuat…</div>
+            </div>
+            <div class="current-item">
+              <div class="k">Door ID</div>
+              <div class="v" id="currentDoor">memuat…</div>
+            </div>
+          </div>
 
-    <section class="view" id="view-scan">
-      <div class="topbar">
-        <div>
-          <p class="topbar-eyebrow">Navigation</p>
-          <h1>Growscan Monitor</h1>
-          <p class="sub">Hasil growscan dan GrowID yang terdeteksi bot di world aktif, diperbarui otomatis.</p>
-        </div>
-        <button class="ghost" id="refreshScanBtn">Refresh sekarang</button>
-      </div>
+          <p class="setup-note">
+            Ganti <code>FIREBASE_URL</code> di bagian &lt;script&gt; file ini dengan URL Realtime Database kamu sebelum dipakai.
+          </p>
+        </div>
+      </div>
+    </section>
 
-      <div class="stat-grid">
-        <div class="stat-card">
-          <div class="k">World terpantau</div>
-          <div class="v" id="statWorld">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="k">GrowID terdeteksi</div>
-          <div class="v accent" id="statPlayers">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="k">Update terakhir</div>
-          <div class="v" id="statUpdated" style="font-family:var(--mono);font-size:15px;">—</div>
-        </div>
-      </div>
+    <section class="view" id="view-scan">
+      <div class="topbar">
+        <div>
+          <p class="topbar-eyebrow">Navigation</p>
+          <h1>Growscan Monitor</h1>
+          <p class="sub">Hasil growscan dan GrowID yang terdeteksi bot di world aktif, diperbarui otomatis.</p>
+        </div>
+        <button class="ghost" id="refreshScanBtn">Refresh sekarang</button>
+      </div>
 
-      <div class="panel">
-        <div class="panel-head">
-          <h2>GrowID di world</h2>
-          <span class="hint" id="playerCountHint">0 pemain</span>
-        </div>
-        <div class="panel-body">
-          <div class="pill-row" id="playerList">
-            <span class="empty-note">Belum ada data pemain.</span>
-          </div>
-        </div>
-      </div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="k">World terpantau</div>
+          <div class="v" id="statWorld">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="k">GrowID terdeteksi</div>
+          <div class="v accent" id="statPlayers">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="k">Update terakhir</div>
+          <div class="v" id="statUpdated" style="font-family:var(--mono);font-size:15px;">—</div>
+        </div>
+      </div>
 
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Hasil growscan</h2>
-          <span class="hint">Objects &amp; tiles, diurutkan dari jumlah terbanyak</span>
-        </div>
-        <div class="panel-body">
-          <div class="scan-cols">
-            <div>
-              <p class="subhead">Objects</p>
-              <div id="objectTableWrap"><span class="empty-note">Belum ada data growscan.</span></div>
-            </div>
-            <div>
-              <p class="subhead">Tiles</p>
-              <div id="tileTableWrap"><span class="empty-note">Belum ada data growscan.</span></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>GrowID di world</h2>
+          <span class="hint" id="playerCountHint">0 pemain</span>
+        </div>
+        <div class="panel-body">
+          <div class="pill-row" id="playerList">
+            <span class="empty-note">Belum ada data pemain.</span>
+          </div>
+        </div>
+      </div>
 
-  </main>
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Hasil growscan</h2>
+          <span class="hint">Objects &amp; tiles, diurutkan dari jumlah terbanyak</span>
+        </div>
+        <div class="panel-body">
+          <div class="scan-cols">
+            <div>
+              <p class="subhead">Objects</p>
+              <div id="objectTableWrap"><span class="empty-note">Belum ada data growscan.</span></div>
+            </div>
+            <div>
+              <p class="subhead">Tiles</p>
+              <div id="tileTableWrap"><span class="empty-note">Belum ada data growscan.</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
 </div>
 
 <script>
-  const FIREBASE_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
-  const TARGET_PATH = "target_world.json";
-  const DOOR_PATH = "target_door.json";
-  const STATUS_PATH = "world_status.json";
-  const STATUS_POLL_MS = 5000;
+  // GANTI dengan URL Firebase Realtime Database kamu, contoh:
+  // "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app"
+  const FIREBASE_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
+  const TARGET_PATH = "target_world.json";
+  const DOOR_PATH = "target_door.json";
+  const STATUS_PATH = "world_status.json";
+  const STATUS_POLL_MS = 5000;
 
-  const navBtns = document.querySelectorAll('.nav-btn');
-  const views = document.querySelectorAll('.view');
-  navBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      navBtns.forEach(b => b.classList.remove('active'));
-      views.forEach(v => v.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('view-' + btn.dataset.view).classList.add('active');
-    });
-  });
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const views = document.querySelectorAll('.view');
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      navBtns.forEach(b => b.classList.remove('active'));
+      views.forEach(v => v.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('view-' + btn.dataset.view).classList.add('active');
+    });
+  });
 
-  const input = document.getElementById('worldInput');
-  const doorInput = document.getElementById('doorInput');
-  const btn = document.getElementById('saveBtn');
-  const statusEl = document.getElementById('status');
-  const currentEl = document.getElementById('currentWorld');
-  const currentDoorEl = document.getElementById('currentDoor');
+  const input = document.getElementById('worldInput');
+  const doorInput = document.getElementById('doorInput');
+  const btn = document.getElementById('saveBtn');
+  const statusEl = document.getElementById('status');
+  const currentEl = document.getElementById('currentWorld');
+  const currentDoorEl = document.getElementById('currentDoor');
 
-  function setStatus(kind, html){
-    statusEl.className = 'msg ' + kind;
-    statusEl.innerHTML = html;
-  }
+  function setStatus(kind, html){
+    statusEl.className = 'msg ' + kind;
+    statusEl.innerHTML = html;
+  }
 
-  async function loadCurrent(){
-    try{
-      const res = await fetch(`${FIREBASE_URL}/${TARGET_PATH}`);
-      const data = await res.json();
-      currentEl.textContent = data || '(belum di-set)';
-      if(data) input.value = data;
-    }catch(e){
-      currentEl.textContent = 'gagal memuat';
-    }
-    try{
-      const res = await fetch(`${FIREBASE_URL}/${DOOR_PATH}`);
-      const data = await res.json();
-      currentDoorEl.textContent = data || '(tidak ada)';
-      if(data) doorInput.value = data;
-    }catch(e){
-      currentDoorEl.textContent = 'gagal memuat';
-    }
-  }
+  async function loadCurrent(){
+    try{
+      const res = await fetch(`${FIREBASE_URL}/${TARGET_PATH}`);
+      const data = await res.json();
+      currentEl.textContent = data || '(belum di-set)';
+      if(data) input.value = data;
+    }catch(e){
+      currentEl.textContent = 'gagal memuat';
+    }
+    try{
+      const res = await fetch(`${FIREBASE_URL}/${DOOR_PATH}`);
+      const data = await res.json();
+      currentDoorEl.textContent = data || '(tidak ada)';
+      if(data) doorInput.value = data;
+    }catch(e){
+      currentDoorEl.textContent = 'gagal memuat';
+    }
+  }
 
-  async function saveWorld(){
-    const name = input.value.trim().toUpperCase();
-    const door = doorInput.value.trim();
-    if(!name){
-      setStatus('err', 'Nama world tidak boleh kosong.');
-      return;
-    }
-    btn.disabled = true;
-    setStatus('busy', '<span class="dot-pulse"></span> Menyimpan…');
-    try{
-      const res = await fetch(`${FIREBASE_URL}/${TARGET_PATH}`, {
-        method: 'PUT',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(name)
-      });
-      if(!res.ok) throw new Error('HTTP ' + res.status);
+  async function saveWorld(){
+    const name = input.value.trim().toUpperCase();
+    const door = doorInput.value.trim();
+    if(!name){
+      setStatus('err', 'Nama world tidak boleh kosong.');
+      return;
+    }
+    btn.disabled = true;
+    setStatus('busy', '<span class="dot-pulse"></span> Menyimpan…');
+    try{
+      const res = await fetch(`${FIREBASE_URL}/${TARGET_PATH}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(name)
+      });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
 
-      const res2 = await fetch(`${FIREBASE_URL}/${DOOR_PATH}`, {
-        method: 'PUT',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(door)
-      });
-      if(!res2.ok) throw new Error('HTTP ' + res2.status);
+      const res2 = await fetch(`${FIREBASE_URL}/${DOOR_PATH}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(door)
+      });
+      if(!res2.ok) throw new Error('HTTP ' + res2.status);
 
-      const label = door ? `<b>${name}</b> lewat door <b>${door}</b>` : `<b>${name}</b>`;
-      setStatus('ok', `Tersimpan. Bot akan warp ke ${label} dalam beberapa detik.`);
-      currentEl.textContent = name;
-      currentDoorEl.textContent = door || '(tidak ada)';
-    }catch(e){
-      setStatus('err', 'Gagal menyimpan: ' + e.message);
-    }finally{
-      btn.disabled = false;
-    }
-  }
+      const label = door ? `<b>${name}</b> lewat door <b>${door}</b>` : `<b>${name}</b>`;
+      setStatus('ok', `Tersimpan. Bot akan warp ke ${label} dalam beberapa detik.`);
+      currentEl.textContent = name;
+      currentDoorEl.textContent = door || '(tidak ada)';
+    }catch(e){
+      setStatus('err', 'Gagal menyimpan: ' + e.message);
+    }finally{
+      btn.disabled = false;
+    }
+  }
 
-  btn.addEventListener('click', saveWorld);
-  input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') saveWorld(); });
-  doorInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') saveWorld(); });
+  btn.addEventListener('click', saveWorld);
+  input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') saveWorld(); });
+  doorInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') saveWorld(); });
 
-  const statWorldEl = document.getElementById('statWorld');
-  const statPlayersEl = document.getElementById('statPlayers');
-  const statUpdatedEl = document.getElementById('statUpdated');
-  const playerListEl = document.getElementById('playerList');
-  const playerCountHintEl = document.getElementById('playerCountHint');
-  const objectTableWrap = document.getElementById('objectTableWrap');
-  const tileTableWrap = document.getElementById('tileTableWrap');
-  const refreshScanBtn = document.getElementById('refreshScanBtn');
+  const statWorldEl = document.getElementById('statWorld');
+  const statPlayersEl = document.getElementById('statPlayers');
+  const statUpdatedEl = document.getElementById('statUpdated');
+  const playerListEl = document.getElementById('playerList');
+  const playerCountHintEl = document.getElementById('playerCountHint');
+  const objectTableWrap = document.getElementById('objectTableWrap');
+  const tileTableWrap = document.getElementById('tileTableWrap');
+  const refreshScanBtn = document.getElementById('refreshScanBtn');
 
-  function fmtTime(unixSeconds){
-    if(!unixSeconds) return '—';
-    const d = new Date(unixSeconds * 1000);
-    return d.toLocaleTimeString('id-ID');
-  }
+  function fmtTime(unixSeconds){
+    if(!unixSeconds) return '—';
+    const d = new Date(unixSeconds * 1000);
+    return d.toLocaleTimeString('id-ID');
+  }
 
-  // Normalisasi data dari Lua (menangani array/object dari encoder bawaan Lua)
-  function toList(data) {
-    if (!data) return [];
-    if (Array.isArray(data)) return data;
-    if (typeof data === 'object') return Object.values(data);
-    return [];
-  }
+  function renderScanTable(rows){
+    if(!rows || rows.length === 0){
+      return '<span class="empty-note">Tidak ada data.</span>';
+    }
+    const sorted = [...rows].sort((a,b)=> (b.count||0) - (a.count||0)).slice(0, 12);
+    let html = '<table class="scan-table"><thead><tr><th>Nama</th><th>ID</th><th style="text-align:right">Jumlah</th></tr></thead><tbody>';
+    for(const r of sorted){
+      html += `<tr><td>${r.name ?? '—'}</td><td>${r.id ?? '—'}</td><td class="count">${r.count ?? 0}</td></tr>`;
+    }
+    html += '</tbody></table>';
+    return html;
+  }
 
-  function renderScanTable(rawRows){
-    const rows = toList(rawRows);
-    if(rows.length === 0){
-      return '<span class="empty-note">Tidak ada data.</span>';
-    }
-    const sorted = [...rows].sort((a,b)=> (b.count||0) - (a.count||0)).slice(0, 12);
-    let html = '<table class="scan-table"><thead><tr><th>Nama</th><th>ID</th><th style="text-align:right">Jumlah</th></tr></thead><tbody>';
-    for(const r of sorted){
-      html += `<tr><td>${r.name ?? '—'}</td><td>${r.id ?? '—'}</td><td class="count">${r.count ?? 0}</td></tr>`;
-    }
-    html += '</tbody></table>';
-    return html;
-  }
+  async function loadWorldStatus(){
+    try{
+      const res = await fetch(`${FIREBASE_URL}/${STATUS_PATH}`);
+      const data = await res.json();
+      if(!data) return;
 
-  async function loadWorldStatus(){
-    try{
-      const res = await fetch(`${FIREBASE_URL}/${STATUS_PATH}`);
-      const data = await res.json();
-      if(!data) return;
+      statWorldEl.textContent = data.world || '—';
+      statUpdatedEl.textContent = fmtTime(data.updated_at);
 
-      statWorldEl.textContent = data.world || '—';
-      statUpdatedEl.textContent = fmtTime(data.updated_at);
+      const players = Array.isArray(data.players) ? data.players : [];
+      statPlayersEl.textContent = players.length;
+      playerCountHintEl.textContent = players.length + ' pemain';
+      if(players.length === 0){
+        playerListEl.innerHTML = '<span class="empty-note">Belum ada data pemain.</span>';
+      }else{
+        playerListEl.innerHTML = players
+          .map(p => `<span class="pill">${p.growid ?? ('netid_' + p.netid)}</span>`)
+          .join('');
+      }
 
-      const players = toList(data.players);
-      statPlayersEl.textContent = players.length;
-      playerCountHintEl.textContent = players.length + ' pemain';
+      const scan = data.growscan || {};
+      objectTableWrap.innerHTML = renderScanTable(scan.objects);
+      tileTableWrap.innerHTML = renderScanTable(scan.tiles);
+    }catch(e){
+      // Diamkan kalau path belum pernah dibuat oleh bot; panel tetap tampil kosong.
+    }
+  }
 
-      if(players.length === 0){
-        playerListEl.innerHTML = '<span class="empty-note">Belum ada data pemain.</span>';
-      }else{
-        playerListEl.innerHTML = players
-          .map(p => `<span class="pill">${p.growid ?? ('netid_' + p.netid)}</span>`)
-          .join('');
-      }
+  refreshScanBtn.addEventListener('click', loadWorldStatus);
 
-      const scan = data.growscan || {};
-      objectTableWrap.innerHTML = renderScanTable(scan.objects);
-      tileTableWrap.innerHTML = renderScanTable(scan.tiles);
-    }catch(e){
-      // Silently fail if path doesn't exist yet
-    }
-  }
-
-  refreshScanBtn.addEventListener('click', loadWorldStatus);
-
-  loadCurrent();
-  loadWorldStatus();
-  setInterval(loadWorldStatus, STATUS_POLL_MS);
+  loadCurrent();
+  loadWorldStatus();
+  setInterval(loadWorldStatus, STATUS_POLL_MS);
 </script>
 
 </body>
