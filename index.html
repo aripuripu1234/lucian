@@ -621,36 +621,6 @@
         <span class="badge">Client-side only</span>
       </div>
 
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Mode kunci</h2>
-          <span class="hint">Pilih cara kunci decrypt disimpan</span>
-        </div>
-        <div class="panel-body">
-          <div class="field" style="margin-bottom:14px;">
-            <label style="display:flex;align-items:center;gap:9px;cursor:pointer;margin-bottom:0;">
-              <input type="checkbox" id="remoteKeyToggle" checked style="width:16px;height:16px;accent-color:var(--sprout);">
-              <span>Simpan kunci di Firebase <span class="opt">(disarankan — kunci tidak ikut ke dalam file .lua)</span></span>
-            </label>
-          </div>
-          <div id="remoteKeyFields">
-            <div class="field">
-              <label for="fbBaseInput">Firebase Base URL</label>
-              <input id="fbBaseInput" type="text" placeholder="https://xxxx-default-rtdb.region.firebasedatabase.app">
-            </div>
-            <div class="field">
-              <label for="fbKeyPathInput">Path kunci di Firebase <span class="opt">(bebas, jangan sama dengan path lain yang dipakai bot)</span></label>
-              <input id="fbKeyPathInput" type="text" placeholder="cth: enc_key_1">
-            </div>
-          </div>
-          <p class="setup-note" id="modeExplain" style="margin-top:0;">
-            Kunci XOR acak akan di-<b>PUT</b> ke <code>[Firebase Base URL]/[path].json</code> saat encrypt.
-            Loader yang dihasilkan <b>tidak menyimpan kunci sama sekali</b> — dia akan fetch kunci itu dari Firebase setiap kali dijalankan.
-            Kalau file loader-nya bocor sendirian, isinya tetap tidak bisa dibuka tanpa akses ke Firebase kamu.
-          </p>
-        </div>
-      </div>
-
       <div class="crypt-grid">
         <div class="panel">
           <div class="panel-head">
@@ -701,9 +671,8 @@
 
       <p class="setup-note">
         Format loader yang dihasilkan cocok langsung dipakai sebagai file <code>.lua</code> — tinggal jalankan seperti script biasa.
-        Mode "kunci di Firebase" jauh lebih susah dibobol karena kuncinya tidak pernah ada di file yang beredar —
-        hanya ada di database kamu. Mode lokal (kalau toggle di atas dimatikan) tetap tersedia sebagai fallback
-        buat executor yang tidak bisa akses internet saat runtime, tapi kuncinya ikut tertanam di file.
+        Kunci XOR dibuat acak setiap kali encrypt, jadi hasilnya selalu berbeda walau source-nya sama.
+        Ini teknik obfuscation, bukan enkripsi kriptografis yang benar-benar aman.
       </p>
     </section>
 
@@ -864,12 +833,7 @@
 
   // ============================================================
   //  ENCRYPT / DECRYPT TOOL (XOR + Base64, client-side)
-  //  Dua mode:
-  //   - REMOTE (disarankan): kunci di-PUT ke Firebase, loader
-  //     fetch kunci itu tiap kali dijalankan. Kunci TIDAK ada
-  //     di dalam file loader sama sekali.
-  //   - LOCAL (fallback): kunci ikut tertanam di file, dipakai
-  //     kalau executor tidak bisa HTTP saat runtime.
+  //  Format loader sama persis dengan yang dipakai bot Lucifer.
   // ============================================================
 
   function randomKeyBytes(len){
@@ -908,7 +872,17 @@
     return bytes;
   }
 
-  const LOADER_HELPERS = `local _b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+  function buildLoader(base64Payload, keyBytes){
+    const keyList = Array.from(keyBytes).join(',');
+    return `-- ================================================
+--  ENCRYPTED SCRIPT LOADER
+--  Jangan diedit manual. Source asli ter-enkripsi
+--  pakai XOR + Base64, di-decode saat runtime.
+-- ================================================
+
+local _k = {${keyList}}
+
+local _b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
 
 local function _b64decode(data)
     data = data:gsub('[^'.._b64chars..'=]', '')
@@ -937,20 +911,7 @@ local function _xor(data, key)
         out[i] = string.char(data:byte(i) ~ kb)
     end
     return table.concat(out)
-end`;
-
-  function buildLocalLoader(base64Payload, keyBytes){
-    const keyList = Array.from(keyBytes).join(',');
-    return `-- ================================================
---  ENCRYPTED SCRIPT LOADER (kunci lokal)
---  Kunci ikut tertanam di file ini. Lebih gampang
---  dibobol dibanding mode remote-key. Pakai ini cuma
---  kalau executor kamu tidak bisa HTTP saat runtime.
--- ================================================
-
-local _k = {${keyList}}
-
-${LOADER_HELPERS}
+end
 
 local _payload = [[
 ${base64Payload}
@@ -967,100 +928,21 @@ _fn()
 `;
   }
 
-  function buildRemoteLoader(base64Payload, fbBase, keyPath, authToken){
-    const authLine = authToken
-      ? `\n    url = url .. "?auth=" .. "${authToken.replace(/"/g,'\\"')}"`
-      : '';
-    return `-- ================================================
---  ENCRYPTED SCRIPT LOADER (kunci remote / Firebase)
---  Kunci decrypt TIDAK ada di file ini. Diambil dari
---  Firebase tiap kali script dijalankan. File ini saja
---  tidak cukup buat siapapun untuk baca isi aslinya.
--- ================================================
-
-local _fb_base = "${fbBase}"
-local _key_path = "${keyPath}"
-
-${LOADER_HELPERS}
-
-local function _fetchKey()
-    local url = _fb_base .. "/" .. _key_path .. ".json"${authLine}
-    local client = HttpClient.new()
-    client.method = Method.get
-    client.url = url
-    local ok, response = pcall(function() return client:request() end)
-    if not ok or response == nil or response.body == nil then
-        error("Gagal ambil kunci decrypt dari Firebase (cek koneksi/URL/rules).")
-    end
-    local key = {}
-    for num in response.body:gmatch("%d+") do
-        key[#key + 1] = tonumber(num)
-    end
-    if #key == 0 then
-        error("Kunci decrypt kosong / format salah di Firebase path: " .. _key_path)
-    end
-    return key
-end
-
-local _payload = [[
-${base64Payload}
-]]
-
-local _k = _fetchKey()
-local _decoded = _xor(_b64decode(_payload), _k)
-
-local _fn, _err = load(_decoded, "protected_script")
-if not _fn then
-    error("Gagal decode script: " .. tostring(_err))
-end
-
-_fn()
-`;
+  function encryptLua(sourceText){
+    const bytes = new TextEncoder().encode(sourceText);
+    const key = randomKeyBytes(16);
+    const xored = xorBytes(bytes, key);
+    const b64 = bytesToBase64(xored);
+    return buildLoader(b64, key);
   }
 
-  async function putKeyToFirebase(fbBase, keyPath, keyBytes, authToken){
-    let url = `${fbBase}/${keyPath}.json`;
-    if(authToken) url += `?auth=${encodeURIComponent(authToken)}`;
-    const res = await fetch(url, {
-      method: 'PUT',
-      headers: {'Content-Type':'application/json'},
-      body: JSON.stringify(Array.from(keyBytes))
-    });
-    if(!res.ok) throw new Error('HTTP ' + res.status + ' saat simpan kunci ke Firebase');
-  }
-
-  async function fetchKeyFromFirebase(fbBase, keyPath, authToken){
-    let url = `${fbBase}/${keyPath}.json`;
-    if(authToken) url += `?auth=${encodeURIComponent(authToken)}`;
-    const res = await fetch(url);
-    if(!res.ok) throw new Error('HTTP ' + res.status + ' saat ambil kunci dari Firebase');
-    const data = await res.json();
-    if(!Array.isArray(data) || data.length === 0){
-      throw new Error('Kunci tidak ditemukan / kosong di path tersebut.');
-    }
-    return new Uint8Array(data);
-  }
-
-  function decryptLocal(loaderText){
+  function decryptLoader(loaderText){
     const keyMatch = loaderText.match(/_k\s*=\s*\{([\d,\s]+)\}/);
     const payloadMatch = loaderText.match(/_payload\s*=\s*\[\[\s*([\s\S]*?)\s*\]\]/);
     if(!keyMatch || !payloadMatch){
-      throw new Error('Format loader lokal tidak dikenali (key/payload tidak ditemukan).');
+      throw new Error('Format loader tidak dikenali (key/payload tidak ditemukan).');
     }
     const key = new Uint8Array(keyMatch[1].split(',').map(s => parseInt(s.trim(), 10)));
-    const xored = base64ToBytes(payloadMatch[1]);
-    const original = xorBytes(xored, key);
-    return new TextDecoder('utf-8', { fatal: false }).decode(original);
-  }
-
-  async function decryptRemote(loaderText, authTokenOverride){
-    const baseMatch = loaderText.match(/_fb_base\s*=\s*"([^"]*)"/);
-    const pathMatch = loaderText.match(/_key_path\s*=\s*"([^"]*)"/);
-    const payloadMatch = loaderText.match(/_payload\s*=\s*\[\[\s*([\s\S]*?)\s*\]\]/);
-    if(!baseMatch || !pathMatch || !payloadMatch){
-      throw new Error('Format loader remote tidak dikenali.');
-    }
-    const key = await fetchKeyFromFirebase(baseMatch[1], pathMatch[1], authTokenOverride);
     const xored = base64ToBytes(payloadMatch[1]);
     const original = xorBytes(xored, key);
     return new TextDecoder('utf-8', { fatal: false }).decode(original);
@@ -1083,25 +965,6 @@ _fn()
     el.textContent = text;
   }
 
-  const remoteKeyToggle = document.getElementById('remoteKeyToggle');
-  const remoteKeyFields = document.getElementById('remoteKeyFields');
-  const modeExplain = document.getElementById('modeExplain');
-  const fbBaseInput = document.getElementById('fbBaseInput');
-  const fbKeyPathInput = document.getElementById('fbKeyPathInput');
-
-  fbBaseInput.value = FIREBASE_URL;
-  fbKeyPathInput.value = 'enc_key_1';
-
-  function syncModeUI(){
-    const remote = remoteKeyToggle.checked;
-    remoteKeyFields.style.display = remote ? '' : 'none';
-    modeExplain.innerHTML = remote
-      ? 'Kunci XOR acak akan di-<b>PUT</b> ke <code>[Firebase Base URL]/[path].json</code> saat encrypt. Loader yang dihasilkan <b>tidak menyimpan kunci sama sekali</b> — dia fetch kunci itu tiap kali dijalankan. Kalau file loader-nya bocor sendirian, isinya tetap tidak bisa dibuka tanpa akses ke Firebase kamu.'
-      : 'Kunci ikut ditanam langsung di dalam file loader (seperti versi sebelumnya). Lebih gampang dibobol kalau file-nya sampai bocor, tapi tidak butuh koneksi internet saat script dijalankan.';
-  }
-  remoteKeyToggle.addEventListener('change', syncModeUI);
-  syncModeUI();
-
   const encInput = document.getElementById('encInput');
   const encOutput = document.getElementById('encOutput');
   const encBtnEl = document.getElementById('encBtn');
@@ -1109,45 +972,18 @@ _fn()
   const encDownloadBtn = document.getElementById('encDownloadBtn');
   const encStatus = document.getElementById('encStatus');
 
-  encBtnEl.addEventListener('click', async () => {
+  encBtnEl.addEventListener('click', () => {
     const src = encInput.value;
     if(!src.trim()){
       setToolStatus(encStatus, 'err', 'Tempel kode Lua dulu sebelum encrypt.');
       return;
     }
-
-    const bytes = new TextEncoder().encode(src);
-    const key = randomKeyBytes(16);
-    const xored = xorBytes(bytes, key);
-    const b64 = bytesToBase64(xored);
-
-    if(!remoteKeyToggle.checked){
-      try{
-        encOutput.value = buildLocalLoader(b64, key);
-        setToolStatus(encStatus, 'ok', 'Berhasil di-encrypt (mode lokal). Kunci ikut tertanam di file.');
-      }catch(e){
-        setToolStatus(encStatus, 'err', 'Gagal encrypt: ' + e.message);
-      }
-      return;
-    }
-
-    const fbBase = fbBaseInput.value.trim().replace(/\/$/, '');
-    const keyPath = fbKeyPathInput.value.trim();
-    if(!fbBase || !keyPath){
-      setToolStatus(encStatus, 'err', 'Isi Firebase Base URL dan path kunci dulu.');
-      return;
-    }
-
-    encBtnEl.disabled = true;
-    setToolStatus(encStatus, 'busy', '<span class="dot-pulse"></span> Menyimpan kunci ke Firebase…');
     try{
-      await putKeyToFirebase(fbBase, keyPath, key, null);
-      encOutput.value = buildRemoteLoader(b64, fbBase, keyPath, null);
-      setToolStatus(encStatus, 'ok', 'Berhasil. Kunci tersimpan di Firebase, loader tidak menyimpan kunci sama sekali.');
+      const loader = encryptLua(src);
+      encOutput.value = loader;
+      setToolStatus(encStatus, 'ok', 'Berhasil di-encrypt. Key XOR acak baru sudah dipakai.');
     }catch(e){
-      setToolStatus(encStatus, 'err', 'Gagal simpan kunci ke Firebase: ' + e.message);
-    }finally{
-      encBtnEl.disabled = false;
+      setToolStatus(encStatus, 'err', 'Gagal encrypt: ' + e.message);
     }
   });
 
@@ -1175,34 +1011,18 @@ _fn()
   const decDownloadBtn = document.getElementById('decDownloadBtn');
   const decStatus = document.getElementById('decStatus');
 
-  decBtnEl.addEventListener('click', async () => {
+  decBtnEl.addEventListener('click', () => {
     const loader = decInput.value;
     if(!loader.trim()){
       setToolStatus(decStatus, 'err', 'Tempel isi loader ter-enkripsi dulu.');
       return;
     }
-
-    const isRemote = /_fb_base\s*=/.test(loader);
-
-    if(!isRemote){
-      try{
-        decOutput.value = decryptLocal(loader);
-        setToolStatus(decStatus, 'ok', 'Berhasil di-decrypt (mode lokal).');
-      }catch(e){
-        setToolStatus(decStatus, 'err', 'Gagal decrypt: ' + e.message);
-      }
-      return;
-    }
-
-    decBtnEl.disabled = true;
-    setToolStatus(decStatus, 'busy', '<span class="dot-pulse"></span> Mengambil kunci dari Firebase…');
     try{
-      decOutput.value = await decryptRemote(loader, null);
-      setToolStatus(decStatus, 'ok', 'Berhasil di-decrypt (kunci diambil dari Firebase).');
+      const original = decryptLoader(loader);
+      decOutput.value = original;
+      setToolStatus(decStatus, 'ok', 'Berhasil di-decrypt.');
     }catch(e){
       setToolStatus(decStatus, 'err', 'Gagal decrypt: ' + e.message);
-    }finally{
-      decBtnEl.disabled = false;
     }
   });
 
