@@ -258,7 +258,7 @@
   label .opt{color:var(--paper-faint);font-weight:400;}
   .field{margin-bottom:16px;}
   .field:last-of-type{margin-bottom:0;}
-  input[type=text]{
+  input[type=text], input[type=number]{
     width:100%;
     background:var(--soil);
     border:1px solid var(--soil-3);
@@ -272,8 +272,17 @@
     transition:border-color .15s;
   }
   input[type=text].upper{text-transform:uppercase;}
-  input[type=text]:focus{border-color:var(--sprout-dim);}
-  input[type=text]::placeholder{color:var(--paper-faint);text-transform:none;}
+  input[type=text]:focus, input[type=number]:focus{border-color:var(--sprout-dim);}
+  input[type=text]::placeholder, input[type=number]::placeholder{color:var(--paper-faint);text-transform:none;}
+
+  .field-row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  @media (max-width:600px){
+    .field-row{grid-template-columns:1fr;}
+  }
 
   textarea.codearea{
     width:100%;
@@ -316,6 +325,21 @@
   button.primary:hover{filter:brightness(1.08);}
   button.primary:active{transform:scale(0.97);}
   button.primary:disabled{background:var(--soil-3);color:var(--paper-faint);cursor:not-allowed;}
+  button.danger{
+    background:var(--danger);
+    color:#2b0e0c;
+    border:none;
+    font-family:var(--sans);
+    font-weight:600;
+    font-size:13.5px;
+    padding:11px 20px;
+    border-radius:7px;
+    cursor:pointer;
+    transition:filter .15s, transform .05s;
+  }
+  button.danger:hover{filter:brightness(1.08);}
+  button.danger:active{transform:scale(0.97);}
+  button.danger:disabled{background:var(--soil-3);color:var(--paper-faint);cursor:not-allowed;}
   button.ghost{
     background:transparent;
     border:1px solid var(--soil-3);
@@ -397,6 +421,7 @@
     padding:5px 10px;
     border-radius:999px;
   }
+  .pill.on{color:var(--sprout);border-color:rgba(143,209,79,0.3);}
   .empty-note{
     font-size:12.5px;
     color:var(--paper-faint);
@@ -440,6 +465,19 @@
   @media (max-width: 900px){
     .crypt-grid{grid-template-columns:1fr;}
   }
+
+  .state-badge{
+    font-family:var(--mono);
+    font-size:11px;
+    padding:4px 10px;
+    border-radius:999px;
+    border:1px solid var(--soil-4);
+    color:var(--paper-dim);
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+  }
+  .state-badge.on{color:var(--sprout);border-color:rgba(143,209,79,0.3);background:var(--sprout-glow);}
+  .state-badge.off{color:var(--paper-faint);}
 
   @media (max-width: 760px){
     .app{grid-template-columns:1fr;}
@@ -485,6 +523,10 @@
       <button class="nav-btn" data-view="scan">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 9.5h17M9.5 20.5v-11"/></svg>
         Growscan Monitor
+      </button>
+      <button class="nav-btn" data-view="movedrop">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7l8-4 8 4-8 4-8-4z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg>
+        Move Drop
       </button>
       <button class="nav-btn" data-view="crypt">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
@@ -611,6 +653,94 @@
       </div>
     </section>
 
+    <section class="view" id="view-movedrop">
+      <div class="topbar">
+        <div>
+          <p class="topbar-eyebrow">Navigation</p>
+          <h1>Move Drop</h1>
+          <p class="sub">Bot ambil item tertentu (whitelist ID) dari world &amp; door asal, lalu pindah ke world storage dan drop otomatis ke space kosong. Saat drop, bot tidak collect apapun.</p>
+        </div>
+        <span class="state-badge off" id="movedropBadge">Berhenti</span>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Konfigurasi rute</h2>
+          <span class="hint">Dibaca ulang bot tiap beberapa detik</span>
+        </div>
+        <div class="panel-body">
+          <div class="field-row">
+            <div class="field">
+              <label for="mdSourceWorld">World asal</label>
+              <input id="mdSourceWorld" type="text" class="upper" placeholder="cth: FARMWORLD" maxlength="20" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="mdSourceDoor">Door ID asal <span class="opt">(opsional)</span></label>
+              <input id="mdSourceDoor" type="text" placeholder="cth: 1" maxlength="20" autocomplete="off">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="mdStorageWorld">World storage tujuan</label>
+              <input id="mdStorageWorld" type="text" class="upper" placeholder="cth: STORAGE1" maxlength="20" autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="mdStorageDoor">Door ID storage <span class="opt">(opsional)</span></label>
+              <input id="mdStorageDoor" type="text" placeholder="cth: 1" maxlength="20" autocomplete="off">
+            </div>
+          </div>
+          <div class="field">
+            <label for="mdAllowedItems">Item ID yang boleh di-collect <span class="opt">(pisahkan dengan koma — selain ID ini tidak akan diambil)</span></label>
+            <input id="mdAllowedItems" type="text" placeholder="cth: 112, 208, 4994" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="mdMaxItems">Batas total item dipindah <span class="opt">(0 atau kosong = tanpa batas)</span></label>
+            <input id="mdMaxItems" type="number" min="0" placeholder="cth: 500" autocomplete="off">
+          </div>
+
+          <div class="form-actions">
+            <button class="primary" id="mdStartBtn">Simpan &amp; mulai</button>
+            <button class="danger" id="mdStopBtn">Hentikan</button>
+            <div id="mdStatus" class="msg idle">Belum ada perubahan.</div>
+          </div>
+
+          <p class="setup-note">
+            Selama state <code>dropping</code>, bot menonaktifkan auto-collect supaya item yang baru saja di-drop
+            tidak langsung dipungut lagi. Posisi drop bergeser otomatis ke kanan/kiri lalu naik ke baris berikutnya
+            kalau space penuh (pola ular / boustrophedon).
+          </p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Status berjalan</h2>
+          <span class="hint" id="mdUpdatedHint">—</span>
+        </div>
+        <div class="panel-body">
+          <div class="stat-grid">
+            <div class="stat-card">
+              <div class="k">State</div>
+              <div class="v" id="mdState">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="k">Total item dipindah</div>
+              <div class="v accent" id="mdItemsMoved">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="k">Bolak-balik (trip)</div>
+              <div class="v" id="mdTrips">0</div>
+            </div>
+          </div>
+
+          <p class="subhead">Rincian per item</p>
+          <div class="pill-row" id="mdItemBreakdown">
+            <span class="empty-note">Belum ada data.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="view" id="view-crypt">
       <div class="topbar">
         <div>
@@ -686,7 +816,10 @@
   const TARGET_PATH = "target_world.json";
   const DOOR_PATH = "target_door.json";
   const STATUS_PATH = "world_status.json";
+  const MOVEDROP_CONFIG_PATH = "movedrop_config.json";
+  const MOVEDROP_STATUS_PATH = "movedrop_status.json";
   const STATUS_POLL_MS = 5000;
+  const MOVEDROP_POLL_MS = 5000;
 
   const navBtns = document.querySelectorAll('.nav-btn');
   const views = document.querySelectorAll('.view');
@@ -830,6 +963,136 @@
   loadCurrent();
   loadWorldStatus();
   setInterval(loadWorldStatus, STATUS_POLL_MS);
+
+  // ============================================================
+  //  MOVE DROP TAB
+  // ============================================================
+  const mdSourceWorld = document.getElementById('mdSourceWorld');
+  const mdSourceDoor = document.getElementById('mdSourceDoor');
+  const mdStorageWorld = document.getElementById('mdStorageWorld');
+  const mdStorageDoor = document.getElementById('mdStorageDoor');
+  const mdAllowedItems = document.getElementById('mdAllowedItems');
+  const mdMaxItems = document.getElementById('mdMaxItems');
+  const mdStartBtn = document.getElementById('mdStartBtn');
+  const mdStopBtn = document.getElementById('mdStopBtn');
+  const mdStatus = document.getElementById('mdStatus');
+  const mdBadge = document.getElementById('movedropBadge');
+  const mdState = document.getElementById('mdState');
+  const mdItemsMoved = document.getElementById('mdItemsMoved');
+  const mdTrips = document.getElementById('mdTrips');
+  const mdItemBreakdown = document.getElementById('mdItemBreakdown');
+  const mdUpdatedHint = document.getElementById('mdUpdatedHint');
+
+  function setMdStatus(kind, text){
+    mdStatus.className = 'msg ' + kind;
+    mdStatus.textContent = text;
+  }
+
+  function parseAllowedItems(text){
+    return text
+      .split(',')
+      .map(s => parseInt(s.trim(), 10))
+      .filter(n => Number.isInteger(n) && n >= 0);
+  }
+
+  async function loadMoveDropConfig(){
+    try{
+      const res = await fetch(`${FIREBASE_URL}/${MOVEDROP_CONFIG_PATH}`);
+      const cfg = await res.json();
+      if(!cfg) return;
+      mdSourceWorld.value = cfg.source_world || '';
+      mdSourceDoor.value = cfg.source_door || '';
+      mdStorageWorld.value = cfg.storage_world || '';
+      mdStorageDoor.value = cfg.storage_door || '';
+      mdAllowedItems.value = Array.isArray(cfg.allowed_items) ? cfg.allowed_items.join(', ') : '';
+      mdMaxItems.value = cfg.max_total_items || '';
+      mdBadge.className = 'state-badge ' + (cfg.enabled ? 'on' : 'off');
+      mdBadge.textContent = cfg.enabled ? 'Berjalan' : 'Berhenti';
+    }catch(e){
+      // path belum pernah dibuat, biarkan form kosong
+    }
+  }
+
+  async function saveMoveDropConfig(enabled){
+    const sourceWorld = mdSourceWorld.value.trim().toUpperCase();
+    const storageWorld = mdStorageWorld.value.trim().toUpperCase();
+    const allowedItems = parseAllowedItems(mdAllowedItems.value);
+
+    if(enabled){
+      if(!sourceWorld || !storageWorld){
+        setMdStatus('err', 'World asal dan world storage wajib diisi.');
+        return;
+      }
+      if(allowedItems.length === 0){
+        setMdStatus('err', 'Isi minimal satu item ID yang boleh di-collect.');
+        return;
+      }
+    }
+
+    const cfg = {
+      enabled: enabled,
+      source_world: sourceWorld,
+      source_door: mdSourceDoor.value.trim(),
+      storage_world: storageWorld,
+      storage_door: mdStorageDoor.value.trim(),
+      allowed_items: allowedItems,
+      max_total_items: parseInt(mdMaxItems.value, 10) || 0
+    };
+
+    mdStartBtn.disabled = true;
+    mdStopBtn.disabled = true;
+    setMdStatus('busy', '<span class="dot-pulse"></span> Menyimpan…');
+    try{
+      const res = await fetch(`${FIREBASE_URL}/${MOVEDROP_CONFIG_PATH}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(cfg)
+      });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      setMdStatus('ok', enabled
+        ? 'Tersimpan. Bot akan mulai proses move drop dalam beberapa detik.'
+        : 'Perintah stop tersimpan. Bot akan berhenti setelah menyelesaikan langkah saat ini.');
+      mdBadge.className = 'state-badge ' + (enabled ? 'on' : 'off');
+      mdBadge.textContent = enabled ? 'Berjalan' : 'Berhenti';
+    }catch(e){
+      setMdStatus('err', 'Gagal menyimpan: ' + e.message);
+    }finally{
+      mdStartBtn.disabled = false;
+      mdStopBtn.disabled = false;
+    }
+  }
+
+  mdStartBtn.addEventListener('click', () => saveMoveDropConfig(true));
+  mdStopBtn.addEventListener('click', () => saveMoveDropConfig(false));
+
+  async function loadMoveDropStatus(){
+    try{
+      const res = await fetch(`${FIREBASE_URL}/${MOVEDROP_STATUS_PATH}`);
+      const data = await res.json();
+      if(!data) return;
+
+      mdState.textContent = data.state || '—';
+      mdItemsMoved.textContent = data.items_moved_total ?? 0;
+      mdTrips.textContent = data.trips ?? 0;
+      mdUpdatedHint.textContent = 'Update terakhir: ' + fmtTime(data.last_updated);
+
+      const counts = data.item_counts || {};
+      const keys = Object.keys(counts);
+      if(keys.length === 0){
+        mdItemBreakdown.innerHTML = '<span class="empty-note">Belum ada data.</span>';
+      }else{
+        mdItemBreakdown.innerHTML = keys
+          .map(id => `<span class="pill on">ID ${id}: ${counts[id]}</span>`)
+          .join('');
+      }
+    }catch(e){
+      // path belum pernah dibuat oleh bot
+    }
+  }
+
+  loadMoveDropConfig();
+  loadMoveDropStatus();
+  setInterval(loadMoveDropStatus, MOVEDROP_POLL_MS);
 
   // ============================================================
   //  ENCRYPT / DECRYPT TOOL (XOR + Base64, client-side)
