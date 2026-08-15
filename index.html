@@ -39,90 +39,11 @@
     -webkit-font-smoothing:antialiased;
   }
 
-  /* ============ LICENSE GATE ============ */
-  .gate{
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:24px;
-  }
-  .gate-card{
-    width:100%;
-    max-width:400px;
-    background:var(--soil-1);
-    border:1px solid var(--soil-3);
-    border-radius:14px;
-    padding:32px 28px;
-  }
-  .gate-mark{
-    width:40px;height:40px;
-    border-radius:10px;
-    background:linear-gradient(155deg, var(--sprout), var(--sprout-dim));
-    display:flex;align-items:center;justify-content:center;
-    font-family:var(--display);
-    font-weight:700;
-    font-size:20px;
-    color:#14210a;
-    margin-bottom:18px;
-  }
-  .gate-card h1{
-    font-family:var(--display);
-    font-size:21px;
-    font-weight:600;
-    margin:0 0 6px;
-    letter-spacing:-0.01em;
-  }
-  .gate-card p.sub{
-    margin:0 0 22px;
-    font-size:13px;
-    color:var(--paper-dim);
-    line-height:1.55;
-  }
-  .gate-card input[type=text]{
-    width:100%;
-    background:var(--soil);
-    border:1px solid var(--soil-3);
-    color:var(--sprout);
-    font-family:var(--mono);
-    font-size:15px;
-    letter-spacing:0.04em;
-    padding:12px 14px;
-    border-radius:8px;
-    outline:none;
-    transition:border-color .15s;
-    text-transform:uppercase;
-  }
-  .gate-card input[type=text]:focus{border-color:var(--sprout-dim);}
-  .gate-card input[type=text]::placeholder{color:var(--paper-faint);text-transform:none;}
-  .gate-card button.primary{
-    width:100%;
-    margin-top:14px;
-  }
-  .gate-msg{
-    margin-top:14px;
-    font-family:var(--mono);
-    font-size:12px;
-    min-height:18px;
-  }
-  .gate-msg.err{color:var(--danger);}
-  .gate-msg.busy{color:var(--clay);}
-  .gate-msg.ok{color:var(--sprout);}
-  .gate-foot{
-    margin-top:22px;
-    padding-top:18px;
-    border-top:1px solid var(--soil-3);
-    font-size:11.5px;
-    color:var(--paper-faint);
-    line-height:1.6;
-  }
-
   .app{
-    display:none;
+    display:grid;
     grid-template-columns:232px 1fr;
     min-height:100vh;
   }
-  .app.show{display:grid;}
 
   .sidebar{
     background:var(--soil-1);
@@ -210,7 +131,7 @@
     border-top:1px solid var(--soil-3);
     display:flex;
     flex-direction:column;
-    gap:8px;
+    gap:6px;
   }
   .foot-row{display:flex;align-items:center;justify-content:space-between;}
   .foot-k{font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);}
@@ -223,30 +144,6 @@
     flex:none;
   }
   @keyframes breathe{0%,100%{opacity:1;}50%{opacity:.35;}}
-  .plan-chip{
-    font-family:var(--mono);
-    font-size:10.5px;
-    padding:5px 9px;
-    border-radius:999px;
-    background:var(--sprout-glow);
-    color:var(--sprout);
-    text-align:center;
-    letter-spacing:0.04em;
-  }
-  .plan-chip.free{background:var(--soil-2);color:var(--paper-faint);}
-  button.linklike{
-    background:none;
-    border:none;
-    color:var(--paper-faint);
-    font-family:var(--mono);
-    font-size:10.5px;
-    text-align:left;
-    padding:0;
-    cursor:pointer;
-    text-decoration:underline;
-    text-underline-offset:2px;
-  }
-  button.linklike:hover{color:var(--danger);}
 
   .main{
     padding:26px 34px 40px;
@@ -383,7 +280,6 @@
     align-items:center;
     gap:12px;
     margin-top:18px;
-    flex-wrap:wrap;
   }
   button.primary{
     background:var(--sprout);
@@ -413,7 +309,6 @@
     transition:border-color .15s, color .15s;
   }
   button.ghost:hover{border-color:var(--sprout-dim);color:var(--sprout);}
-  button.ghost:disabled{opacity:.4;cursor:not-allowed;}
 
   .msg{
     font-family:var(--mono);
@@ -517,62 +412,6 @@
   table.scan-table td.count{color:var(--clay);text-align:right;}
   table.scan-table tr:last-child td{border-bottom:none;}
 
-  /* ============ COMMAND GRID ============ */
-  .cmd-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));
-    gap:10px;
-  }
-  .cmd-card{
-    background:var(--soil);
-    border:1px solid var(--soil-3);
-    border-radius:9px;
-    padding:14px;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-    position:relative;
-  }
-  .cmd-card .cmd-name{
-    font-family:var(--sans);
-    font-weight:600;
-    font-size:13px;
-    color:var(--paper);
-  }
-  .cmd-card .cmd-desc{
-    font-size:11.5px;
-    color:var(--paper-faint);
-    line-height:1.5;
-    flex:1;
-  }
-  .cmd-card input[type=text]{
-    font-size:12.5px;
-    padding:8px 10px;
-  }
-  .cmd-card.locked{opacity:.5;}
-  .lock-tag{
-    position:absolute;
-    top:12px; right:12px;
-    font-family:var(--mono);
-    font-size:9.5px;
-    letter-spacing:0.06em;
-    text-transform:uppercase;
-    color:var(--clay);
-    background:var(--clay-dim);
-    padding:3px 7px;
-    border-radius:999px;
-  }
-  .cmd-log{
-    margin-top:16px;
-    font-family:var(--mono);
-    font-size:11.5px;
-    color:var(--paper-faint);
-    display:flex;
-    align-items:center;
-    gap:8px;
-    min-height:18px;
-  }
-
   @media (max-width: 760px){
     .app{grid-template-columns:1fr;}
     .sidebar{
@@ -597,28 +436,7 @@
 </head>
 <body>
 
-<!-- ============ LICENSE GATE ============ -->
-<div class="gate" id="gateScreen">
-  <div class="gate-card">
-    <div class="gate-mark">L</div>
-    <h1>Masuk pakai license key</h1>
-    <p class="sub">Masukkan license key kamu untuk unlock control panel. Fitur yang tersedia tergantung paket yang kamu punya.</p>
-
-    <div class="field">
-      <label for="licenseInput">License key</label>
-      <input id="licenseInput" type="text" placeholder="cth: LUCI-XXXX-XXXX" autocomplete="off">
-    </div>
-    <button class="primary" id="unlockBtn">Unlock</button>
-    <div class="gate-msg idle" id="gateMsg"></div>
-
-    <div class="gate-foot">
-      Belum punya license key? Hubungi admin atau beli paket premium untuk dapat key kamu.
-    </div>
-  </div>
-</div>
-
-<!-- ============ MAIN APP ============ -->
-<div class="app" id="appRoot">
+<div class="app">
 
   <aside class="sidebar">
     <div class="brand">
@@ -635,10 +453,6 @@
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9s1.3-6.4 3.8-9z"/></svg>
         World Control
       </button>
-      <button class="nav-btn" data-view="cmd">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
-        Perintah
-      </button>
       <button class="nav-btn" data-view="scan">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 9.5h17M9.5 20.5v-11"/></svg>
         Growscan Monitor
@@ -647,18 +461,13 @@
 
     <div class="sidebar-foot">
       <div class="foot-row">
-        <span class="foot-k">Plan</span>
-        <span class="plan-chip free" id="planChip">memuat…</span>
+        <span class="foot-k">Bot</span>
+        <span class="foot-v">AxiqejelPa</span>
       </div>
       <div class="foot-row">
         <span class="foot-k">Sync</span>
         <span class="foot-v" style="display:flex;align-items:center;gap:6px;"><span class="live-dot"></span>live</span>
       </div>
-      <div class="foot-row">
-        <span class="foot-k">Key</span>
-        <span class="foot-v" id="licenseTag">—</span>
-      </div>
-      <button class="linklike" id="lockBtn">Ganti license key</button>
     </div>
   </aside>
 
@@ -708,28 +517,6 @@
           <p class="setup-note">
             Ganti <code>FIREBASE_URL</code> di bagian &lt;script&gt; file ini dengan URL Realtime Database kamu sebelum dipakai.
           </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="view" id="view-cmd">
-      <div class="topbar">
-        <div>
-          <p class="topbar-eyebrow">Navigation</p>
-          <h1>Perintah</h1>
-          <p class="sub">Kirim perintah langsung ke bot. Setiap tombol mengirim data perintah terstruktur ke Firebase — bot membaca dan menjalankan aksi yang sudah dikenalnya, bukan kode bebas.</p>
-        </div>
-        <span class="badge" id="cmdBadge"><span class="live-dot"></span> siap</span>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Aksi tersedia</h2>
-          <span class="hint">Terkunci = butuh upgrade plan</span>
-        </div>
-        <div class="panel-body">
-          <div class="cmd-grid" id="cmdGrid"></div>
-          <div class="cmd-log msg idle" id="cmdLog">Belum ada perintah dikirim.</div>
         </div>
       </div>
     </section>
@@ -798,168 +585,11 @@
   // GANTI dengan URL Firebase Realtime Database kamu, contoh:
   // "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app"
   const FIREBASE_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
-
-  // ---- Path yang scoped per-license, supaya tiap user cuma pegang datanya sendiri ----
-  // NOTE PENTING: supaya ini beneran aman, path "licenses/{key}" dan "commands/{key}"
-  // di Firebase HARUS dilindungi security rules (baca/tulis hanya boleh kalau request
-  // membawa token yang cocok dengan key itu). Tanpa rules, siapapun yang tahu/nemu key
-  // atau nebak formatnya bisa baca/tulis data user lain. Untuk versi produksi, key ini
-  // idealnya ditukar ke Firebase custom auth token lewat backend (Cloud Function) —
-  // bukan dipakai mentah-mentah di URL seperti contoh ini.
-  const TARGET_PATH   = "target_world.json";
-  const DOOR_PATH     = "target_door.json";
-  const STATUS_PATH   = "world_status.json";
+  const TARGET_PATH = "target_world.json";
+  const DOOR_PATH = "target_door.json";
+  const STATUS_PATH = "world_status.json";
   const STATUS_POLL_MS = 5000;
 
-  // ---- Mode free sementara ----
-  // Selama development, semua perintah dibuka buat siapa saja yang punya key valid,
-  // tanpa cek premium/unlocked_features dulu. Nanti kalau mau jualan paket premium,
-  // tinggal set FREE_MODE = false, dan sistem otomatis balik ngecek
-  // licenses/{key}/unlocked_features seperti semula (kode cek premiumnya tetap ada
-  // di bawah, cuma di-skip selama FREE_MODE true).
-  const FREE_MODE = true;
-
-  // ---- Daftar aksi yang boleh dikirim ke bot (whitelist, BUKAN kode bebas) ----
-  // "feature" harus cocok dengan salah satu string di licenses/{key}/unlocked_features
-  // (dipakai lagi begitu FREE_MODE dimatikan).
-  const COMMANDS = [
-    {
-      action: "growscan_now",
-      feature: "growscan",
-      name: "Growscan sekarang",
-      desc: "Paksa bot growscan ulang tiles & objects di world aktif, di luar jadwal otomatis.",
-      params: []
-    },
-    {
-      action: "detect_players_now",
-      feature: "growscan",
-      name: "Deteksi GrowID sekarang",
-      desc: "Paksa bot scan ulang daftar pemain yang ada di world.",
-      params: []
-    },
-    {
-      action: "say",
-      feature: "say",
-      name: "Kirim pesan",
-      desc: "Bot mengetik pesan ini di chat world.",
-      params: [{ key: "text", placeholder: "cth: halo dari web panel" }]
-    },
-    {
-      action: "follow_player",
-      feature: "follow",
-      name: "Ikuti pemain",
-      desc: "Bot bergerak mengikuti GrowID yang kamu masukkan.",
-      params: [{ key: "growid", placeholder: "GrowID target" }]
-    },
-    {
-      action: "leave_world",
-      feature: "warp",
-      name: "Keluar world",
-      desc: "Bot keluar dari world aktif dan berhenti sampai target baru di-set.",
-      params: []
-    }
-  ];
-
-  // ============ STATE ============
-  let LICENSE_KEY = "";
-  let licenseData = null; // { premium, unlocked_features, expires_at, owner }
-
-  // ============ LICENSE GATE ============
-  const gateScreen   = document.getElementById('gateScreen');
-  const appRoot      = document.getElementById('appRoot');
-  const licenseInput = document.getElementById('licenseInput');
-  const unlockBtn    = document.getElementById('unlockBtn');
-  const gateMsg      = document.getElementById('gateMsg');
-  const planChip     = document.getElementById('planChip');
-  const licenseTag   = document.getElementById('licenseTag');
-  const lockBtn      = document.getElementById('lockBtn');
-
-  function setGateMsg(kind, text){
-    gateMsg.className = 'gate-msg ' + kind;
-    gateMsg.textContent = text;
-  }
-
-  async function tryUnlock(){
-    const key = licenseInput.value.trim().toUpperCase();
-    if(!key){
-      setGateMsg('err', 'Masukkan license key dulu.');
-      return;
-    }
-    unlockBtn.disabled = true;
-    setGateMsg('busy', 'Memeriksa license key…');
-    try{
-      const res = await fetch(`${FIREBASE_URL}/licenses/${encodeURIComponent(key)}.json`);
-      if(!res.ok) throw new Error('HTTP ' + res.status);
-      let data = await res.json();
-
-      if(FREE_MODE){
-        // Selama free mode: key cukup dipakai sebagai "nomor channel" supaya
-        // web dan bot ngobrol lewat path Firebase yang sama (commands/{key}),
-        // tanpa perlu cek premium/expired dulu. Kalau key belum pernah
-        // terdaftar di licenses/, tetap dilanjut dengan data kosong.
-        licenseData = data || {};
-        licenseData.unlocked_features = COMMANDS.map(c => c.feature); // semua kebuka
-        LICENSE_KEY = key;
-        setGateMsg('ok', 'Berhasil. Membuka panel (mode free)…');
-        setTimeout(enterApp, 400);
-        return;
-      }
-
-      // ---- Jalur premium (dipakai lagi kalau FREE_MODE di-set false) ----
-      if(!data){
-        setGateMsg('err', 'License key tidak ditemukan.');
-        unlockBtn.disabled = false;
-        return;
-      }
-      if(data.expires_at && data.expires_at < Math.floor(Date.now()/1000)){
-        setGateMsg('err', 'License key sudah kedaluwarsa.');
-        unlockBtn.disabled = false;
-        return;
-      }
-      if(!data.premium){
-        setGateMsg('err', 'License key ini nonaktif. Hubungi admin.');
-        unlockBtn.disabled = false;
-        return;
-      }
-
-      LICENSE_KEY = key;
-      licenseData = data;
-      setGateMsg('ok', 'Berhasil. Membuka panel…');
-      setTimeout(enterApp, 400);
-    }catch(e){
-      setGateMsg('err', 'Gagal memeriksa key: ' + e.message);
-      unlockBtn.disabled = false;
-    }
-  }
-
-  function enterApp(){
-    gateScreen.style.display = 'none';
-    appRoot.classList.add('show');
-
-    licenseTag.textContent = LICENSE_KEY;
-    planChip.textContent = FREE_MODE ? 'free (semua fitur)' : 'premium';
-    planChip.className = 'plan-chip' + (FREE_MODE ? ' free' : '');
-
-    buildCommandGrid();
-    loadCurrent();
-    loadWorldStatus();
-    setInterval(loadWorldStatus, STATUS_POLL_MS);
-  }
-
-  unlockBtn.addEventListener('click', tryUnlock);
-  licenseInput.addEventListener('keydown', (e) => { if(e.key === 'Enter') tryUnlock(); });
-
-  lockBtn.addEventListener('click', () => {
-    LICENSE_KEY = "";
-    licenseData = null;
-    appRoot.classList.remove('show');
-    gateScreen.style.display = 'flex';
-    licenseInput.value = "";
-    setGateMsg('idle', '');
-    unlockBtn.disabled = false;
-  });
-
-  // ============ NAV ============
   const navBtns = document.querySelectorAll('.nav-btn');
   const views = document.querySelectorAll('.view');
   navBtns.forEach(btn => {
@@ -971,7 +601,6 @@
     });
   });
 
-  // ============ WORLD CONTROL ============
   const input = document.getElementById('worldInput');
   const doorInput = document.getElementById('doorInput');
   const btn = document.getElementById('saveBtn');
@@ -1042,92 +671,6 @@
   input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') saveWorld(); });
   doorInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') saveWorld(); });
 
-  // ============ PERINTAH (COMMAND DISPATCH) ============
-  const cmdGrid = document.getElementById('cmdGrid');
-  const cmdLog  = document.getElementById('cmdLog');
-
-  function setCmdLog(kind, text){
-    cmdLog.className = 'cmd-log msg ' + kind;
-    cmdLog.textContent = text;
-  }
-
-  function isUnlocked(feature){
-    return !!(licenseData && Array.isArray(licenseData.unlocked_features) &&
-      licenseData.unlocked_features.includes(feature));
-  }
-
-  function buildCommandGrid(){
-    cmdGrid.innerHTML = "";
-    COMMANDS.forEach(cmd => {
-      const unlocked = isUnlocked(cmd.feature);
-
-      const card = document.createElement('div');
-      card.className = 'cmd-card' + (unlocked ? '' : ' locked');
-
-      if(!unlocked){
-        const tag = document.createElement('div');
-        tag.className = 'lock-tag';
-        tag.textContent = 'Terkunci';
-        card.appendChild(tag);
-      }
-
-      const nameEl = document.createElement('div');
-      nameEl.className = 'cmd-name';
-      nameEl.textContent = cmd.name;
-      card.appendChild(nameEl);
-
-      const descEl = document.createElement('div');
-      descEl.className = 'cmd-desc';
-      descEl.textContent = cmd.desc;
-      card.appendChild(descEl);
-
-      const paramInputs = {};
-      cmd.params.forEach(p => {
-        const pInput = document.createElement('input');
-        pInput.type = 'text';
-        pInput.placeholder = p.placeholder;
-        pInput.disabled = !unlocked;
-        paramInputs[p.key] = pInput;
-        card.appendChild(pInput);
-      });
-
-      const sendBtn = document.createElement('button');
-      sendBtn.className = 'ghost';
-      sendBtn.textContent = unlocked ? 'Kirim' : 'Upgrade untuk buka';
-      sendBtn.disabled = !unlocked;
-      sendBtn.addEventListener('click', () => {
-        const params = {};
-        for(const k in paramInputs) params[k] = paramInputs[k].value.trim();
-        sendCommand(cmd.action, params);
-      });
-      card.appendChild(sendBtn);
-
-      cmdGrid.appendChild(card);
-    });
-  }
-
-  async function sendCommand(action, params){
-    setCmdLog('busy', `Mengirim "${action}"…`);
-    const payload = {
-      id: Date.now(),
-      action: action,
-      params: params,
-      created_at: Math.floor(Date.now() / 1000)
-    };
-    try{
-      const res = await fetch(`${FIREBASE_URL}/commands/${encodeURIComponent(LICENSE_KEY)}.json`, {
-        method: 'PUT',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(payload)
-      });
-      if(!res.ok) throw new Error('HTTP ' + res.status);
-      setCmdLog('ok', `Perintah "${action}" terkirim. Bot akan menjalankannya sebentar lagi.`);
-    }catch(e){
-      setCmdLog('err', 'Gagal mengirim perintah: ' + e.message);
-    }
-  }
-
-  // ============ GROWSCAN MONITOR ============
   const statWorldEl = document.getElementById('statWorld');
   const statPlayersEl = document.getElementById('statPlayers');
   const statUpdatedEl = document.getElementById('statUpdated');
@@ -1185,6 +728,10 @@
   }
 
   refreshScanBtn.addEventListener('click', loadWorldStatus);
+
+  loadCurrent();
+  loadWorldStatus();
+  setInterval(loadWorldStatus, STATUS_POLL_MS);
 </script>
 
 </body>
