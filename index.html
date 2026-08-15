@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>World Control — Lucifer</title>
+<style>
+  :root{
+    --soil:#1c1712;
+    --soil-2:#241d16;
+    --soil-3:#332821;
+    --sprout:#8fd14f;
+    --sprout-dim:#5c8f3a;
+    --clay:#c97b4a;
+    --paper:#efe6d8;
+    --paper-dim:#a89a86;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+    --sans: 'Inter', -apple-system, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(ellipse at top left, rgba(143,209,79,0.06), transparent 50%),
+      radial-gradient(ellipse at bottom right, rgba(201,123,74,0.05), transparent 50%),
+      var(--soil);
+    color:var(--paper);
+    font-family:var(--sans);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .panel{
+    width:100%;
+    max-width:480px;
+    background:var(--soil-2);
+    border:1px solid var(--soil-3);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  }
+  .panel-head{
+    padding:18px 22px;
+    border-bottom:1px solid var(--soil-3);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .panel-head .dots{display:flex;gap:6px;}
+  .panel-head .dots span{width:9px;height:9px;border-radius:50%;display:inline-block;}
+  .dots span:nth-child(1){background:#e0605a;}
+  .dots span:nth-child(2){background:#e0b95a;}
+  .dots span:nth-child(3){background:var(--sprout);}
+  .panel-head .label{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.08em;
+    color:var(--paper-dim);
+    text-transform:uppercase;
+  }
+  .panel-body{padding:28px 22px 24px;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--sprout);
+    margin:0 0 6px;
+  }
+  h1{
+    font-size:22px;
+    margin:0 0 22px;
+    font-weight:600;
+    color:var(--paper);
+    letter-spacing:-0.01em;
+  }
+  label{
+    display:block;
+    font-size:13px;
+    color:var(--paper-dim);
+    margin-bottom:8px;
+  }
+  .input-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:14px;
+  }
+  input[type=text]{
+    flex:1;
+    background:var(--soil);
+    border:1px solid var(--soil-3);
+    color:var(--sprout);
+    font-family:var(--mono);
+    font-size:16px;
+    letter-spacing:0.03em;
+    padding:12px 14px;
+    border-radius:6px;
+    outline:none;
+    text-transform:uppercase;
+    transition:border-color .15s;
+  }
+  input[type=text]:focus{border-color:var(--sprout-dim);}
+  input[type=text]::placeholder{color:#4a4238;text-transform:none;}
+  button{
+    background:var(--sprout);
+    color:#14210a;
+    border:none;
+    font-family:var(--sans);
+    font-weight:600;
+    font-size:14px;
+    padding:0 20px;
+    border-radius:6px;
+    cursor:pointer;
+    transition:filter .15s, transform .05s;
+  }
+  button:hover{filter:brightness(1.08);}
+  button:active{transform:scale(0.97);}
+  button:disabled{background:var(--soil-3);color:var(--paper-dim);cursor:not-allowed;}
+  .status{
+    font-family:var(--mono);
+    font-size:12.5px;
+    padding:10px 12px;
+    border-radius:6px;
+    border:1px solid transparent;
+    min-height:38px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .status.idle{color:var(--paper-dim);}
+  .status.ok{color:var(--sprout);background:rgba(143,209,79,0.08);border-color:rgba(143,209,79,0.25);}
+  .status.err{color:#e0837a;background:rgba(224,96,90,0.08);border-color:rgba(224,96,90,0.25);}
+  .status.busy{color:var(--clay);}
+  .dot-pulse{
+    width:6px;height:6px;border-radius:50%;background:currentColor;
+    animation:pulse 1s infinite ease-in-out;
+  }
+  @keyframes pulse{0%,100%{opacity:.3;}50%{opacity:1;}}
+  .current{
+    margin-top:20px;
+    padding-top:18px;
+    border-top:1px solid var(--soil-3);
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+  }
+  .current .k{font-size:11px;color:var(--paper-dim);letter-spacing:0.08em;text-transform:uppercase;}
+  .current .v{font-family:var(--mono);font-size:15px;color:var(--paper);}
+  .setup-note{
+    margin-top:16px;
+    font-size:11.5px;
+    color:var(--paper-dim);
+    line-height:1.5;
+  }
+  .setup-note code{
+    background:var(--soil);
+    padding:1px 5px;
+    border-radius:4px;
+    color:var(--clay);
+  }
+</style>
+</head>
+<body>
+
+<div class="panel">
+  <div class="panel-head">
+    <div class="dots"><span></span><span></span><span></span></div>
+    <div class="label">world-control</div>
+  </div>
+  <div class="panel-body">
+    <p class="eyebrow">Target World</p>
+    <h1>Ke mana bot harus warp?</h1>
+
+    <label for="worldInput">Nama world</label>
+    <div class="input-row">
+      <input id="worldInput" type="text" placeholder="cth: PAPAZIA" maxlength="20" autocomplete="off">
+      <button id="saveBtn">Simpan</button>
+    </div>
+
+    <div id="status" class="status idle">Belum ada perubahan.</div>
+
+    <div class="current">
+      <span class="k">Aktif sekarang</span>
+      <span class="v" id="currentWorld">memuat…</span>
+    </div>
+
+    <p class="setup-note">
+      Ganti <code>FIREBASE_URL</code> di bagian &lt;script&gt; file ini dengan URL Realtime Database kamu sebelum dipakai. Lihat langkah setup dari Claude.
+    </p>
+  </div>
+</div>
+
+<script>
+  // GANTI dengan URL Firebase Realtime Database kamu, contoh:
+  // "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app/"
+  const FIREBASE_URL = "https://YOUR-PROJECT-default-rtdb.firebaseio.com";
+  const PATH = "target_world.json";
+
+  const input = document.getElementById('worldInput');
+  const btn = document.getElementById('saveBtn');
+  const statusEl = document.getElementById('status');
+  const currentEl = document.getElementById('currentWorld');
+
+  function setStatus(kind, html){
+    statusEl.className = 'status ' + kind;
+    statusEl.innerHTML = html;
+  }
+
+  async function loadCurrent(){
+    try{
+      const res = await fetch(`${FIREBASE_URL}/${PATH}`);
+      const data = await res.json();
+      currentEl.textContent = data || '(belum di-set)';
+      if(data) input.value = data;
+    }catch(e){
+      currentEl.textContent = 'gagal memuat';
+    }
+  }
+
+  async function saveWorld(){
+    const name = input.value.trim().toUpperCase();
+    if(!name){
+      setStatus('err', 'Nama world tidak boleh kosong.');
+      return;
+    }
+    btn.disabled = true;
+    setStatus('busy', '<span class="dot-pulse"></span> Menyimpan…');
+    try{
+      const res = await fetch(`${FIREBASE_URL}/${PATH}`, {
+        method: 'PUT',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(name)
+      });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      setStatus('ok', `Tersimpan. Bot akan warp ke <b>${name}</b> dalam beberapa detik.`);
+      currentEl.textContent = name;
+    }catch(e){
+      setStatus('err', 'Gagal menyimpan: ' + e.message);
+    }finally{
+      btn.disabled = false;
+    }
+  }
+
+  btn.addEventListener('click', saveWorld);
+  input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') saveWorld(); });
+
+  loadCurrent();
+</script>
+
+</body>
+</html>
