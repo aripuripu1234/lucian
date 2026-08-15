@@ -275,11 +275,31 @@
   input[type=text]:focus{border-color:var(--sprout-dim);}
   input[type=text]::placeholder{color:var(--paper-faint);text-transform:none;}
 
+  textarea.codearea{
+    width:100%;
+    background:var(--soil);
+    border:1px solid var(--soil-3);
+    color:var(--sprout);
+    font-family:var(--mono);
+    font-size:12.5px;
+    line-height:1.55;
+    padding:12px 13px;
+    border-radius:7px;
+    outline:none;
+    resize:vertical;
+    min-height:180px;
+    transition:border-color .15s;
+    white-space:pre;
+  }
+  textarea.codearea:focus{border-color:var(--sprout-dim);}
+  textarea.codearea::placeholder{color:var(--paper-faint);}
+
   .form-actions{
     display:flex;
     align-items:center;
     gap:12px;
     margin-top:18px;
+    flex-wrap:wrap;
   }
   button.primary{
     background:var(--sprout);
@@ -412,6 +432,15 @@
   table.scan-table td.count{color:var(--clay);text-align:right;}
   table.scan-table tr:last-child td{border-bottom:none;}
 
+  .crypt-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  @media (max-width: 900px){
+    .crypt-grid{grid-template-columns:1fr;}
+  }
+
   @media (max-width: 760px){
     .app{grid-template-columns:1fr;}
     .sidebar{
@@ -456,6 +485,10 @@
       <button class="nav-btn" data-view="scan">
         <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 9.5h17M9.5 20.5v-11"/></svg>
         Growscan Monitor
+      </button>
+      <button class="nav-btn" data-view="crypt">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
+        Encrypt Tool
       </button>
     </nav>
 
@@ -576,6 +609,71 @@
           </div>
         </div>
       </div>
+    </section>
+
+    <section class="view" id="view-crypt">
+      <div class="topbar">
+        <div>
+          <p class="topbar-eyebrow">Navigation</p>
+          <h1>Encrypt Tool</h1>
+          <p class="sub">Enkripsi script Lua jadi loader ter-obfuscate (XOR + Base64), atau decrypt loader itu balik ke source asli. Semua diproses langsung di browser, tidak dikirim ke server manapun.</p>
+        </div>
+        <span class="badge">Client-side only</span>
+      </div>
+
+      <div class="crypt-grid">
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Encrypt</h2>
+            <span class="hint">Source → loader</span>
+          </div>
+          <div class="panel-body">
+            <div class="field">
+              <label for="encInput">Kode Lua asli</label>
+              <textarea id="encInput" class="codearea" placeholder="Tempel kode Lua di sini..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button class="primary" id="encBtn">Encrypt</button>
+              <button class="ghost" id="encCopyBtn">Copy hasil</button>
+              <button class="ghost" id="encDownloadBtn">Download .lua</button>
+            </div>
+            <div id="encStatus" class="msg idle" style="margin-top:12px;">Belum ada hasil.</div>
+            <div class="field" style="margin-top:14px;">
+              <label for="encOutput">Hasil (loader ter-enkripsi)</label>
+              <textarea id="encOutput" class="codearea" placeholder="Hasil enkripsi akan muncul di sini..." readonly></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <h2>Decrypt</h2>
+            <span class="hint">Loader → source</span>
+          </div>
+          <div class="panel-body">
+            <div class="field">
+              <label for="decInput">Loader ter-enkripsi</label>
+              <textarea id="decInput" class="codearea" placeholder="Tempel isi file loader ter-enkripsi di sini..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button class="primary" id="decBtn">Decrypt</button>
+              <button class="ghost" id="decCopyBtn">Copy hasil</button>
+              <button class="ghost" id="decDownloadBtn">Download .lua</button>
+            </div>
+            <div id="decStatus" class="msg idle" style="margin-top:12px;">Belum ada hasil.</div>
+            <div class="field" style="margin-top:14px;">
+              <label for="decOutput">Hasil (source asli)</label>
+              <textarea id="decOutput" class="codearea" placeholder="Hasil decrypt akan muncul di sini..." readonly></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p class="setup-note">
+        Format loader yang dihasilkan cocok langsung dipakai sebagai file <code>.lua</code> — tinggal jalankan seperti script biasa.
+        Kunci XOR dibuat acak setiap kali encrypt, jadi hasilnya selalu berbeda walau source-nya sama.
+        Ini teknik obfuscation, bukan enkripsi kriptografis yang benar-benar aman.
+      </p>
     </section>
 
   </main>
@@ -732,6 +830,218 @@
   loadCurrent();
   loadWorldStatus();
   setInterval(loadWorldStatus, STATUS_POLL_MS);
+
+  // ============================================================
+  //  ENCRYPT / DECRYPT TOOL (XOR + Base64, client-side)
+  //  Format loader sama persis dengan yang dipakai bot Lucifer.
+  // ============================================================
+
+  function randomKeyBytes(len){
+    const arr = new Uint8Array(len);
+    crypto.getRandomValues(arr);
+    for(let i=0;i<arr.length;i++){
+      arr[i] = (arr[i] % 255) + 1; // pastikan 1..255, hindari 0
+    }
+    return arr;
+  }
+
+  function xorBytes(bytes, key){
+    const out = new Uint8Array(bytes.length);
+    for(let i=0;i<bytes.length;i++){
+      out[i] = bytes[i] ^ key[i % key.length];
+    }
+    return out;
+  }
+
+  function bytesToBase64(bytes){
+    let binary = '';
+    const chunk = 0x8000;
+    for(let i=0;i<bytes.length;i+=chunk){
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunk));
+    }
+    return btoa(binary);
+  }
+
+  function base64ToBytes(b64){
+    const clean = b64.replace(/[^A-Za-z0-9+/=]/g, '');
+    const binary = atob(clean);
+    const bytes = new Uint8Array(binary.length);
+    for(let i=0;i<binary.length;i++){
+      bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes;
+  }
+
+  function buildLoader(base64Payload, keyBytes){
+    const keyList = Array.from(keyBytes).join(',');
+    return `-- ================================================
+--  ENCRYPTED SCRIPT LOADER
+--  Jangan diedit manual. Source asli ter-enkripsi
+--  pakai XOR + Base64, di-decode saat runtime.
+-- ================================================
+
+local _k = {${keyList}}
+
+local _b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+
+local function _b64decode(data)
+    data = data:gsub('[^'.._b64chars..'=]', '')
+    local out = {}
+    local map = {}
+    for i = 1, #_b64chars do map[_b64chars:sub(i,i)] = i - 1 end
+    local buffer, bits = 0, 0
+    for i = 1, #data do
+        local c = data:sub(i,i)
+        if c ~= '=' then
+            buffer = (buffer << 6) | map[c]
+            bits = bits + 6
+            if bits >= 8 then
+                bits = bits - 8
+                out[#out+1] = string.char((buffer >> bits) & 0xFF)
+            end
+        end
+    end
+    return table.concat(out)
+end
+
+local function _xor(data, key)
+    local out = {}
+    for i = 1, #data do
+        local kb = key[((i - 1) % #key) + 1]
+        out[i] = string.char(data:byte(i) ~ kb)
+    end
+    return table.concat(out)
+end
+
+local _payload = [[
+${base64Payload}
+]]
+
+local _decoded = _xor(_b64decode(_payload), _k)
+
+local _fn, _err = load(_decoded, "protected_script")
+if not _fn then
+    error("Gagal decode script: " .. tostring(_err))
+end
+
+_fn()
+`;
+  }
+
+  function encryptLua(sourceText){
+    const bytes = new TextEncoder().encode(sourceText);
+    const key = randomKeyBytes(16);
+    const xored = xorBytes(bytes, key);
+    const b64 = bytesToBase64(xored);
+    return buildLoader(b64, key);
+  }
+
+  function decryptLoader(loaderText){
+    const keyMatch = loaderText.match(/_k\s*=\s*\{([\d,\s]+)\}/);
+    const payloadMatch = loaderText.match(/_payload\s*=\s*\[\[\s*([\s\S]*?)\s*\]\]/);
+    if(!keyMatch || !payloadMatch){
+      throw new Error('Format loader tidak dikenali (key/payload tidak ditemukan).');
+    }
+    const key = new Uint8Array(keyMatch[1].split(',').map(s => parseInt(s.trim(), 10)));
+    const xored = base64ToBytes(payloadMatch[1]);
+    const original = xorBytes(xored, key);
+    return new TextDecoder('utf-8', { fatal: false }).decode(original);
+  }
+
+  function downloadText(filename, text){
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function setToolStatus(el, kind, text){
+    el.className = 'msg ' + kind;
+    el.textContent = text;
+  }
+
+  const encInput = document.getElementById('encInput');
+  const encOutput = document.getElementById('encOutput');
+  const encBtnEl = document.getElementById('encBtn');
+  const encCopyBtn = document.getElementById('encCopyBtn');
+  const encDownloadBtn = document.getElementById('encDownloadBtn');
+  const encStatus = document.getElementById('encStatus');
+
+  encBtnEl.addEventListener('click', () => {
+    const src = encInput.value;
+    if(!src.trim()){
+      setToolStatus(encStatus, 'err', 'Tempel kode Lua dulu sebelum encrypt.');
+      return;
+    }
+    try{
+      const loader = encryptLua(src);
+      encOutput.value = loader;
+      setToolStatus(encStatus, 'ok', 'Berhasil di-encrypt. Key XOR acak baru sudah dipakai.');
+    }catch(e){
+      setToolStatus(encStatus, 'err', 'Gagal encrypt: ' + e.message);
+    }
+  });
+
+  encCopyBtn.addEventListener('click', async () => {
+    if(!encOutput.value){
+      setToolStatus(encStatus, 'err', 'Belum ada hasil untuk di-copy.');
+      return;
+    }
+    await navigator.clipboard.writeText(encOutput.value);
+    setToolStatus(encStatus, 'ok', 'Hasil ter-enkripsi disalin ke clipboard.');
+  });
+
+  encDownloadBtn.addEventListener('click', () => {
+    if(!encOutput.value){
+      setToolStatus(encStatus, 'err', 'Belum ada hasil untuk di-download.');
+      return;
+    }
+    downloadText('encrypted.lua', encOutput.value);
+  });
+
+  const decInput = document.getElementById('decInput');
+  const decOutput = document.getElementById('decOutput');
+  const decBtnEl = document.getElementById('decBtn');
+  const decCopyBtn = document.getElementById('decCopyBtn');
+  const decDownloadBtn = document.getElementById('decDownloadBtn');
+  const decStatus = document.getElementById('decStatus');
+
+  decBtnEl.addEventListener('click', () => {
+    const loader = decInput.value;
+    if(!loader.trim()){
+      setToolStatus(decStatus, 'err', 'Tempel isi loader ter-enkripsi dulu.');
+      return;
+    }
+    try{
+      const original = decryptLoader(loader);
+      decOutput.value = original;
+      setToolStatus(decStatus, 'ok', 'Berhasil di-decrypt.');
+    }catch(e){
+      setToolStatus(decStatus, 'err', 'Gagal decrypt: ' + e.message);
+    }
+  });
+
+  decCopyBtn.addEventListener('click', async () => {
+    if(!decOutput.value){
+      setToolStatus(decStatus, 'err', 'Belum ada hasil untuk di-copy.');
+      return;
+    }
+    await navigator.clipboard.writeText(decOutput.value);
+    setToolStatus(decStatus, 'ok', 'Source asli disalin ke clipboard.');
+  });
+
+  decDownloadBtn.addEventListener('click', () => {
+    if(!decOutput.value){
+      setToolStatus(decStatus, 'err', 'Belum ada hasil untuk di-download.');
+      return;
+    }
+    downloadText('decrypted.lua', decOutput.value);
+  });
 </script>
 
 </body>
