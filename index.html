@@ -564,6 +564,45 @@
   .progress-meta .pm-item .k{font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);margin-bottom:3px;}
   .progress-meta .pm-item .v{font-family:var(--mono);font-size:13px;color:var(--paper);}
 
+  /* ===== History (Riwayat) specific ===== */
+  table.history-table{
+    width:100%;
+    border-collapse:collapse;
+    font-family:var(--mono);
+    font-size:12px;
+  }
+  table.history-table th{
+    text-align:left;
+    color:var(--paper-faint);
+    font-weight:500;
+    font-size:10px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    padding:0 10px 8px 0;
+    border-bottom:1px solid var(--soil-3);
+    white-space:nowrap;
+  }
+  table.history-table td{
+    padding:9px 10px 9px 0;
+    border-bottom:1px solid var(--soil-3);
+    color:var(--paper);
+    vertical-align:top;
+  }
+  table.history-table tr:last-child td{border-bottom:none;}
+  table.history-table td.num{color:var(--clay);text-align:right;white-space:nowrap;}
+  .reason-tag{
+    font-family:var(--mono);
+    font-size:10.5px;
+    padding:2px 8px;
+    border-radius:999px;
+    border:1px solid var(--soil-4);
+    color:var(--paper-dim);
+    white-space:nowrap;
+  }
+  .reason-tag.rt-limit_reached{color:var(--clay);border-color:rgba(201,123,74,0.35);background:var(--clay-dim);}
+  .route-cell{font-size:11.5px;color:var(--paper-dim);}
+  .route-cell b{color:var(--paper);}
+
   @media (max-width: 760px){
     .app{grid-template-columns:1fr;}
     .sidebar{
@@ -744,7 +783,7 @@
         <div>
           <p class="topbar-eyebrow">Navigation</p>
           <h1>Move Drop</h1>
-          <p class="sub">Bot ambil item whitelist dari world asal, lalu drop total jumlahnya sekaligus ke world storage. Progress terupdate tiap trip.</p>
+          <p class="sub">Bot ambil item whitelist dari world asal, lalu drop total jumlahnya sekaligus ke world storage. Progress terupdate tiap trip. Kalau target total tercapai, run otomatis disimpan ke Riwayat dan bot berhenti — tinggal atur ulang konfigurasi (sama atau baru) lalu jalankan lagi.</p>
         </div>
         <span class="badge"><span class="live-dot"></span> Firebase tersambung</span>
       </div>
@@ -841,7 +880,21 @@
           <p class="setup-note">
             "Simpan &amp; mulai" akan set <code>enabled: true</code> dan langsung dibaca bot di poll berikutnya (maks. 8 detik).
             "Stop" cuma set <code>enabled: false</code>, field lain tetap tersimpan biar bisa lanjut lagi nanti.
+            Begitu target total tercapai, bot otomatis simpan run ke <b>Riwayat</b> di bawah, set <code>enabled: false</code>, dan reset progress ke 0 — form konfigurasi di atas tetap terisi jadi tinggal klik "Simpan &amp; mulai" lagi (boleh diubah dulu, boleh dibiarkan sama).
           </p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Riwayat run</h2>
+          <span class="hint" id="historyCountHint">0 run tersimpan</span>
+        </div>
+        <div class="panel-body">
+          <div class="form-actions" style="margin-top:0; margin-bottom:14px;">
+            <button class="ghost" id="refreshHistoryBtn">Refresh riwayat</button>
+          </div>
+          <div id="historyTableWrap"><span class="empty-note">Belum ada run yang selesai. Riwayat muncul di sini setiap kali target total tercapai.</span></div>
         </div>
       </div>
     </section>
@@ -923,8 +976,10 @@
   const STATUS_PATH = "world_status.json";
   const MOVEDROP_CONFIG_PATH = "movedrop_config.json";
   const MOVEDROP_STATUS_PATH = "movedrop_status.json";
+  const MOVEDROP_HISTORY_PATH = "movedrop_history.json";
   const STATUS_POLL_MS = 5000;
   const MOVEDROP_POLL_MS = 5000;
+  const HISTORY_POLL_MS = 15000;
 
   const navBtns = document.querySelectorAll('.nav-btn');
   const views = document.querySelectorAll('.view');
@@ -1020,6 +1075,12 @@
     if(!unixSeconds) return '—';
     const d = new Date(unixSeconds * 1000);
     return d.toLocaleTimeString('id-ID');
+  }
+
+  function fmtDateTime(unixSeconds){
+    if(!unixSeconds) return '—';
+    const d = new Date(unixSeconds * 1000);
+    return d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID');
   }
 
   function renderScanTable(rows){
@@ -1235,6 +1296,75 @@
   loadMoveDropConfig();
   loadMoveDropStatus();
   setInterval(loadMoveDropStatus, MOVEDROP_POLL_MS);
+
+  // ============================================================
+  //  MOVE DROP — RIWAYAT (HISTORY)
+  //
+  //  Setiap kali sebuah run Move Drop mencapai max_total_items, bot
+  //  menyimpan ringkasan run itu (route, whitelist, hasil, alasan
+  //  berhenti) ke path movedrop_history lewat HTTP POST, sehingga
+  //  Firebase membuatkan key unik sendiri per entry (mis. "-NxAbC123").
+  //  Panel ini cuma baca & tampilkan entry-entry itu, terbaru duluan.
+  // ============================================================
+
+  const historyTableWrap = document.getElementById('historyTableWrap');
+  const historyCountHint = document.getElementById('historyCountHint');
+  const refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
+
+  function fmtRoute(entry){
+    const src = entry.source_world || '—';
+    const srcDoor = entry.source_door ? (':' + entry.source_door) : '';
+    const dst = entry.storage_world || '—';
+    const dstDoor = entry.storage_door ? (':' + entry.storage_door) : '';
+    return `<b>${src}${srcDoor}</b> → <b>${dst}${dstDoor}</b>`;
+  }
+
+  function fmtReason(reason){
+    const map = { limit_reached: 'Target tercapai' };
+    const label = map[reason] || reason || '—';
+    return `<span class="reason-tag rt-${reason || ''}">${label}</span>`;
+  }
+
+  async function loadMoveDropHistory(){
+    try{
+      const res = await fetch(`${FIREBASE_URL}/${MOVEDROP_HISTORY_PATH}`);
+      const data = await res.json();
+      if(!data){
+        historyCountHint.textContent = '0 run tersimpan';
+        historyTableWrap.innerHTML = '<span class="empty-note">Belum ada run yang selesai. Riwayat muncul di sini setiap kali target total tercapai.</span>';
+        return;
+      }
+
+      const entries = Object.entries(data)
+        .map(([key, val]) => ({ key, ...val }))
+        .sort((a, b) => (b.finished_at || 0) - (a.finished_at || 0));
+
+      historyCountHint.textContent = entries.length + ' run tersimpan';
+
+      let html = '<table class="history-table"><thead><tr>' +
+        '<th>Selesai</th><th>Route</th><th style="text-align:right">Dipindahkan</th>' +
+        '<th style="text-align:right">Trip</th><th>Alasan</th>' +
+        '</tr></thead><tbody>';
+
+      for(const e of entries.slice(0, 30)){
+        html += `<tr>
+          <td>${fmtDateTime(e.finished_at)}</td>
+          <td class="route-cell">${fmtRoute(e)}</td>
+          <td class="num">${e.items_moved_total ?? 0}${e.max_total_items ? (' / ' + e.max_total_items) : ''}</td>
+          <td class="num">${e.trips ?? 0}</td>
+          <td>${fmtReason(e.reason)}</td>
+        </tr>`;
+      }
+      html += '</tbody></table>';
+      historyTableWrap.innerHTML = html;
+    }catch(e){
+      // path belum pernah dibuat oleh bot; panel tetap tampil kosong.
+    }
+  }
+
+  refreshHistoryBtn.addEventListener('click', loadMoveDropHistory);
+  loadMoveDropHistory();
+  setInterval(loadMoveDropHistory, HISTORY_POLL_MS);
 
   // ============================================================
   //  ENCRYPT / DECRYPT TOOL (XOR + Base64, client-side)
