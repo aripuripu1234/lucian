@@ -3,1581 +3,536 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lucifer — Control Panel</title>
+<title>Lucifer Control — Bot Panel</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --soil:#161210;
-    --soil-1:#1c1712;
-    --soil-2:#221b15;
-    --soil-3:#33281f;
-    --soil-4:#443626;
-    --sprout:#8fd14f;
-    --sprout-dim:#5c8f3a;
-    --sprout-glow:rgba(143,209,79,0.14);
-    --clay:#c97b4a;
-    --clay-dim:rgba(201,123,74,0.14);
-    --paper:#efe6d8;
-    --paper-dim:#9c8d78;
-    --paper-faint:#6b5f4f;
-    --danger:#e0605a;
-    --mono:'JetBrains Mono', 'Courier New', monospace;
-    --sans:'Inter', -apple-system, sans-serif;
-    --display:'Space Grotesk', 'Inter', sans-serif;
+    --bg: #0c1210;
+    --panel: #121a17;
+    --panel-2: #16201c;
+    --line: #24322c;
+    --text: #dfeae4;
+    --text-dim: #8ea69a;
+    --accent: #8CFF6B;
+    --accent-dim: #4f8a3f;
+    --warn: #ffcc66;
+    --bad: #ff6b6b;
+    --good: #8CFF6B;
+    --radius: 10px;
   }
-  *{box-sizing:border-box;}
-  html,body{height:100%;}
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
   body{
-    margin:0;
     background:
-      radial-gradient(ellipse 900px 500px at 12% -10%, rgba(143,209,79,0.07), transparent 55%),
-      radial-gradient(ellipse 700px 500px at 100% 100%, rgba(201,123,74,0.06), transparent 55%),
-      var(--soil);
-    color:var(--paper);
-    font-family:var(--sans);
-    -webkit-font-smoothing:antialiased;
-  }
-
-  .app{
-    display:grid;
-    grid-template-columns:232px 1fr;
-    min-height:100vh;
-  }
-
-  .sidebar{
-    background:var(--soil-1);
-    border-right:1px solid var(--soil-3);
-    padding:22px 16px;
-    display:flex;
-    flex-direction:column;
-    gap:28px;
-  }
-  .brand{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    padding:0 6px;
-  }
-  .brand-mark{
-    width:26px;height:26px;
-    border-radius:7px;
-    background:linear-gradient(155deg, var(--sprout), var(--sprout-dim));
-    display:flex;align-items:center;justify-content:center;
-    font-family:var(--display);
-    font-weight:700;
+      radial-gradient(1200px 600px at 85% -10%, rgba(140,255,107,0.06), transparent 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:'IBM Plex Mono', ui-monospace, monospace;
     font-size:14px;
-    color:#14210a;
+    line-height:1.5;
+    padding:28px 20px 80px;
+  }
+  h1,h2,h3{ font-family:'Space Grotesk', sans-serif; margin:0; }
+  a{ color:var(--accent); }
+
+  .wrap{ max-width:1180px; margin:0 auto; }
+
+  /* ---- header / world strip ---- */
+  header.top{
+    display:flex; align-items:flex-end; justify-content:space-between;
+    gap:20px; flex-wrap:wrap;
+    padding-bottom:18px; margin-bottom:22px;
+    border-bottom:1px solid var(--line);
+  }
+  .brand{ display:flex; align-items:center; gap:12px; }
+  .brand .mark{
+    width:34px; height:34px; border-radius:8px;
+    background:linear-gradient(135deg, var(--accent), #3fae62);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; color:#06110a; font-family:'Space Grotesk',sans-serif;
     flex:none;
   }
-  .brand-name{
-    font-family:var(--display);
-    font-weight:600;
-    font-size:15.5px;
-    letter-spacing:-0.01em;
+  .brand h1{ font-size:19px; letter-spacing:.2px; }
+  .brand .sub{ color:var(--text-dim); font-size:12px; margin-top:2px; }
+
+  .liveline{ display:flex; gap:22px; flex-wrap:wrap; }
+  .livestat{ text-align:right; }
+  .livestat .k{ color:var(--text-dim); font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; }
+  .livestat .v{ font-family:'Space Grotesk',sans-serif; font-size:16px; font-weight:600; margin-top:2px; }
+  .dot{ display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; position:relative; top:-1px; }
+  .dot.on{ background:var(--good); box-shadow:0 0 8px var(--good); }
+  .dot.off{ background:var(--bad); box-shadow:0 0 8px var(--bad); }
+
+  /* ---- layout ---- */
+  .grid{ display:grid; grid-template-columns: repeat(12, 1fr); gap:16px; }
+  .card{
+    grid-column: span 6;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:18px 18px 16px;
   }
-  .brand-tag{
-    font-family:var(--mono);
-    font-size:10px;
-    color:var(--paper-faint);
-    letter-spacing:0.06em;
+  .card.full{ grid-column: span 12; }
+  @media (max-width: 860px){ .card{ grid-column: span 12; } }
+
+  .card-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .card-head h2{ font-size:14px; text-transform:uppercase; letter-spacing:.08em; color:var(--text); }
+  .card-head .tag{
+    font-size:10.5px; color:var(--text-dim); border:1px solid var(--line);
+    padding:2px 8px; border-radius:20px;
   }
 
-  nav.navlist{
-    display:flex;
-    flex-direction:column;
-    gap:3px;
-  }
-  .nav-label{
-    font-family:var(--mono);
-    font-size:10px;
-    letter-spacing:0.14em;
-    text-transform:uppercase;
-    color:var(--paper-faint);
-    padding:0 10px;
-    margin:4px 0 8px;
-  }
-  .nav-btn{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    width:100%;
-    background:transparent;
-    border:none;
-    color:var(--paper-dim);
-    font-family:var(--sans);
-    font-size:13.5px;
-    font-weight:500;
-    text-align:left;
-    padding:9px 10px;
-    border-radius:7px;
-    cursor:pointer;
-    transition:background .12s, color .12s;
-  }
-  .nav-btn .ic{
-    width:16px;height:16px;flex:none;
-    opacity:.75;
-  }
-  .nav-btn:hover{background:var(--soil-2);color:var(--paper);}
-  .nav-btn.active{
-    background:var(--sprout-glow);
-    color:var(--sprout);
-  }
-  .nav-btn.active .ic{opacity:1;}
-
-  .sidebar-foot{
-    margin-top:auto;
-    padding:12px 10px;
-    border-top:1px solid var(--soil-3);
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-  }
-  .foot-row{display:flex;align-items:center;justify-content:space-between;}
-  .foot-k{font-family:var(--mono);font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);}
-  .foot-v{font-family:var(--mono);font-size:11.5px;color:var(--paper-dim);}
-  .live-dot{
-    width:6px;height:6px;border-radius:50%;
-    background:var(--sprout);
-    box-shadow:0 0 0 3px var(--sprout-glow);
-    animation:breathe 2.2s infinite ease-in-out;
-    flex:none;
-  }
-  @keyframes breathe{0%,100%{opacity:1;}50%{opacity:.35;}}
-
-  .main{
-    padding:26px 34px 40px;
-    max-width:920px;
-  }
-  .topbar{
-    display:flex;
-    align-items:flex-end;
-    justify-content:space-between;
-    margin-bottom:26px;
-    gap:16px;
-    flex-wrap:wrap;
-  }
-  .topbar-eyebrow{
-    font-family:var(--mono);
-    font-size:11px;
-    letter-spacing:0.14em;
-    text-transform:uppercase;
-    color:var(--sprout);
-    margin:0 0 6px;
-  }
-  .topbar h1{
-    font-family:var(--display);
-    font-size:26px;
-    font-weight:600;
-    letter-spacing:-0.015em;
-    margin:0;
-  }
-  .topbar p.sub{
-    margin:6px 0 0;
-    color:var(--paper-dim);
-    font-size:13.5px;
-    max-width:52ch;
-  }
-  .badge{
-    font-family:var(--mono);
-    font-size:11.5px;
-    padding:6px 12px;
-    border-radius:999px;
-    border:1px solid var(--soil-4);
-    color:var(--paper-dim);
-    display:flex;
-    align-items:center;
-    gap:7px;
-    white-space:nowrap;
-  }
-
-  .view{display:none;}
-  .view.active{display:block;}
-
-  .stat-grid{
-    display:grid;
-    grid-template-columns:repeat(3, 1fr);
-    gap:12px;
-    margin-bottom:22px;
-  }
-  .stat-card{
-    background:var(--soil-1);
-    border:1px solid var(--soil-3);
-    border-radius:10px;
-    padding:16px 18px;
-  }
-  .stat-card .k{
-    font-family:var(--mono);
-    font-size:10.5px;
-    letter-spacing:0.08em;
-    text-transform:uppercase;
-    color:var(--paper-faint);
-    margin-bottom:8px;
-  }
-  .stat-card .v{
-    font-family:var(--display);
-    font-size:21px;
-    font-weight:600;
-    color:var(--paper);
-  }
-  .stat-card .v.accent{color:var(--sprout);}
-
-  .panel{
-    background:var(--soil-1);
-    border:1px solid var(--soil-3);
-    border-radius:10px;
-    overflow:hidden;
-    margin-bottom:16px;
-  }
-  .panel-head{
-    padding:14px 20px;
-    border-bottom:1px solid var(--soil-3);
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-  }
-  .panel-head h2{
-    font-family:var(--display);
-    font-size:15px;
-    font-weight:600;
-    margin:0;
-  }
-  .panel-head .hint{
-    font-size:11.5px;
-    color:var(--paper-faint);
-  }
-  .panel-body{padding:20px;}
-
-  label{
-    display:block;
-    font-size:12.5px;
-    color:var(--paper-dim);
-    margin-bottom:7px;
-    font-weight:500;
-  }
-  label .opt{color:var(--paper-faint);font-weight:400;}
-  .field{margin-bottom:16px;}
-  .field:last-of-type{margin-bottom:0;}
+  .field{ margin-bottom:12px; }
+  .field label{ display:block; font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; margin-bottom:5px; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
   input[type=text], input[type=number]{
-    width:100%;
-    background:var(--soil);
-    border:1px solid var(--soil-3);
-    color:var(--sprout);
-    font-family:var(--mono);
-    font-size:15px;
-    letter-spacing:0.02em;
-    padding:11px 13px;
-    border-radius:7px;
+    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:9px 10px; border-radius:7px; font-family:inherit; font-size:13px;
     outline:none;
-    transition:border-color .15s;
   }
-  input[type=text].upper{text-transform:uppercase;}
-  input[type=text]:focus, input[type=number]:focus{border-color:var(--sprout-dim);}
-  input[type=text]::placeholder, input[type=number]::placeholder{color:var(--paper-faint);text-transform:none;}
+  input:focus{ border-color:var(--accent-dim); }
+  .switch-row{ display:flex; align-items:center; justify-content:space-between; background:var(--panel-2); border:1px solid var(--line); border-radius:7px; padding:9px 10px; margin-bottom:12px; }
+  .switch-row span{ font-size:12.5px; color:var(--text-dim); }
+  .switch{ position:relative; width:38px; height:20px; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider{ position:absolute; inset:0; background:#2a3730; border-radius:20px; cursor:pointer; transition:.15s; }
+  .slider:before{ content:""; position:absolute; width:14px; height:14px; left:3px; top:3px; background:#0c1210; border-radius:50%; transition:.15s; }
+  input:checked + .slider{ background:var(--accent-dim); }
+  input:checked + .slider:before{ transform:translateX(18px); background:var(--accent); }
 
-  textarea.codearea{
-    width:100%;
-    background:var(--soil);
-    border:1px solid var(--soil-3);
-    color:var(--sprout);
-    font-family:var(--mono);
-    font-size:12.5px;
-    line-height:1.55;
-    padding:12px 13px;
-    border-radius:7px;
-    outline:none;
-    resize:vertical;
-    min-height:180px;
-    transition:border-color .15s;
-    white-space:pre;
+  .btn{
+    background:var(--accent); color:#06110a; border:none; font-weight:700;
+    padding:9px 14px; border-radius:7px; cursor:pointer; font-family:'Space Grotesk',sans-serif;
+    font-size:12.5px; letter-spacing:.02em;
   }
-  textarea.codearea:focus{border-color:var(--sprout-dim);}
-  textarea.codearea::placeholder{color:var(--paper-faint);}
+  .btn:hover{ filter:brightness(1.08); }
+  .btn.ghost{ background:transparent; color:var(--text); border:1px solid var(--line); font-weight:600; }
+  .btn.ghost:hover{ border-color:var(--accent-dim); color:var(--accent); }
+  .btn-row{ display:flex; gap:10px; margin-top:6px; flex-wrap:wrap; }
 
-  .form-actions{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin-top:18px;
-    flex-wrap:wrap;
-  }
-  button.primary{
-    background:var(--sprout);
-    color:#14210a;
-    border:none;
-    font-family:var(--sans);
-    font-weight:600;
-    font-size:13.5px;
-    padding:11px 20px;
-    border-radius:7px;
-    cursor:pointer;
-    transition:filter .15s, transform .05s;
-  }
-  button.primary:hover{filter:brightness(1.08);}
-  button.primary:active{transform:scale(0.97);}
-  button.primary:disabled{background:var(--soil-3);color:var(--paper-faint);cursor:not-allowed;}
-  button.danger{
-    background:transparent;
-    border:1px solid rgba(224,96,90,0.4);
-    color:var(--danger);
-    font-family:var(--sans);
-    font-weight:600;
-    font-size:13.5px;
-    padding:10px 18px;
-    border-radius:7px;
-    cursor:pointer;
-    transition:background .15s;
-  }
-  button.danger:hover{background:rgba(224,96,90,0.1);}
-  button.danger:disabled{border-color:var(--soil-3);color:var(--paper-faint);cursor:not-allowed;background:transparent;}
-  button.ghost{
-    background:transparent;
-    border:1px solid var(--soil-3);
-    color:var(--paper-dim);
-    font-family:var(--sans);
-    font-weight:500;
-    font-size:12.5px;
-    padding:7px 13px;
-    border-radius:7px;
-    cursor:pointer;
-    transition:border-color .15s, color .15s;
-  }
-  button.ghost:hover{border-color:var(--sprout-dim);color:var(--sprout);}
+  .stat-strip{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:14px; }
+  .stat-box{ background:var(--panel-2); border:1px solid var(--line); border-radius:7px; padding:10px 12px; }
+  .stat-box .k{ font-size:10px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.06em; }
+  .stat-box .v{ font-family:'Space Grotesk',sans-serif; font-size:17px; font-weight:600; margin-top:3px; }
 
-  .msg{
-    font-family:var(--mono);
-    font-size:12px;
-    padding:9px 12px;
-    border-radius:7px;
-    border:1px solid transparent;
-    min-height:36px;
-    display:flex;
-    align-items:center;
-    gap:8px;
-    flex:1;
-  }
-  .msg.idle{color:var(--paper-faint);}
-  .msg.ok{color:var(--sprout);background:var(--sprout-glow);border-color:rgba(143,209,79,0.25);}
-  .msg.err{color:var(--danger);background:rgba(224,96,90,0.08);border-color:rgba(224,96,90,0.25);}
-  .msg.busy{color:var(--clay);}
-  .dot-pulse{
-    width:6px;height:6px;border-radius:50%;background:currentColor;
-    animation:pulse 1s infinite ease-in-out;
-  }
-  @keyframes pulse{0%,100%{opacity:.3;}50%{opacity:1;}}
+  .bar{ height:8px; border-radius:6px; background:var(--panel-2); border:1px solid var(--line); overflow:hidden; margin-top:4px;}
+  .bar-fill{ height:100%; background:linear-gradient(90deg, var(--accent-dim), var(--accent)); width:0%; transition:width .3s; }
 
-  .current-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:12px;
-    margin-top:18px;
-    padding-top:18px;
-    border-top:1px solid var(--soil-3);
-  }
-  .current-item .k{font-size:10.5px;color:var(--paper-faint);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:5px;}
-  .current-item .v{font-family:var(--mono);font-size:15px;color:var(--paper);}
-
-  .setup-note{
-    margin-top:18px;
-    font-size:11.5px;
-    color:var(--paper-faint);
-    line-height:1.6;
-  }
-  .setup-note code{
-    background:var(--soil);
-    padding:1px 5px;
-    border-radius:4px;
-    color:var(--clay);
-  }
-
-  .subhead{
-    font-size:10.5px;
-    letter-spacing:0.1em;
-    text-transform:uppercase;
-    color:var(--paper-faint);
-    margin:0 0 10px;
-  }
-  .pill-row{
-    display:flex;
-    flex-wrap:wrap;
-    gap:6px;
-  }
-  .pill{
-    font-family:var(--mono);
-    font-size:12px;
-    background:var(--soil);
-    border:1px solid var(--soil-3);
-    color:var(--paper);
-    padding:5px 10px;
-    border-radius:999px;
-  }
-  .empty-note{
-    font-size:12.5px;
-    color:var(--paper-faint);
-    font-style:italic;
-  }
-  .scan-cols{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:18px;
-    margin-top:18px;
-  }
-  table.scan-table{
-    width:100%;
-    border-collapse:collapse;
-    font-family:var(--mono);
-    font-size:12px;
-  }
-  table.scan-table th{
-    text-align:left;
-    color:var(--paper-faint);
-    font-weight:500;
-    font-size:10px;
-    letter-spacing:0.05em;
-    text-transform:uppercase;
-    padding:0 0 8px;
-    border-bottom:1px solid var(--soil-3);
-  }
-  table.scan-table td{
-    padding:7px 0;
-    border-bottom:1px solid var(--soil-3);
-    color:var(--paper);
-  }
-  table.scan-table td.count{color:var(--clay);text-align:right;}
-  table.scan-table tr:last-child td{border-bottom:none;}
-
-  .crypt-grid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:16px;
-  }
-  @media (max-width: 900px){
-    .crypt-grid{grid-template-columns:1fr;}
-  }
-
-  /* ===== Move Drop specific ===== */
-  .row-2{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:14px;
-  }
-  .toggle-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:12px;
-    padding:12px 14px;
-    background:var(--soil);
-    border:1px solid var(--soil-3);
-    border-radius:7px;
-    margin-bottom:16px;
-  }
-  .toggle-row .t-label{font-size:13px;color:var(--paper);font-weight:500;}
-  .toggle-row .t-sub{font-size:11px;color:var(--paper-faint);margin-top:2px;}
-  .switch{
-    position:relative;
-    width:40px;height:22px;
-    flex:none;
-  }
-  .switch input{opacity:0;width:0;height:0;}
-  .switch .slider{
-    position:absolute;inset:0;
-    background:var(--soil-3);
-    border-radius:999px;
-    cursor:pointer;
-    transition:background .15s;
-  }
-  .switch .slider::before{
-    content:"";
-    position:absolute;
-    width:16px;height:16px;
-    left:3px;top:3px;
-    background:var(--paper-dim);
-    border-radius:50%;
-    transition:transform .15s, background .15s;
-  }
-  .switch input:checked + .slider{background:var(--sprout-glow);border:1px solid var(--sprout-dim);}
-  .switch input:checked + .slider::before{transform:translateX(18px);background:var(--sprout);}
-
-  .progress-shell{
-    background:var(--soil);
-    border:1px solid var(--soil-3);
-    border-radius:7px;
-    padding:16px 18px;
-    margin-bottom:16px;
-  }
-  .progress-top{
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
-    margin-bottom:10px;
-    flex-wrap:wrap;
-    gap:6px;
-  }
-  .progress-count{
-    font-family:var(--display);
-    font-size:22px;
-    font-weight:600;
-    color:var(--paper);
-  }
-  .progress-count .of{color:var(--paper-faint);font-weight:500;font-size:16px;}
-  .progress-count .total{color:var(--sprout);}
   .state-pill{
-    font-family:var(--mono);
-    font-size:11px;
-    padding:4px 10px;
-    border-radius:999px;
-    border:1px solid var(--soil-4);
-    color:var(--paper-dim);
-    text-transform:uppercase;
-    letter-spacing:0.04em;
+    display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px;
+    border:1px solid var(--line); color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em;
   }
-  .state-pill.st-dropping,.state-pill.st-collecting,.state-pill.st-to_storage,.state-pill.st-to_source{
-    color:var(--sprout);border-color:rgba(143,209,79,0.3);background:var(--sprout-glow);
-  }
-  .state-pill.st-stopped,.state-pill.st-idle{
-    color:var(--paper-faint);
-  }
-  .state-pill.st-limit_reached{
-    color:var(--clay);border-color:rgba(201,123,74,0.35);background:var(--clay-dim);
-  }
-  .progress-bar-track{
-    width:100%;
-    height:8px;
-    background:var(--soil-2);
-    border-radius:999px;
-    overflow:hidden;
-  }
-  .progress-bar-fill{
-    height:100%;
-    background:linear-gradient(90deg, var(--sprout-dim), var(--sprout));
-    border-radius:999px;
-    transition:width .3s ease;
-    width:0%;
-  }
-  .progress-meta{
-    display:flex;
-    gap:18px;
-    margin-top:12px;
-    flex-wrap:wrap;
-  }
-  .progress-meta .pm-item .k{font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);margin-bottom:3px;}
-  .progress-meta .pm-item .v{font-family:var(--mono);font-size:13px;color:var(--paper);}
+  .state-pill.active{ color:var(--accent); border-color:var(--accent-dim); }
 
-  /* ===== History (Riwayat) specific ===== */
-  table.history-table{
-    width:100%;
-    border-collapse:collapse;
-    font-family:var(--mono);
-    font-size:12px;
-  }
-  table.history-table th{
-    text-align:left;
-    color:var(--paper-faint);
-    font-weight:500;
-    font-size:10px;
-    letter-spacing:0.05em;
-    text-transform:uppercase;
-    padding:0 10px 8px 0;
-    border-bottom:1px solid var(--soil-3);
-    white-space:nowrap;
-  }
-  table.history-table td{
-    padding:9px 10px 9px 0;
-    border-bottom:1px solid var(--soil-3);
-    color:var(--paper);
-    vertical-align:top;
-  }
-  table.history-table tr:last-child td{border-bottom:none;}
-  table.history-table td.num{color:var(--clay);text-align:right;white-space:nowrap;}
-  .reason-tag{
-    font-family:var(--mono);
-    font-size:10.5px;
-    padding:2px 8px;
-    border-radius:999px;
-    border:1px solid var(--soil-4);
-    color:var(--paper-dim);
-    white-space:nowrap;
-  }
-  .reason-tag.rt-limit_reached{color:var(--clay);border-color:rgba(201,123,74,0.35);background:var(--clay-dim);}
-  .route-cell{font-size:11.5px;color:var(--paper-dim);}
-  .route-cell b{color:var(--paper);}
+  table{ width:100%; border-collapse:collapse; font-size:12.5px; }
+  th,td{ text-align:left; padding:8px 8px; border-bottom:1px solid var(--line); }
+  th{ color:var(--text-dim); font-weight:500; text-transform:uppercase; font-size:10.5px; letter-spacing:.05em; }
+  tr:last-child td{ border-bottom:none; }
+  .empty{ color:var(--text-dim); font-size:12.5px; padding:14px 4px; }
 
-  @media (max-width: 760px){
-    .app{grid-template-columns:1fr;}
-    .sidebar{
-      flex-direction:row;
-      align-items:center;
-      padding:14px 16px;
-      gap:16px;
-      overflow-x:auto;
-      border-right:none;
-      border-bottom:1px solid var(--soil-3);
-    }
-    .brand{flex:none;}
-    nav.navlist{flex-direction:row;}
-    .nav-label{display:none;}
-    .sidebar-foot{display:none;}
-    .main{padding:20px 18px 32px;}
-    .stat-grid{grid-template-columns:1fr 1fr;}
-    .current-grid{grid-template-columns:1fr;}
-    .scan-cols{grid-template-columns:1fr;}
-    .row-2{grid-template-columns:1fr;}
-  }
+  .help{ font-size:11px; color:var(--text-dim); margin-top:2px; }
+  .save-msg{ font-size:11.5px; color:var(--accent); min-height:16px; margin-top:6px; }
+
+  footer{ text-align:center; color:var(--text-dim); font-size:11px; margin-top:40px; }
 </style>
 </head>
 <body>
+<div class="wrap">
 
-<div class="app">
-
-  <aside class="sidebar">
+  <header class="top">
     <div class="brand">
-      <div class="brand-mark">L</div>
+      <div class="mark">Lc</div>
       <div>
-        <div class="brand-name">Lucifer</div>
-        <div class="brand-tag">CONTROL PANEL</div>
+        <h1>Lucifer Control</h1>
+        <div class="sub">Firebase RTDB · <span id="dbHost">—</span></div>
       </div>
     </div>
-
-    <nav class="navlist">
-      <div class="nav-label">Menu</div>
-      <button class="nav-btn active" data-view="world">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9s1.3-6.4 3.8-9z"/></svg>
-        World Control
-      </button>
-      <button class="nav-btn" data-view="scan">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 9.5h17M9.5 20.5v-11"/></svg>
-        Growscan Monitor
-      </button>
-      <button class="nav-btn" data-view="movedrop">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4.5 20.5h15"/></svg>
-        Move Drop
-      </button>
-      <button class="nav-btn" data-view="crypt">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>
-        Encrypt Tool
-      </button>
-    </nav>
-
-    <div class="sidebar-foot">
-      <div class="foot-row">
-        <span class="foot-k">Bot</span>
-        <span class="foot-v">AxiqejelPa</span>
+    <div class="liveline">
+      <div class="livestat">
+        <div class="k">Bot</div>
+        <div class="v"><span class="dot off" id="onlineDot"></span><span id="onlineText">offline</span></div>
       </div>
-      <div class="foot-row">
-        <span class="foot-k">Sync</span>
-        <span class="foot-v" style="display:flex;align-items:center;gap:6px;"><span class="live-dot"></span>live</span>
+      <div class="livestat">
+        <div class="k">World</div>
+        <div class="v" id="posWorld">—</div>
+      </div>
+      <div class="livestat">
+        <div class="k">Posisi (X,Y)</div>
+        <div class="v" id="posXY">—</div>
+      </div>
+      <div class="livestat">
+        <div class="k">Update terakhir</div>
+        <div class="v" id="posUpdated">—</div>
       </div>
     </div>
-  </aside>
+  </header>
 
-  <main class="main">
+  <div class="grid">
 
-    <section class="view active" id="view-world">
-      <div class="topbar">
-        <div>
-          <p class="topbar-eyebrow">Navigation</p>
-          <h1>World Control</h1>
-          <p class="sub">Atur world &amp; door tujuan bot. Perubahan tersimpan ke Firebase dan diambil bot dalam beberapa detik.</p>
+    <!-- TARGET WORLD -->
+    <section class="card">
+      <div class="card-head"><h2>World &amp; Door Tujuan</h2><span class="tag">target_world / target_door</span></div>
+      <div class="row2">
+        <div class="field">
+          <label>Nama World</label>
+          <input type="text" id="tw" placeholder="PAPAZIA">
         </div>
-        <span class="badge"><span class="live-dot"></span> Firebase tersambung</span>
+        <div class="field">
+          <label>Door ID (opsional)</label>
+          <input type="text" id="td" placeholder="kosongkan jika tidak ada">
+        </div>
       </div>
+      <div class="btn-row">
+        <button class="btn" onclick="saveTarget()">Simpan Target</button>
+        <button class="btn ghost" onclick="loadTarget()">Muat Ulang</button>
+      </div>
+      <div class="save-msg" id="targetMsg"></div>
+    </section>
 
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Warp target</h2>
-          <span class="hint">Dibaca ulang tiap 10 detik oleh bot</span>
+    <!-- POSITION -->
+    <section class="card">
+      <div class="card-head"><h2>Posisi Terakhir</h2><span class="tag">bot_position</span></div>
+      <div class="stat-strip">
+        <div class="stat-box"><div class="k">World</div><div class="v" id="posWorld2">—</div></div>
+        <div class="stat-box"><div class="k">X</div><div class="v" id="posX">—</div></div>
+        <div class="stat-box"><div class="k">Y</div><div class="v" id="posY">—</div></div>
+      </div>
+      <p class="help">Otomatis dikirim oleh bot tiap beberapa detik. Kalau bot disconnect atau ke-kick,
+        nilai di sini adalah posisi &amp; world terakhir sebelum itu terjadi — status "online" akan
+        berubah jadi false karena bot berhenti mengirim update.</p>
+    </section>
+
+    <!-- MOVE DROP -->
+    <section class="card full">
+      <div class="card-head">
+        <h2>Move Drop</h2>
+        <span class="tag">movedrop_config / movedrop_status</span>
+      </div>
+      <div class="switch-row">
+        <span>Aktifkan Move Drop</span>
+        <label class="switch"><input type="checkbox" id="mdEnabled"><span class="slider"></span></label>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Source World : Door</label>
+          <div class="row2">
+            <input type="text" id="mdSourceWorld" placeholder="FARMWORLD">
+            <input type="text" id="mdSourceDoor" placeholder="door id">
+          </div>
         </div>
-        <div class="panel-body">
-          <div class="field">
-            <label for="worldInput">Nama world</label>
-            <input id="worldInput" type="text" class="upper" placeholder="cth: PAPAZIA" maxlength="20" autocomplete="off">
+        <div class="field">
+          <label>Storage World : Door</label>
+          <div class="row2">
+            <input type="text" id="mdStorageWorld" placeholder="STORAGEWORLD">
+            <input type="text" id="mdStorageDoor" placeholder="door id">
           </div>
-          <div class="field">
-            <label for="doorInput">Door ID <span class="opt">(opsional — kosongkan kalau tidak perlu)</span></label>
-            <input id="doorInput" type="text" placeholder="cth: 1" maxlength="20" autocomplete="off">
-          </div>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Whitelist Item ID (pisahkan koma)</label>
+          <input type="text" id="mdAllowed" placeholder="4584, 2, 112">
+        </div>
+        <div class="field">
+          <label>Target Total Item (0 = tanpa batas)</label>
+          <input type="number" id="mdMax" placeholder="1000">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="saveMoveDrop()">Simpan &amp; Terapkan</button>
+        <button class="btn ghost" onclick="loadMoveDrop()">Muat Ulang</button>
+      </div>
+      <div class="save-msg" id="mdMsg"></div>
 
-          <div class="form-actions">
-            <button class="primary" id="saveBtn">Simpan &amp; warp</button>
-            <div id="status" class="msg idle">Belum ada perubahan.</div>
-          </div>
+      <div style="margin-top:16px; border-top:1px solid var(--line); padding-top:14px;">
+        <div class="stat-strip">
+          <div class="stat-box"><div class="k">State</div><div class="v"><span class="state-pill" id="mdState">idle</span></div></div>
+          <div class="stat-box"><div class="k">Trips</div><div class="v" id="mdTrips">0</div></div>
+          <div class="stat-box"><div class="k">Progress</div><div class="v" id="mdProgress">0 / 0</div></div>
+        </div>
+        <div class="bar"><div class="bar-fill" id="mdBar"></div></div>
+      </div>
+    </section>
 
-          <div class="current-grid">
-            <div class="current-item">
-              <div class="k">World aktif</div>
-              <div class="v" id="currentWorld">memuat…</div>
-            </div>
-            <div class="current-item">
-              <div class="k">Door ID</div>
-              <div class="v" id="currentDoor">memuat…</div>
-            </div>
-          </div>
+    <!-- PUNCH PROVIDER -->
+    <section class="card full">
+      <div class="card-head">
+        <h2>Punch Provider</h2>
+        <span class="tag">punch_config / punch_status</span>
+      </div>
+      <div class="switch-row">
+        <span>Aktifkan Auto-Punch Provider</span>
+        <label class="switch"><input type="checkbox" id="pkEnabled"><span class="slider"></span></label>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label>Provider Item ID</label>
+          <input type="number" id="pkProviderId" placeholder="928">
+        </div>
+        <div class="field">
+          <label>Revisit Cooldown (detik, 0 = sekali saja)</label>
+          <input type="number" id="pkCooldown" placeholder="0">
+        </div>
+      </div>
+      <div class="field">
+        <label>Scan Radius (px)</label>
+        <input type="number" id="pkRadius" placeholder="300">
+      </div>
+      <div class="btn-row">
+        <button class="btn" onclick="savePunch()">Simpan &amp; Terapkan</button>
+        <button class="btn ghost" onclick="loadPunch()">Muat Ulang</button>
+      </div>
+      <div class="save-msg" id="pkMsg"></div>
 
-          <p class="setup-note">
-            Ganti <code>FIREBASE_URL</code> di bagian &lt;script&gt; file ini dengan URL Realtime Database kamu sebelum dipakai.
-          </p>
+      <div style="margin-top:16px; border-top:1px solid var(--line); padding-top:14px;">
+        <div class="stat-strip">
+          <div class="stat-box"><div class="k">Total Dipukul</div><div class="v" id="pkTotal">0</div></div>
+          <div class="stat-box"><div class="k">Provider Terdeteksi</div><div class="v" id="pkDetected">—</div></div>
+          <div class="stat-box"><div class="k">Terakhir Pukul</div><div class="v" id="pkLast">—</div></div>
         </div>
       </div>
     </section>
 
-    <section class="view" id="view-scan">
-      <div class="topbar">
+    <!-- WORLD STATUS -->
+    <section class="card full">
+      <div class="card-head"><h2>World Status</h2><span class="tag">world_status</span></div>
+      <div class="row2">
         <div>
-          <p class="topbar-eyebrow">Navigation</p>
-          <h1>Growscan Monitor</h1>
-          <p class="sub">Hasil growscan dan GrowID yang terdeteksi bot di world aktif, diperbarui otomatis.</p>
+          <div class="help" style="margin-bottom:6px;">Pemain terdeteksi di world</div>
+          <table>
+            <thead><tr><th>NetID</th><th>GrowID</th><th>UserID</th></tr></thead>
+            <tbody id="playersBody"><tr><td class="empty" colspan="3">Belum ada data.</td></tr></tbody>
+          </table>
         </div>
-        <button class="ghost" id="refreshScanBtn">Refresh sekarang</button>
-      </div>
-
-      <div class="stat-grid">
-        <div class="stat-card">
-          <div class="k">World terpantau</div>
-          <div class="v" id="statWorld">—</div>
-        </div>
-        <div class="stat-card">
-          <div class="k">GrowID terdeteksi</div>
-          <div class="v accent" id="statPlayers">0</div>
-        </div>
-        <div class="stat-card">
-          <div class="k">Update terakhir</div>
-          <div class="v" id="statUpdated" style="font-family:var(--mono);font-size:15px;">—</div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <h2>GrowID di world</h2>
-          <span class="hint" id="playerCountHint">0 pemain</span>
-        </div>
-        <div class="panel-body">
-          <div class="pill-row" id="playerList">
-            <span class="empty-note">Belum ada data pemain.</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Hasil growscan</h2>
-          <span class="hint">Objects &amp; tiles, diurutkan dari jumlah terbanyak</span>
-        </div>
-        <div class="panel-body">
-          <div class="scan-cols">
-            <div>
-              <p class="subhead">Objects</p>
-              <div id="objectTableWrap"><span class="empty-note">Belum ada data growscan.</span></div>
-            </div>
-            <div>
-              <p class="subhead">Tiles</p>
-              <div id="tileTableWrap"><span class="empty-note">Belum ada data growscan.</span></div>
-            </div>
-          </div>
+        <div>
+          <div class="help" style="margin-bottom:6px;">Growscan (objek/tile terdeteksi)</div>
+          <table>
+            <thead><tr><th>Nama</th><th>ID</th><th>Jumlah</th></tr></thead>
+            <tbody id="scanBody"><tr><td class="empty" colspan="3">Belum ada data.</td></tr></tbody>
+          </table>
         </div>
       </div>
     </section>
 
-    <section class="view" id="view-movedrop">
-      <div class="topbar">
-        <div>
-          <p class="topbar-eyebrow">Navigation</p>
-          <h1>Move Drop</h1>
-          <p class="sub">Bot ambil item whitelist dari world asal, lalu drop total jumlahnya sekaligus ke world storage. Progress terupdate tiap trip. Kalau target total tercapai, run otomatis disimpan ke Riwayat dan bot berhenti — tinggal atur ulang konfigurasi (sama atau baru) lalu jalankan lagi.</p>
-        </div>
-        <span class="badge"><span class="live-dot"></span> Firebase tersambung</span>
-      </div>
-
-      <div class="progress-shell">
-        <div class="progress-top">
-          <div class="progress-count">
-            <span id="mdMoved">0</span><span class="of" id="mdOfWrap"> / </span><span class="total" id="mdTotal">∞</span>
-            <span class="of" style="font-size:12px;">item dipindahkan</span>
-          </div>
-          <span class="state-pill" id="mdStatePill">idle</span>
-        </div>
-        <div class="progress-bar-track">
-          <div class="progress-bar-fill" id="mdBarFill"></div>
-        </div>
-        <div class="progress-meta">
-          <div class="pm-item">
-            <div class="k">Trip selesai</div>
-            <div class="v" id="mdTrips">0</div>
-          </div>
-          <div class="pm-item">
-            <div class="k">Update terakhir</div>
-            <div class="v" id="mdUpdated">—</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Rincian per item</h2>
-          <span class="hint">Jumlah yang sudah ke-drop, per item ID</span>
-        </div>
-        <div class="panel-body">
-          <div id="mdItemBreakdown"><span class="empty-note">Belum ada item yang dipindahkan.</span></div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Konfigurasi</h2>
-          <span class="hint">Dibaca ulang bot tiap 8 detik</span>
-        </div>
-        <div class="panel-body">
-
-          <div class="toggle-row">
-            <div>
-              <div class="t-label">Move Drop aktif</div>
-              <div class="t-sub">Matikan buat stop bot di tengah jalan (state otomatis balik ke "stopped")</div>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="mdEnabled">
-              <span class="slider"></span>
-            </label>
-          </div>
-
-          <div class="row-2">
-            <div class="field">
-              <label for="mdSourceWorld">World asal (collect)</label>
-              <input id="mdSourceWorld" type="text" class="upper" placeholder="cth: FARMWORLD" maxlength="20" autocomplete="off">
-            </div>
-            <div class="field">
-              <label for="mdSourceDoor">Door asal <span class="opt">(opsional)</span></label>
-              <input id="mdSourceDoor" type="text" placeholder="cth: 1" maxlength="20" autocomplete="off">
-            </div>
-          </div>
-
-          <div class="row-2">
-            <div class="field">
-              <label for="mdStorageWorld">World storage (drop)</label>
-              <input id="mdStorageWorld" type="text" class="upper" placeholder="cth: STORAGENURON" maxlength="20" autocomplete="off">
-            </div>
-            <div class="field">
-              <label for="mdStorageDoor">Door storage <span class="opt">(opsional)</span></label>
-              <input id="mdStorageDoor" type="text" placeholder="cth: 1" maxlength="20" autocomplete="off">
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="mdAllowedItems">Item ID whitelist <span class="opt">(pisahkan pakai koma)</span></label>
-            <input id="mdAllowedItems" type="text" placeholder="cth: 4584, 112, 8992" autocomplete="off">
-          </div>
-
-          <div class="field">
-            <label for="mdMaxTotal">Target total item <span class="opt">(0 = tanpa batas)</span></label>
-            <input id="mdMaxTotal" type="number" min="0" step="1" placeholder="cth: 1000">
-          </div>
-
-          <div class="form-actions">
-            <button class="primary" id="mdSaveBtn">Simpan &amp; mulai</button>
-            <button class="danger" id="mdStopBtn">Stop</button>
-            <div id="mdConfigStatus" class="msg idle">Belum ada perubahan.</div>
-          </div>
-
-          <p class="setup-note">
-            "Simpan &amp; mulai" akan set <code>enabled: true</code> dan langsung dibaca bot di poll berikutnya (maks. 8 detik).
-            "Stop" cuma set <code>enabled: false</code>, field lain tetap tersimpan biar bisa lanjut lagi nanti.
-            Begitu target total tercapai, bot otomatis simpan run ke <b>Riwayat</b> di bawah, set <code>enabled: false</code>, dan reset progress ke 0 — form konfigurasi di atas tetap terisi jadi tinggal klik "Simpan &amp; mulai" lagi (boleh diubah dulu, boleh dibiarkan sama).
-          </p>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Riwayat run</h2>
-          <span class="hint" id="historyCountHint">0 run tersimpan</span>
-        </div>
-        <div class="panel-body">
-          <div class="form-actions" style="margin-top:0; margin-bottom:14px;">
-            <button class="ghost" id="refreshHistoryBtn">Refresh riwayat</button>
-          </div>
-          <div id="historyTableWrap"><span class="empty-note">Belum ada run yang selesai. Riwayat muncul di sini setiap kali target total tercapai.</span></div>
-        </div>
-      </div>
+    <!-- HISTORY -->
+    <section class="card full">
+      <div class="card-head"><h2>Riwayat Move Drop</h2><span class="tag">movedrop_history</span></div>
+      <table>
+        <thead><tr><th>Selesai</th><th>Rute</th><th>Item Dipindah</th><th>Trip</th><th>Alasan</th></tr></thead>
+        <tbody id="historyBody"><tr><td class="empty" colspan="5">Belum ada riwayat.</td></tr></tbody>
+      </table>
     </section>
 
-    <section class="view" id="view-crypt">
-      <div class="topbar">
-        <div>
-          <p class="topbar-eyebrow">Navigation</p>
-          <h1>Encrypt Tool</h1>
-          <p class="sub">Enkripsi script Lua jadi loader ter-obfuscate (XOR + Base64), atau decrypt loader itu balik ke source asli. Semua diproses langsung di browser, tidak dikirim ke server manapun.</p>
-        </div>
-        <span class="badge">Client-side only</span>
-      </div>
+  </div>
 
-      <div class="crypt-grid">
-        <div class="panel">
-          <div class="panel-head">
-            <h2>Encrypt</h2>
-            <span class="hint">Source → loader</span>
-          </div>
-          <div class="panel-body">
-            <div class="field">
-              <label for="encInput">Kode Lua asli</label>
-              <textarea id="encInput" class="codearea" placeholder="Tempel kode Lua di sini..."></textarea>
-            </div>
-            <div class="form-actions">
-              <button class="primary" id="encBtn">Encrypt</button>
-              <button class="ghost" id="encCopyBtn">Copy hasil</button>
-              <button class="ghost" id="encDownloadBtn">Download .lua</button>
-            </div>
-            <div id="encStatus" class="msg idle" style="margin-top:12px;">Belum ada hasil.</div>
-            <div class="field" style="margin-top:14px;">
-              <label for="encOutput">Hasil (loader ter-enkripsi)</label>
-              <textarea id="encOutput" class="codearea" placeholder="Hasil enkripsi akan muncul di sini..." readonly></textarea>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-head">
-            <h2>Decrypt</h2>
-            <span class="hint">Loader → source</span>
-          </div>
-          <div class="panel-body">
-            <div class="field">
-              <label for="decInput">Loader ter-enkripsi</label>
-              <textarea id="decInput" class="codearea" placeholder="Tempel isi file loader ter-enkripsi di sini..."></textarea>
-            </div>
-            <div class="form-actions">
-              <button class="primary" id="decBtn">Decrypt</button>
-              <button class="ghost" id="decCopyBtn">Copy hasil</button>
-              <button class="ghost" id="decDownloadBtn">Download .lua</button>
-            </div>
-            <div id="decStatus" class="msg idle" style="margin-top:12px;">Belum ada hasil.</div>
-            <div class="field" style="margin-top:14px;">
-              <label for="decOutput">Hasil (source asli)</label>
-              <textarea id="decOutput" class="codearea" placeholder="Hasil decrypt akan muncul di sini..." readonly></textarea>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <p class="setup-note">
-        Format loader yang dihasilkan cocok langsung dipakai sebagai file <code>.lua</code> — tinggal jalankan seperti script biasa.
-        Kunci XOR dibuat acak setiap kali encrypt, jadi hasilnya selalu berbeda walau source-nya sama.
-        Ini teknik obfuscation, bukan enkripsi kriptografis yang benar-benar aman.
-      </p>
-    </section>
-
-  </main>
+  <footer>Lucifer Control Panel · terhubung langsung ke Firebase Realtime Database milikmu, tanpa server tambahan.</footer>
 </div>
 
 <script>
-  // GANTI dengan URL Firebase Realtime Database kamu, contoh:
-  // "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app"
-  const FIREBASE_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
-  const TARGET_PATH = "target_world.json";
-  const DOOR_PATH = "target_door.json";
-  const STATUS_PATH = "world_status.json";
-  const MOVEDROP_CONFIG_PATH = "movedrop_config.json";
-  const MOVEDROP_STATUS_PATH = "movedrop_status.json";
-  const MOVEDROP_HISTORY_PATH = "movedrop_history.json";
-  const STATUS_POLL_MS = 5000;
-  const MOVEDROP_POLL_MS = 5000;
-  const HISTORY_POLL_MS = 15000;
+// ================== CONFIG ==================
+const FIREBASE_BASE = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
+document.getElementById('dbHost').textContent = FIREBASE_BASE.replace('https://','');
 
-  const navBtns = document.querySelectorAll('.nav-btn');
-  const views = document.querySelectorAll('.view');
-  navBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      navBtns.forEach(b => b.classList.remove('active'));
-      views.forEach(v => v.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('view-' + btn.dataset.view).classList.add('active');
-    });
+// ================== HELPERS ==================
+async function fbGet(path){
+  const res = await fetch(`${FIREBASE_BASE}/${path}.json`);
+  if(!res.ok) throw new Error(`GET ${path} failed`);
+  return res.json();
+}
+async function fbPut(path, value){
+  const res = await fetch(`${FIREBASE_BASE}/${path}.json`, {
+    method: 'PUT',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(value)
   });
-
-  const input = document.getElementById('worldInput');
-  const doorInput = document.getElementById('doorInput');
-  const btn = document.getElementById('saveBtn');
-  const statusEl = document.getElementById('status');
-  const currentEl = document.getElementById('currentWorld');
-  const currentDoorEl = document.getElementById('currentDoor');
-
-  function setStatus(kind, html){
-    statusEl.className = 'msg ' + kind;
-    statusEl.innerHTML = html;
-  }
-
-  async function loadCurrent(){
-    try{
-      const res = await fetch(`${FIREBASE_URL}/${TARGET_PATH}`);
-      const data = await res.json();
-      currentEl.textContent = data || '(belum di-set)';
-      if(data) input.value = data;
-    }catch(e){
-      currentEl.textContent = 'gagal memuat';
-    }
-    try{
-      const res = await fetch(`${FIREBASE_URL}/${DOOR_PATH}`);
-      const data = await res.json();
-      currentDoorEl.textContent = data || '(tidak ada)';
-      if(data) doorInput.value = data;
-    }catch(e){
-      currentDoorEl.textContent = 'gagal memuat';
-    }
-  }
-
-  async function saveWorld(){
-    const name = input.value.trim().toUpperCase();
-    const door = doorInput.value.trim();
-    if(!name){
-      setStatus('err', 'Nama world tidak boleh kosong.');
-      return;
-    }
-    btn.disabled = true;
-    setStatus('busy', '<span class="dot-pulse"></span> Menyimpan…');
-    try{
-      const res = await fetch(`${FIREBASE_URL}/${TARGET_PATH}`, {
-        method: 'PUT',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(name)
-      });
-      if(!res.ok) throw new Error('HTTP ' + res.status);
-
-      const res2 = await fetch(`${FIREBASE_URL}/${DOOR_PATH}`, {
-        method: 'PUT',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(door)
-      });
-      if(!res2.ok) throw new Error('HTTP ' + res2.status);
-
-      const label = door ? `<b>${name}</b> lewat door <b>${door}</b>` : `<b>${name}</b>`;
-      setStatus('ok', `Tersimpan. Bot akan warp ke ${label} dalam beberapa detik.`);
-      currentEl.textContent = name;
-      currentDoorEl.textContent = door || '(tidak ada)';
-    }catch(e){
-      setStatus('err', 'Gagal menyimpan: ' + e.message);
-    }finally{
-      btn.disabled = false;
-    }
-  }
-
-  btn.addEventListener('click', saveWorld);
-  input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') saveWorld(); });
-  doorInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') saveWorld(); });
-
-  const statWorldEl = document.getElementById('statWorld');
-  const statPlayersEl = document.getElementById('statPlayers');
-  const statUpdatedEl = document.getElementById('statUpdated');
-  const playerListEl = document.getElementById('playerList');
-  const playerCountHintEl = document.getElementById('playerCountHint');
-  const objectTableWrap = document.getElementById('objectTableWrap');
-  const tileTableWrap = document.getElementById('tileTableWrap');
-  const refreshScanBtn = document.getElementById('refreshScanBtn');
-
-  function fmtTime(unixSeconds){
-    if(!unixSeconds) return '—';
-    const d = new Date(unixSeconds * 1000);
-    return d.toLocaleTimeString('id-ID');
-  }
-
-  function fmtDateTime(unixSeconds){
-    if(!unixSeconds) return '—';
-    const d = new Date(unixSeconds * 1000);
-    return d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID');
-  }
-
-  function renderScanTable(rows){
-    if(!rows || rows.length === 0){
-      return '<span class="empty-note">Tidak ada data.</span>';
-    }
-    const sorted = [...rows].sort((a,b)=> (b.count||0) - (a.count||0)).slice(0, 12);
-    let html = '<table class="scan-table"><thead><tr><th>Nama</th><th>ID</th><th style="text-align:right">Jumlah</th></tr></thead><tbody>';
-    for(const r of sorted){
-      html += `<tr><td>${r.name ?? '—'}</td><td>${r.id ?? '—'}</td><td class="count">${r.count ?? 0}</td></tr>`;
-    }
-    html += '</tbody></table>';
-    return html;
-  }
-
-  async function loadWorldStatus(){
-    try{
-      const res = await fetch(`${FIREBASE_URL}/${STATUS_PATH}`);
-      const data = await res.json();
-      if(!data) return;
-
-      statWorldEl.textContent = data.world || '—';
-      statUpdatedEl.textContent = fmtTime(data.updated_at);
-
-      const players = Array.isArray(data.players) ? data.players : [];
-      statPlayersEl.textContent = players.length;
-      playerCountHintEl.textContent = players.length + ' pemain';
-      if(players.length === 0){
-        playerListEl.innerHTML = '<span class="empty-note">Belum ada data pemain.</span>';
-      }else{
-        playerListEl.innerHTML = players
-          .map(p => `<span class="pill">${p.growid ?? ('netid_' + p.netid)}</span>`)
-          .join('');
-      }
-
-      const scan = data.growscan || {};
-      objectTableWrap.innerHTML = renderScanTable(scan.objects);
-      tileTableWrap.innerHTML = renderScanTable(scan.tiles);
-    }catch(e){
-      // Diamkan kalau path belum pernah dibuat oleh bot; panel tetap tampil kosong.
-    }
-  }
-
-  refreshScanBtn.addEventListener('click', loadWorldStatus);
-
-  loadCurrent();
-  loadWorldStatus();
-  setInterval(loadWorldStatus, STATUS_POLL_MS);
-
-  // ============================================================
-  //  MOVE DROP PANEL
-  // ============================================================
-
-  const mdEnabled = document.getElementById('mdEnabled');
-  const mdSourceWorld = document.getElementById('mdSourceWorld');
-  const mdSourceDoor = document.getElementById('mdSourceDoor');
-  const mdStorageWorld = document.getElementById('mdStorageWorld');
-  const mdStorageDoor = document.getElementById('mdStorageDoor');
-  const mdAllowedItems = document.getElementById('mdAllowedItems');
-  const mdMaxTotal = document.getElementById('mdMaxTotal');
-  const mdSaveBtn = document.getElementById('mdSaveBtn');
-  const mdStopBtn = document.getElementById('mdStopBtn');
-  const mdConfigStatus = document.getElementById('mdConfigStatus');
-
-  const mdMoved = document.getElementById('mdMoved');
-  const mdTotal = document.getElementById('mdTotal');
-  const mdOfWrap = document.getElementById('mdOfWrap');
-  const mdStatePill = document.getElementById('mdStatePill');
-  const mdBarFill = document.getElementById('mdBarFill');
-  const mdTrips = document.getElementById('mdTrips');
-  const mdUpdated = document.getElementById('mdUpdated');
-  const mdItemBreakdown = document.getElementById('mdItemBreakdown');
-
-  function setMdConfigStatus(kind, html){
-    mdConfigStatus.className = 'msg ' + kind;
-    mdConfigStatus.innerHTML = html;
-  }
-
-  // Ambil config saat ini dan isi form (dipanggil sekali di awal).
-  async function loadMoveDropConfig(){
-    try{
-      const res = await fetch(`${FIREBASE_URL}/${MOVEDROP_CONFIG_PATH}`);
-      const cfg = await res.json();
-      if(!cfg) return;
-      mdEnabled.checked = cfg.enabled === true;
-      mdSourceWorld.value = cfg.source_world || '';
-      mdSourceDoor.value = cfg.source_door || '';
-      mdStorageWorld.value = cfg.storage_world || '';
-      mdStorageDoor.value = cfg.storage_door || '';
-      mdAllowedItems.value = Array.isArray(cfg.allowed_items) ? cfg.allowed_items.join(', ') : '';
-      mdMaxTotal.value = (cfg.max_total_items ?? 0);
-    }catch(e){
-      // path belum ada, biarkan form kosong
-    }
-  }
-
-  function parseAllowedItems(raw){
-    return raw.split(',')
-      .map(s => s.trim())
-      .filter(s => s !== '')
-      .map(s => parseInt(s, 10))
-      .filter(n => !Number.isNaN(n));
-  }
-
-  function buildConfigPayload(enabledOverride){
-    return {
-      enabled: enabledOverride,
-      source_world: mdSourceWorld.value.trim().toUpperCase(),
-      source_door: mdSourceDoor.value.trim(),
-      storage_world: mdStorageWorld.value.trim().toUpperCase(),
-      storage_door: mdStorageDoor.value.trim(),
-      allowed_items: parseAllowedItems(mdAllowedItems.value),
-      max_total_items: parseInt(mdMaxTotal.value, 10) || 0
-    };
-  }
-
-  async function pushMoveDropConfig(payload, busyText, okText){
-    setMdConfigStatus('busy', `<span class="dot-pulse"></span> ${busyText}`);
-    mdSaveBtn.disabled = true;
-    mdStopBtn.disabled = true;
-    try{
-      const res = await fetch(`${FIREBASE_URL}/${MOVEDROP_CONFIG_PATH}`, {
-        method: 'PUT',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(payload)
-      });
-      if(!res.ok) throw new Error('HTTP ' + res.status);
-      setMdConfigStatus('ok', okText);
-    }catch(e){
-      setMdConfigStatus('err', 'Gagal menyimpan: ' + e.message);
-    }finally{
-      mdSaveBtn.disabled = false;
-      mdStopBtn.disabled = false;
-    }
-  }
-
-  mdSaveBtn.addEventListener('click', () => {
-    if(!mdSourceWorld.value.trim() || !mdStorageWorld.value.trim()){
-      setMdConfigStatus('err', 'World asal dan world storage wajib diisi.');
-      return;
-    }
-    if(parseAllowedItems(mdAllowedItems.value).length === 0){
-      setMdConfigStatus('err', 'Isi minimal satu item ID whitelist.');
-      return;
-    }
-    const payload = buildConfigPayload(true);
-    pushMoveDropConfig(payload, 'Menyimpan & mengaktifkan…', 'Tersimpan. Bot akan mulai Move Drop di poll berikutnya (maks. 8 detik).');
-  });
-
-  mdStopBtn.addEventListener('click', () => {
-    const payload = buildConfigPayload(false);
-    pushMoveDropConfig(payload, 'Menghentikan…', 'Move Drop dihentikan. Field lain tetap tersimpan.');
-  });
-
-  function fmtStateLabel(state){
-    const map = {
-      idle: 'Idle',
-      collecting: 'Collecting',
-      to_storage: 'Menuju storage',
-      dropping: 'Dropping',
-      to_source: 'Menuju source',
-      stopped: 'Stopped',
-      limit_reached: 'Limit tercapai'
-    };
-    return map[state] || state || '—';
-  }
-
-  async function loadMoveDropStatus(){
-    try{
-      const res = await fetch(`${FIREBASE_URL}/${MOVEDROP_STATUS_PATH}`);
-      const data = await res.json();
-      if(!data) return;
-
-      const moved = data.items_moved_total || 0;
-      const target = data.max_total_items || 0;
-
-      mdMoved.textContent = moved;
-      if(target > 0){
-        mdOfWrap.style.display = 'inline';
-        mdTotal.textContent = target;
-        mdTotal.style.display = 'inline';
-        const pct = Math.min(100, Math.round((moved / target) * 100));
-        mdBarFill.style.width = pct + '%';
-      }else{
-        // tanpa batas: sembunyikan "/ total", progress bar penuh statis
-        mdOfWrap.style.display = 'none';
-        mdTotal.style.display = 'none';
-        mdBarFill.style.width = '100%';
-      }
-
-      const state = data.state || 'idle';
-      mdStatePill.textContent = fmtStateLabel(state);
-      mdStatePill.className = 'state-pill st-' + state;
-
-      mdTrips.textContent = data.trips || 0;
-      mdUpdated.textContent = fmtTime(data.last_updated);
-
-      const counts = data.item_counts || {};
-      const entries = Object.entries(counts);
-      if(entries.length === 0){
-        mdItemBreakdown.innerHTML = '<span class="empty-note">Belum ada item yang dipindahkan.</span>';
-      }else{
-        entries.sort((a,b) => b[1] - a[1]);
-        mdItemBreakdown.innerHTML = '<div class="pill-row">' +
-          entries.map(([id, count]) => `<span class="pill">ID ${id}: ${count}</span>`).join('') +
-          '</div>';
-      }
-    }catch(e){
-      // path belum ada, biarkan tampilan default
-    }
-  }
-
-  loadMoveDropConfig();
-  loadMoveDropStatus();
-  setInterval(loadMoveDropStatus, MOVEDROP_POLL_MS);
-
-  // ============================================================
-  //  MOVE DROP — RIWAYAT (HISTORY)
-  //
-  //  Setiap kali sebuah run Move Drop mencapai max_total_items, bot
-  //  menyimpan ringkasan run itu (route, whitelist, hasil, alasan
-  //  berhenti) ke path movedrop_history lewat HTTP POST, sehingga
-  //  Firebase membuatkan key unik sendiri per entry (mis. "-NxAbC123").
-  //  Panel ini cuma baca & tampilkan entry-entry itu, terbaru duluan.
-  // ============================================================
-
-  const historyTableWrap = document.getElementById('historyTableWrap');
-  const historyCountHint = document.getElementById('historyCountHint');
-  const refreshHistoryBtn = document.getElementById('refreshHistoryBtn');
-
-  function fmtRoute(entry){
-    const src = entry.source_world || '—';
-    const srcDoor = entry.source_door ? (':' + entry.source_door) : '';
-    const dst = entry.storage_world || '—';
-    const dstDoor = entry.storage_door ? (':' + entry.storage_door) : '';
-    return `<b>${src}${srcDoor}</b> → <b>${dst}${dstDoor}</b>`;
-  }
-
-  function fmtReason(reason){
-    const map = { limit_reached: 'Target tercapai' };
-    const label = map[reason] || reason || '—';
-    return `<span class="reason-tag rt-${reason || ''}">${label}</span>`;
-  }
-
-  async function loadMoveDropHistory(){
-    try{
-      const res = await fetch(`${FIREBASE_URL}/${MOVEDROP_HISTORY_PATH}`);
-      const data = await res.json();
-      if(!data){
-        historyCountHint.textContent = '0 run tersimpan';
-        historyTableWrap.innerHTML = '<span class="empty-note">Belum ada run yang selesai. Riwayat muncul di sini setiap kali target total tercapai.</span>';
-        return;
-      }
-
-      const entries = Object.entries(data)
-        .map(([key, val]) => ({ key, ...val }))
-        .sort((a, b) => (b.finished_at || 0) - (a.finished_at || 0));
-
-      historyCountHint.textContent = entries.length + ' run tersimpan';
-
-      let html = '<table class="history-table"><thead><tr>' +
-        '<th>Selesai</th><th>Route</th><th style="text-align:right">Dipindahkan</th>' +
-        '<th style="text-align:right">Trip</th><th>Alasan</th>' +
-        '</tr></thead><tbody>';
-
-      for(const e of entries.slice(0, 30)){
-        html += `<tr>
-          <td>${fmtDateTime(e.finished_at)}</td>
-          <td class="route-cell">${fmtRoute(e)}</td>
-          <td class="num">${e.items_moved_total ?? 0}${e.max_total_items ? (' / ' + e.max_total_items) : ''}</td>
-          <td class="num">${e.trips ?? 0}</td>
-          <td>${fmtReason(e.reason)}</td>
-        </tr>`;
-      }
-      html += '</tbody></table>';
-      historyTableWrap.innerHTML = html;
-    }catch(e){
-      // path belum pernah dibuat oleh bot; panel tetap tampil kosong.
-    }
-  }
-
-  refreshHistoryBtn.addEventListener('click', loadMoveDropHistory);
-  loadMoveDropHistory();
-  setInterval(loadMoveDropHistory, HISTORY_POLL_MS);
-
-  // ============================================================
-  //  ENCRYPT / DECRYPT TOOL (XOR + Base64, client-side)
-  //  Format loader sama persis dengan yang dipakai bot Lucifer.
-  // ============================================================
-
-  function randomKeyBytes(len){
-    const arr = new Uint8Array(len);
-    crypto.getRandomValues(arr);
-    for(let i=0;i<arr.length;i++){
-      arr[i] = (arr[i] % 255) + 1; // pastikan 1..255, hindari 0
-    }
-    return arr;
-  }
-
-  function xorBytes(bytes, key){
-    const out = new Uint8Array(bytes.length);
-    for(let i=0;i<bytes.length;i++){
-      out[i] = bytes[i] ^ key[i % key.length];
-    }
-    return out;
-  }
-
-  function bytesToBase64(bytes){
-    let binary = '';
-    const chunk = 0x8000;
-    for(let i=0;i<bytes.length;i+=chunk){
-      binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunk));
-    }
-    return btoa(binary);
-  }
-
-  function base64ToBytes(b64){
-    const clean = b64.replace(/[^A-Za-z0-9+/=]/g, '');
-    const binary = atob(clean);
-    const bytes = new Uint8Array(binary.length);
-    for(let i=0;i<binary.length;i++){
-      bytes[i] = binary.charCodeAt(i);
-    }
-    return bytes;
-  }
-
-  function buildLoader(base64Payload, keyBytes){
-    const keyList = Array.from(keyBytes).join(',');
-    return `-- ================================================
---  ENCRYPTED SCRIPT LOADER
---  Jangan diedit manual. Source asli ter-enkripsi
---  pakai XOR + Base64, di-decode saat runtime.
--- ================================================
-
-local _k = {${keyList}}
-
-local _b64chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-
-local function _b64decode(data)
-    data = data:gsub('[^'.._b64chars..'=]', '')
-    local out = {}
-    local map = {}
-    for i = 1, #_b64chars do map[_b64chars:sub(i,i)] = i - 1 end
-    local buffer, bits = 0, 0
-    for i = 1, #data do
-        local c = data:sub(i,i)
-        if c ~= '=' then
-            buffer = (buffer << 6) | map[c]
-            bits = bits + 6
-            if bits >= 8 then
-                bits = bits - 8
-                out[#out+1] = string.char((buffer >> bits) & 0xFF)
-            end
-        end
-    end
-    return table.concat(out)
-end
-
-local function _xor(data, key)
-    local out = {}
-    for i = 1, #data do
-        local kb = key[((i - 1) % #key) + 1]
-        out[i] = string.char(data:byte(i) ~ kb)
-    end
-    return table.concat(out)
-end
-
-local _payload = [[
-${base64Payload}
-]]
-
-local _decoded = _xor(_b64decode(_payload), _k)
-
-local _fn, _err = load(_decoded, "protected_script")
-if not _fn then
-    error("Gagal decode script: " .. tostring(_err))
-end
-
-_fn()
-`;
-  }
-
-  function encryptLua(sourceText){
-    const bytes = new TextEncoder().encode(sourceText);
-    const key = randomKeyBytes(16);
-    const xored = xorBytes(bytes, key);
-    const b64 = bytesToBase64(xored);
-    return buildLoader(b64, key);
-  }
-
-  function decryptLoader(loaderText){
-    const keyMatch = loaderText.match(/_k\s*=\s*\{([\d,\s]+)\}/);
-    const payloadMatch = loaderText.match(/_payload\s*=\s*\[\[\s*([\s\S]*?)\s*\]\]/);
-    if(!keyMatch || !payloadMatch){
-      throw new Error('Format loader tidak dikenali (key/payload tidak ditemukan).');
-    }
-    const key = new Uint8Array(keyMatch[1].split(',').map(s => parseInt(s.trim(), 10)));
-    const xored = base64ToBytes(payloadMatch[1]);
-    const original = xorBytes(xored, key);
-    return new TextDecoder('utf-8', { fatal: false }).decode(original);
-  }
-
-  function downloadText(filename, text){
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-
-  function setToolStatus(el, kind, text){
-    el.className = 'msg ' + kind;
-    el.textContent = text;
-  }
-
-  const encInput = document.getElementById('encInput');
-  const encOutput = document.getElementById('encOutput');
-  const encBtnEl = document.getElementById('encBtn');
-  const encCopyBtn = document.getElementById('encCopyBtn');
-  const encDownloadBtn = document.getElementById('encDownloadBtn');
-  const encStatus = document.getElementById('encStatus');
-
-  encBtnEl.addEventListener('click', () => {
-    const src = encInput.value;
-    if(!src.trim()){
-      setToolStatus(encStatus, 'err', 'Tempel kode Lua dulu sebelum encrypt.');
-      return;
-    }
-    try{
-      const loader = encryptLua(src);
-      encOutput.value = loader;
-      setToolStatus(encStatus, 'ok', 'Berhasil di-encrypt. Key XOR acak baru sudah dipakai.');
-    }catch(e){
-      setToolStatus(encStatus, 'err', 'Gagal encrypt: ' + e.message);
-    }
-  });
-
-  encCopyBtn.addEventListener('click', async () => {
-    if(!encOutput.value){
-      setToolStatus(encStatus, 'err', 'Belum ada hasil untuk di-copy.');
-      return;
-    }
-    await navigator.clipboard.writeText(encOutput.value);
-    setToolStatus(encStatus, 'ok', 'Hasil ter-enkripsi disalin ke clipboard.');
-  });
-
-  encDownloadBtn.addEventListener('click', () => {
-    if(!encOutput.value){
-      setToolStatus(encStatus, 'err', 'Belum ada hasil untuk di-download.');
-      return;
-    }
-    downloadText('encrypted.lua', encOutput.value);
-  });
-
-  const decInput = document.getElementById('decInput');
-  const decOutput = document.getElementById('decOutput');
-  const decBtnEl = document.getElementById('decBtn');
-  const decCopyBtn = document.getElementById('decCopyBtn');
-  const decDownloadBtn = document.getElementById('decDownloadBtn');
-  const decStatus = document.getElementById('decStatus');
-
-  decBtnEl.addEventListener('click', () => {
-    const loader = decInput.value;
-    if(!loader.trim()){
-      setToolStatus(decStatus, 'err', 'Tempel isi loader ter-enkripsi dulu.');
-      return;
-    }
-    try{
-      const original = decryptLoader(loader);
-      decOutput.value = original;
-      setToolStatus(decStatus, 'ok', 'Berhasil di-decrypt.');
-    }catch(e){
-      setToolStatus(decStatus, 'err', 'Gagal decrypt: ' + e.message);
-    }
-  });
-
-  decCopyBtn.addEventListener('click', async () => {
-    if(!decOutput.value){
-      setToolStatus(decStatus, 'err', 'Belum ada hasil untuk di-copy.');
-      return;
-    }
-    await navigator.clipboard.writeText(decOutput.value);
-    setToolStatus(decStatus, 'ok', 'Source asli disalin ke clipboard.');
-  });
-
-  decDownloadBtn.addEventListener('click', () => {
-    if(!decOutput.value){
-      setToolStatus(decStatus, 'err', 'Belum ada hasil untuk di-download.');
-      return;
-    }
-    downloadText('decrypted.lua', decOutput.value);
-  });
+  if(!res.ok) throw new Error(`PUT ${path} failed`);
+  return res.json();
+}
+function csvToIds(str){
+  return (str||'').split(',').map(s=>s.trim()).filter(Boolean).map(Number).filter(n=>!isNaN(n));
+}
+function timeAgo(unixSeconds){
+  if(!unixSeconds) return '—';
+  const diff = Math.floor(Date.now()/1000) - unixSeconds;
+  if(diff < 5) return 'baru saja';
+  if(diff < 60) return diff + ' dtk lalu';
+  if(diff < 3600) return Math.floor(diff/60) + ' mnt lalu';
+  if(diff < 86400) return Math.floor(diff/3600) + ' jam lalu';
+  return Math.floor(diff/86400) + ' hari lalu';
+}
+function flash(el, msg){
+  el.textContent = msg;
+  setTimeout(()=>{ if(el.textContent===msg) el.textContent=''; }, 2500);
+}
+
+// ================== TARGET WORLD/DOOR ==================
+async function loadTarget(){
+  try{
+    const w = await fbGet('target_world');
+    const d = await fbGet('target_door');
+    document.getElementById('tw').value = w || '';
+    document.getElementById('td').value = d || '';
+  }catch(e){ console.error(e); }
+}
+async function saveTarget(){
+  const w = document.getElementById('tw').value.trim().toUpperCase();
+  const d = document.getElementById('td').value.trim();
+  try{
+    await fbPut('target_world', w);
+    await fbPut('target_door', d);
+    flash(document.getElementById('targetMsg'), 'Tersimpan — bot akan pindah dalam ≤10 detik.');
+  }catch(e){ flash(document.getElementById('targetMsg'), 'Gagal menyimpan.'); }
+}
+
+// ================== MOVE DROP ==================
+async function loadMoveDrop(){
+  try{
+    const cfg = await fbGet('movedrop_config') || {};
+    document.getElementById('mdEnabled').checked = cfg.enabled === true;
+    document.getElementById('mdSourceWorld').value = cfg.source_world || '';
+    document.getElementById('mdSourceDoor').value = cfg.source_door || '';
+    document.getElementById('mdStorageWorld').value = cfg.storage_world || '';
+    document.getElementById('mdStorageDoor').value = cfg.storage_door || '';
+    document.getElementById('mdAllowed').value = Array.isArray(cfg.allowed_items) ? cfg.allowed_items.join(', ') : '';
+    document.getElementById('mdMax').value = cfg.max_total_items || 0;
+  }catch(e){ console.error(e); }
+}
+async function saveMoveDrop(){
+  const payload = {
+    enabled: document.getElementById('mdEnabled').checked,
+    source_world: document.getElementById('mdSourceWorld').value.trim().toUpperCase(),
+    source_door: document.getElementById('mdSourceDoor').value.trim(),
+    storage_world: document.getElementById('mdStorageWorld').value.trim().toUpperCase(),
+    storage_door: document.getElementById('mdStorageDoor').value.trim(),
+    allowed_items: csvToIds(document.getElementById('mdAllowed').value),
+    max_total_items: Number(document.getElementById('mdMax').value) || 0
+  };
+  try{
+    await fbPut('movedrop_config', payload);
+    flash(document.getElementById('mdMsg'), 'Tersimpan & mulai — bot mengecek config dalam ≤8 detik.');
+  }catch(e){ flash(document.getElementById('mdMsg'), 'Gagal menyimpan.'); }
+}
+async function refreshMoveDropStatus(){
+  try{
+    const s = await fbGet('movedrop_status') || {};
+    const pill = document.getElementById('mdState');
+    pill.textContent = s.state || 'idle';
+    pill.className = 'state-pill' + (s.state && s.state !== 'idle' && s.state !== 'stopped' ? ' active' : '');
+    document.getElementById('mdTrips').textContent = s.trips ?? 0;
+    const moved = s.items_moved_total ?? 0;
+    const max = s.max_total_items ?? 0;
+    document.getElementById('mdProgress').textContent = `${moved} / ${max || '∞'}`;
+    const pct = max > 0 ? Math.min(100, (moved/max)*100) : 0;
+    document.getElementById('mdBar').style.width = pct + '%';
+  }catch(e){ /* silent */ }
+}
+
+// ================== PUNCH PROVIDER ==================
+async function loadPunch(){
+  try{
+    const cfg = await fbGet('punch_config') || {};
+    document.getElementById('pkEnabled').checked = cfg.enabled === true;
+    document.getElementById('pkProviderId').value = cfg.provider_id ?? 928;
+    document.getElementById('pkCooldown').value = cfg.revisit_cooldown ?? 0;
+    document.getElementById('pkRadius').value = cfg.scan_radius ?? 300;
+  }catch(e){ console.error(e); }
+}
+async function savePunch(){
+  const payload = {
+    enabled: document.getElementById('pkEnabled').checked,
+    provider_id: Number(document.getElementById('pkProviderId').value) || 928,
+    revisit_cooldown: Number(document.getElementById('pkCooldown').value) || 0,
+    scan_radius: Number(document.getElementById('pkRadius').value) || 300
+  };
+  try{
+    await fbPut('punch_config', payload);
+    flash(document.getElementById('pkMsg'), 'Tersimpan — bot mengecek config dalam ≤8 detik.');
+  }catch(e){ flash(document.getElementById('pkMsg'), 'Gagal menyimpan.'); }
+}
+async function refreshPunchStatus(){
+  try{
+    const s = await fbGet('punch_status') || {};
+    document.getElementById('pkTotal').textContent = s.total_punched ?? 0;
+    document.getElementById('pkDetected').textContent = s.providers_detected ?? '—';
+    document.getElementById('pkLast').textContent = timeAgo(s.last_punched_at);
+  }catch(e){ /* silent */ }
+}
+
+// ================== POSITION / ONLINE STATUS ==================
+async function refreshPosition(){
+  try{
+    const p = await fbGet('bot_position') || {};
+    const online = p.online === true;
+    document.getElementById('onlineDot').className = 'dot ' + (online ? 'on' : 'off');
+    document.getElementById('onlineText').textContent = online ? 'online' : 'offline';
+    document.getElementById('posWorld').textContent = p.world || '—';
+    document.getElementById('posWorld2').textContent = p.world || '—';
+    document.getElementById('posXY').textContent = (p.x!=null && p.y!=null) ? `${p.x}, ${p.y}` : '—';
+    document.getElementById('posX').textContent = p.x ?? '—';
+    document.getElementById('posY').textContent = p.y ?? '—';
+    document.getElementById('posUpdated').textContent = timeAgo(p.updated_at);
+  }catch(e){ /* silent */ }
+}
+
+// ================== WORLD STATUS ==================
+async function refreshWorldStatus(){
+  try{
+    const s = await fbGet('world_status') || {};
+    const playersBody = document.getElementById('playersBody');
+    const players = Array.isArray(s.players) ? s.players : [];
+    playersBody.innerHTML = players.length
+      ? players.map(p=>`<tr><td>${p.netid ?? '—'}</td><td>${p.growid ?? '—'}</td><td>${p.userid ?? '—'}</td></tr>`).join('')
+      : '<tr><td class="empty" colspan="3">Tidak ada pemain terdeteksi.</td></tr>';
+
+    const scanBody = document.getElementById('scanBody');
+    const scan = s.growscan || {};
+    const items = [...(scan.objects||[]), ...(scan.tiles||[])];
+    scanBody.innerHTML = items.length
+      ? items.map(i=>`<tr><td>${i.name ?? '—'}</td><td>${i.id ?? '—'}</td><td>${i.count ?? '—'}</td></tr>`).join('')
+      : '<tr><td class="empty" colspan="3">Belum ada data growscan.</td></tr>';
+  }catch(e){ /* silent */ }
+}
+
+// ================== HISTORY ==================
+async function refreshHistory(){
+  try{
+    const raw = await fbGet('movedrop_history') || {};
+    const rows = Object.values(raw)
+      .filter(Boolean)
+      .sort((a,b)=> (b.finished_at||0) - (a.finished_at||0))
+      .slice(0, 20);
+    const body = document.getElementById('historyBody');
+    body.innerHTML = rows.length
+      ? rows.map(r=>{
+          const route = `${r.source_world || '?'}${r.source_door?(':'+r.source_door):''} → ${r.storage_world || '?'}${r.storage_door?(':'+r.storage_door):''}`;
+          return `<tr>
+            <td>${timeAgo(r.finished_at)}</td>
+            <td>${route}</td>
+            <td>${r.items_moved_total ?? 0} / ${r.max_total_items ?? 0}</td>
+            <td>${r.trips ?? 0}</td>
+            <td>${r.reason ?? '—'}</td>
+          </tr>`;
+        }).join('')
+      : '<tr><td class="empty" colspan="5">Belum ada riwayat.</td></tr>';
+  }catch(e){ /* silent */ }
+}
+
+// ================== BOOT ==================
+async function boot(){
+  await Promise.all([loadTarget(), loadMoveDrop(), loadPunch()]);
+  await Promise.all([refreshMoveDropStatus(), refreshPunchStatus(), refreshPosition(), refreshWorldStatus(), refreshHistory()]);
+}
+boot();
+
+// Poll live status every 4s, without touching the input fields the user might be editing.
+setInterval(()=>{
+  refreshMoveDropStatus();
+  refreshPunchStatus();
+  refreshPosition();
+  refreshWorldStatus();
+  refreshHistory();
+}, 4000);
 </script>
-
 </body>
 </html>
