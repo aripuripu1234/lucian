@@ -275,15 +275,6 @@
   input[type=text]:focus, input[type=number]:focus{border-color:var(--sprout-dim);}
   input[type=text]::placeholder, input[type=number]::placeholder{color:var(--paper-faint);text-transform:none;}
 
-  .field-row{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:14px;
-  }
-  @media (max-width:600px){
-    .field-row{grid-template-columns:1fr;}
-  }
-
   textarea.codearea{
     width:100%;
     background:var(--soil);
@@ -326,20 +317,19 @@
   button.primary:active{transform:scale(0.97);}
   button.primary:disabled{background:var(--soil-3);color:var(--paper-faint);cursor:not-allowed;}
   button.danger{
-    background:var(--danger);
-    color:#2b0e0c;
-    border:none;
+    background:transparent;
+    border:1px solid rgba(224,96,90,0.4);
+    color:var(--danger);
     font-family:var(--sans);
     font-weight:600;
     font-size:13.5px;
-    padding:11px 20px;
+    padding:10px 18px;
     border-radius:7px;
     cursor:pointer;
-    transition:filter .15s, transform .05s;
+    transition:background .15s;
   }
-  button.danger:hover{filter:brightness(1.08);}
-  button.danger:active{transform:scale(0.97);}
-  button.danger:disabled{background:var(--soil-3);color:var(--paper-faint);cursor:not-allowed;}
+  button.danger:hover{background:rgba(224,96,90,0.1);}
+  button.danger:disabled{border-color:var(--soil-3);color:var(--paper-faint);cursor:not-allowed;background:transparent;}
   button.ghost{
     background:transparent;
     border:1px solid var(--soil-3);
@@ -421,7 +411,6 @@
     padding:5px 10px;
     border-radius:999px;
   }
-  .pill.on{color:var(--sprout);border-color:rgba(143,209,79,0.3);}
   .empty-note{
     font-size:12.5px;
     color:var(--paper-faint);
@@ -466,7 +455,74 @@
     .crypt-grid{grid-template-columns:1fr;}
   }
 
-  .state-badge{
+  /* ===== Move Drop specific ===== */
+  .row-2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+  }
+  .toggle-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px 14px;
+    background:var(--soil);
+    border:1px solid var(--soil-3);
+    border-radius:7px;
+    margin-bottom:16px;
+  }
+  .toggle-row .t-label{font-size:13px;color:var(--paper);font-weight:500;}
+  .toggle-row .t-sub{font-size:11px;color:var(--paper-faint);margin-top:2px;}
+  .switch{
+    position:relative;
+    width:40px;height:22px;
+    flex:none;
+  }
+  .switch input{opacity:0;width:0;height:0;}
+  .switch .slider{
+    position:absolute;inset:0;
+    background:var(--soil-3);
+    border-radius:999px;
+    cursor:pointer;
+    transition:background .15s;
+  }
+  .switch .slider::before{
+    content:"";
+    position:absolute;
+    width:16px;height:16px;
+    left:3px;top:3px;
+    background:var(--paper-dim);
+    border-radius:50%;
+    transition:transform .15s, background .15s;
+  }
+  .switch input:checked + .slider{background:var(--sprout-glow);border:1px solid var(--sprout-dim);}
+  .switch input:checked + .slider::before{transform:translateX(18px);background:var(--sprout);}
+
+  .progress-shell{
+    background:var(--soil);
+    border:1px solid var(--soil-3);
+    border-radius:7px;
+    padding:16px 18px;
+    margin-bottom:16px;
+  }
+  .progress-top{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .progress-count{
+    font-family:var(--display);
+    font-size:22px;
+    font-weight:600;
+    color:var(--paper);
+  }
+  .progress-count .of{color:var(--paper-faint);font-weight:500;font-size:16px;}
+  .progress-count .total{color:var(--sprout);}
+  .state-pill{
     font-family:var(--mono);
     font-size:11px;
     padding:4px 10px;
@@ -474,10 +530,39 @@
     border:1px solid var(--soil-4);
     color:var(--paper-dim);
     text-transform:uppercase;
-    letter-spacing:0.05em;
+    letter-spacing:0.04em;
   }
-  .state-badge.on{color:var(--sprout);border-color:rgba(143,209,79,0.3);background:var(--sprout-glow);}
-  .state-badge.off{color:var(--paper-faint);}
+  .state-pill.st-dropping,.state-pill.st-collecting,.state-pill.st-to_storage,.state-pill.st-to_source{
+    color:var(--sprout);border-color:rgba(143,209,79,0.3);background:var(--sprout-glow);
+  }
+  .state-pill.st-stopped,.state-pill.st-idle{
+    color:var(--paper-faint);
+  }
+  .state-pill.st-limit_reached{
+    color:var(--clay);border-color:rgba(201,123,74,0.35);background:var(--clay-dim);
+  }
+  .progress-bar-track{
+    width:100%;
+    height:8px;
+    background:var(--soil-2);
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .progress-bar-fill{
+    height:100%;
+    background:linear-gradient(90deg, var(--sprout-dim), var(--sprout));
+    border-radius:999px;
+    transition:width .3s ease;
+    width:0%;
+  }
+  .progress-meta{
+    display:flex;
+    gap:18px;
+    margin-top:12px;
+    flex-wrap:wrap;
+  }
+  .progress-meta .pm-item .k{font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:var(--paper-faint);margin-bottom:3px;}
+  .progress-meta .pm-item .v{font-family:var(--mono);font-size:13px;color:var(--paper);}
 
   @media (max-width: 760px){
     .app{grid-template-columns:1fr;}
@@ -498,6 +583,7 @@
     .stat-grid{grid-template-columns:1fr 1fr;}
     .current-grid{grid-template-columns:1fr;}
     .scan-cols{grid-template-columns:1fr;}
+    .row-2{grid-template-columns:1fr;}
   }
 </style>
 </head>
@@ -525,7 +611,7 @@
         Growscan Monitor
       </button>
       <button class="nav-btn" data-view="movedrop">
-        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7l8-4 8 4-8 4-8-4z"/><path d="M4 7v10l8 4 8-4V7"/><path d="M12 11v10"/></svg>
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4.5 20.5h15"/></svg>
         Move Drop
       </button>
       <button class="nav-btn" data-view="crypt">
@@ -658,85 +744,104 @@
         <div>
           <p class="topbar-eyebrow">Navigation</p>
           <h1>Move Drop</h1>
-          <p class="sub">Bot ambil item tertentu (whitelist ID) dari world &amp; door asal, lalu pindah ke world storage dan drop otomatis ke space kosong. Saat drop, bot tidak collect apapun.</p>
+          <p class="sub">Bot ambil item whitelist dari world asal, lalu drop total jumlahnya sekaligus ke world storage. Progress terupdate tiap trip.</p>
         </div>
-        <span class="state-badge off" id="movedropBadge">Berhenti</span>
+        <span class="badge"><span class="live-dot"></span> Firebase tersambung</span>
+      </div>
+
+      <div class="progress-shell">
+        <div class="progress-top">
+          <div class="progress-count">
+            <span id="mdMoved">0</span><span class="of" id="mdOfWrap"> / </span><span class="total" id="mdTotal">∞</span>
+            <span class="of" style="font-size:12px;">item dipindahkan</span>
+          </div>
+          <span class="state-pill" id="mdStatePill">idle</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="mdBarFill"></div>
+        </div>
+        <div class="progress-meta">
+          <div class="pm-item">
+            <div class="k">Trip selesai</div>
+            <div class="v" id="mdTrips">0</div>
+          </div>
+          <div class="pm-item">
+            <div class="k">Update terakhir</div>
+            <div class="v" id="mdUpdated">—</div>
+          </div>
+        </div>
       </div>
 
       <div class="panel">
         <div class="panel-head">
-          <h2>Konfigurasi rute</h2>
-          <span class="hint">Dibaca ulang bot tiap beberapa detik</span>
+          <h2>Rincian per item</h2>
+          <span class="hint">Jumlah yang sudah ke-drop, per item ID</span>
         </div>
         <div class="panel-body">
-          <div class="field-row">
+          <div id="mdItemBreakdown"><span class="empty-note">Belum ada item yang dipindahkan.</span></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Konfigurasi</h2>
+          <span class="hint">Dibaca ulang bot tiap 8 detik</span>
+        </div>
+        <div class="panel-body">
+
+          <div class="toggle-row">
+            <div>
+              <div class="t-label">Move Drop aktif</div>
+              <div class="t-sub">Matikan buat stop bot di tengah jalan (state otomatis balik ke "stopped")</div>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="mdEnabled">
+              <span class="slider"></span>
+            </label>
+          </div>
+
+          <div class="row-2">
             <div class="field">
-              <label for="mdSourceWorld">World asal</label>
+              <label for="mdSourceWorld">World asal (collect)</label>
               <input id="mdSourceWorld" type="text" class="upper" placeholder="cth: FARMWORLD" maxlength="20" autocomplete="off">
             </div>
             <div class="field">
-              <label for="mdSourceDoor">Door ID asal <span class="opt">(opsional)</span></label>
+              <label for="mdSourceDoor">Door asal <span class="opt">(opsional)</span></label>
               <input id="mdSourceDoor" type="text" placeholder="cth: 1" maxlength="20" autocomplete="off">
             </div>
           </div>
-          <div class="field-row">
+
+          <div class="row-2">
             <div class="field">
-              <label for="mdStorageWorld">World storage tujuan</label>
-              <input id="mdStorageWorld" type="text" class="upper" placeholder="cth: STORAGE1" maxlength="20" autocomplete="off">
+              <label for="mdStorageWorld">World storage (drop)</label>
+              <input id="mdStorageWorld" type="text" class="upper" placeholder="cth: STORAGENURON" maxlength="20" autocomplete="off">
             </div>
             <div class="field">
-              <label for="mdStorageDoor">Door ID storage <span class="opt">(opsional)</span></label>
+              <label for="mdStorageDoor">Door storage <span class="opt">(opsional)</span></label>
               <input id="mdStorageDoor" type="text" placeholder="cth: 1" maxlength="20" autocomplete="off">
             </div>
           </div>
+
           <div class="field">
-            <label for="mdAllowedItems">Item ID yang boleh di-collect <span class="opt">(pisahkan dengan koma — selain ID ini tidak akan diambil)</span></label>
-            <input id="mdAllowedItems" type="text" placeholder="cth: 112, 208, 4994" autocomplete="off">
+            <label for="mdAllowedItems">Item ID whitelist <span class="opt">(pisahkan pakai koma)</span></label>
+            <input id="mdAllowedItems" type="text" placeholder="cth: 4584, 112, 8992" autocomplete="off">
           </div>
+
           <div class="field">
-            <label for="mdMaxItems">Batas total item dipindah <span class="opt">(0 atau kosong = tanpa batas)</span></label>
-            <input id="mdMaxItems" type="number" min="0" placeholder="cth: 500" autocomplete="off">
+            <label for="mdMaxTotal">Target total item <span class="opt">(0 = tanpa batas)</span></label>
+            <input id="mdMaxTotal" type="number" min="0" step="1" placeholder="cth: 1000">
           </div>
 
           <div class="form-actions">
-            <button class="primary" id="mdStartBtn">Simpan &amp; mulai</button>
-            <button class="danger" id="mdStopBtn">Hentikan</button>
-            <div id="mdStatus" class="msg idle">Belum ada perubahan.</div>
+            <button class="primary" id="mdSaveBtn">Simpan &amp; mulai</button>
+            <button class="danger" id="mdStopBtn">Stop</button>
+            <div id="mdConfigStatus" class="msg idle">Belum ada perubahan.</div>
           </div>
 
           <p class="setup-note">
-            Selama state <code>dropping</code>, bot menonaktifkan auto-collect supaya item yang baru saja di-drop
-            tidak langsung dipungut lagi. Posisi drop bergeser otomatis ke kanan/kiri lalu naik ke baris berikutnya
-            kalau space penuh (pola ular / boustrophedon).
+            "Simpan &amp; mulai" akan set <code>enabled: true</code> dan langsung dibaca bot di poll berikutnya (maks. 8 detik).
+            "Stop" cuma set <code>enabled: false</code>, field lain tetap tersimpan biar bisa lanjut lagi nanti.
           </p>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-head">
-          <h2>Status berjalan</h2>
-          <span class="hint" id="mdUpdatedHint">—</span>
-        </div>
-        <div class="panel-body">
-          <div class="stat-grid">
-            <div class="stat-card">
-              <div class="k">State</div>
-              <div class="v" id="mdState">—</div>
-            </div>
-            <div class="stat-card">
-              <div class="k">Total item dipindah</div>
-              <div class="v accent" id="mdItemsMoved">0</div>
-            </div>
-            <div class="stat-card">
-              <div class="k">Bolak-balik (trip)</div>
-              <div class="v" id="mdTrips">0</div>
-            </div>
-          </div>
-
-          <p class="subhead">Rincian per item</p>
-          <div class="pill-row" id="mdItemBreakdown">
-            <span class="empty-note">Belum ada data.</span>
-          </div>
         </div>
       </div>
     </section>
@@ -965,105 +1070,122 @@
   setInterval(loadWorldStatus, STATUS_POLL_MS);
 
   // ============================================================
-  //  MOVE DROP TAB
+  //  MOVE DROP PANEL
   // ============================================================
+
+  const mdEnabled = document.getElementById('mdEnabled');
   const mdSourceWorld = document.getElementById('mdSourceWorld');
   const mdSourceDoor = document.getElementById('mdSourceDoor');
   const mdStorageWorld = document.getElementById('mdStorageWorld');
   const mdStorageDoor = document.getElementById('mdStorageDoor');
   const mdAllowedItems = document.getElementById('mdAllowedItems');
-  const mdMaxItems = document.getElementById('mdMaxItems');
-  const mdStartBtn = document.getElementById('mdStartBtn');
+  const mdMaxTotal = document.getElementById('mdMaxTotal');
+  const mdSaveBtn = document.getElementById('mdSaveBtn');
   const mdStopBtn = document.getElementById('mdStopBtn');
-  const mdStatus = document.getElementById('mdStatus');
-  const mdBadge = document.getElementById('movedropBadge');
-  const mdState = document.getElementById('mdState');
-  const mdItemsMoved = document.getElementById('mdItemsMoved');
+  const mdConfigStatus = document.getElementById('mdConfigStatus');
+
+  const mdMoved = document.getElementById('mdMoved');
+  const mdTotal = document.getElementById('mdTotal');
+  const mdOfWrap = document.getElementById('mdOfWrap');
+  const mdStatePill = document.getElementById('mdStatePill');
+  const mdBarFill = document.getElementById('mdBarFill');
   const mdTrips = document.getElementById('mdTrips');
+  const mdUpdated = document.getElementById('mdUpdated');
   const mdItemBreakdown = document.getElementById('mdItemBreakdown');
-  const mdUpdatedHint = document.getElementById('mdUpdatedHint');
 
-  function setMdStatus(kind, text){
-    mdStatus.className = 'msg ' + kind;
-    mdStatus.textContent = text;
+  function setMdConfigStatus(kind, html){
+    mdConfigStatus.className = 'msg ' + kind;
+    mdConfigStatus.innerHTML = html;
   }
 
-  function parseAllowedItems(text){
-    return text
-      .split(',')
-      .map(s => parseInt(s.trim(), 10))
-      .filter(n => Number.isInteger(n) && n >= 0);
-  }
-
+  // Ambil config saat ini dan isi form (dipanggil sekali di awal).
   async function loadMoveDropConfig(){
     try{
       const res = await fetch(`${FIREBASE_URL}/${MOVEDROP_CONFIG_PATH}`);
       const cfg = await res.json();
       if(!cfg) return;
+      mdEnabled.checked = cfg.enabled === true;
       mdSourceWorld.value = cfg.source_world || '';
       mdSourceDoor.value = cfg.source_door || '';
       mdStorageWorld.value = cfg.storage_world || '';
       mdStorageDoor.value = cfg.storage_door || '';
       mdAllowedItems.value = Array.isArray(cfg.allowed_items) ? cfg.allowed_items.join(', ') : '';
-      mdMaxItems.value = cfg.max_total_items || '';
-      mdBadge.className = 'state-badge ' + (cfg.enabled ? 'on' : 'off');
-      mdBadge.textContent = cfg.enabled ? 'Berjalan' : 'Berhenti';
+      mdMaxTotal.value = (cfg.max_total_items ?? 0);
     }catch(e){
-      // path belum pernah dibuat, biarkan form kosong
+      // path belum ada, biarkan form kosong
     }
   }
 
-  async function saveMoveDropConfig(enabled){
-    const sourceWorld = mdSourceWorld.value.trim().toUpperCase();
-    const storageWorld = mdStorageWorld.value.trim().toUpperCase();
-    const allowedItems = parseAllowedItems(mdAllowedItems.value);
+  function parseAllowedItems(raw){
+    return raw.split(',')
+      .map(s => s.trim())
+      .filter(s => s !== '')
+      .map(s => parseInt(s, 10))
+      .filter(n => !Number.isNaN(n));
+  }
 
-    if(enabled){
-      if(!sourceWorld || !storageWorld){
-        setMdStatus('err', 'World asal dan world storage wajib diisi.');
-        return;
-      }
-      if(allowedItems.length === 0){
-        setMdStatus('err', 'Isi minimal satu item ID yang boleh di-collect.');
-        return;
-      }
-    }
-
-    const cfg = {
-      enabled: enabled,
-      source_world: sourceWorld,
+  function buildConfigPayload(enabledOverride){
+    return {
+      enabled: enabledOverride,
+      source_world: mdSourceWorld.value.trim().toUpperCase(),
       source_door: mdSourceDoor.value.trim(),
-      storage_world: storageWorld,
+      storage_world: mdStorageWorld.value.trim().toUpperCase(),
       storage_door: mdStorageDoor.value.trim(),
-      allowed_items: allowedItems,
-      max_total_items: parseInt(mdMaxItems.value, 10) || 0
+      allowed_items: parseAllowedItems(mdAllowedItems.value),
+      max_total_items: parseInt(mdMaxTotal.value, 10) || 0
     };
+  }
 
-    mdStartBtn.disabled = true;
+  async function pushMoveDropConfig(payload, busyText, okText){
+    setMdConfigStatus('busy', `<span class="dot-pulse"></span> ${busyText}`);
+    mdSaveBtn.disabled = true;
     mdStopBtn.disabled = true;
-    setMdStatus('busy', '<span class="dot-pulse"></span> Menyimpan…');
     try{
       const res = await fetch(`${FIREBASE_URL}/${MOVEDROP_CONFIG_PATH}`, {
         method: 'PUT',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(cfg)
+        body: JSON.stringify(payload)
       });
       if(!res.ok) throw new Error('HTTP ' + res.status);
-      setMdStatus('ok', enabled
-        ? 'Tersimpan. Bot akan mulai proses move drop dalam beberapa detik.'
-        : 'Perintah stop tersimpan. Bot akan berhenti setelah menyelesaikan langkah saat ini.');
-      mdBadge.className = 'state-badge ' + (enabled ? 'on' : 'off');
-      mdBadge.textContent = enabled ? 'Berjalan' : 'Berhenti';
+      setMdConfigStatus('ok', okText);
     }catch(e){
-      setMdStatus('err', 'Gagal menyimpan: ' + e.message);
+      setMdConfigStatus('err', 'Gagal menyimpan: ' + e.message);
     }finally{
-      mdStartBtn.disabled = false;
+      mdSaveBtn.disabled = false;
       mdStopBtn.disabled = false;
     }
   }
 
-  mdStartBtn.addEventListener('click', () => saveMoveDropConfig(true));
-  mdStopBtn.addEventListener('click', () => saveMoveDropConfig(false));
+  mdSaveBtn.addEventListener('click', () => {
+    if(!mdSourceWorld.value.trim() || !mdStorageWorld.value.trim()){
+      setMdConfigStatus('err', 'World asal dan world storage wajib diisi.');
+      return;
+    }
+    if(parseAllowedItems(mdAllowedItems.value).length === 0){
+      setMdConfigStatus('err', 'Isi minimal satu item ID whitelist.');
+      return;
+    }
+    const payload = buildConfigPayload(true);
+    pushMoveDropConfig(payload, 'Menyimpan & mengaktifkan…', 'Tersimpan. Bot akan mulai Move Drop di poll berikutnya (maks. 8 detik).');
+  });
+
+  mdStopBtn.addEventListener('click', () => {
+    const payload = buildConfigPayload(false);
+    pushMoveDropConfig(payload, 'Menghentikan…', 'Move Drop dihentikan. Field lain tetap tersimpan.');
+  });
+
+  function fmtStateLabel(state){
+    const map = {
+      idle: 'Idle',
+      collecting: 'Collecting',
+      to_storage: 'Menuju storage',
+      dropping: 'Dropping',
+      to_source: 'Menuju source',
+      stopped: 'Stopped',
+      limit_reached: 'Limit tercapai'
+    };
+    return map[state] || state || '—';
+  }
 
   async function loadMoveDropStatus(){
     try{
@@ -1071,22 +1193,42 @@
       const data = await res.json();
       if(!data) return;
 
-      mdState.textContent = data.state || '—';
-      mdItemsMoved.textContent = data.items_moved_total ?? 0;
-      mdTrips.textContent = data.trips ?? 0;
-      mdUpdatedHint.textContent = 'Update terakhir: ' + fmtTime(data.last_updated);
+      const moved = data.items_moved_total || 0;
+      const target = data.max_total_items || 0;
+
+      mdMoved.textContent = moved;
+      if(target > 0){
+        mdOfWrap.style.display = 'inline';
+        mdTotal.textContent = target;
+        mdTotal.style.display = 'inline';
+        const pct = Math.min(100, Math.round((moved / target) * 100));
+        mdBarFill.style.width = pct + '%';
+      }else{
+        // tanpa batas: sembunyikan "/ total", progress bar penuh statis
+        mdOfWrap.style.display = 'none';
+        mdTotal.style.display = 'none';
+        mdBarFill.style.width = '100%';
+      }
+
+      const state = data.state || 'idle';
+      mdStatePill.textContent = fmtStateLabel(state);
+      mdStatePill.className = 'state-pill st-' + state;
+
+      mdTrips.textContent = data.trips || 0;
+      mdUpdated.textContent = fmtTime(data.last_updated);
 
       const counts = data.item_counts || {};
-      const keys = Object.keys(counts);
-      if(keys.length === 0){
-        mdItemBreakdown.innerHTML = '<span class="empty-note">Belum ada data.</span>';
+      const entries = Object.entries(counts);
+      if(entries.length === 0){
+        mdItemBreakdown.innerHTML = '<span class="empty-note">Belum ada item yang dipindahkan.</span>';
       }else{
-        mdItemBreakdown.innerHTML = keys
-          .map(id => `<span class="pill on">ID ${id}: ${counts[id]}</span>`)
-          .join('');
+        entries.sort((a,b) => b[1] - a[1]);
+        mdItemBreakdown.innerHTML = '<div class="pill-row">' +
+          entries.map(([id, count]) => `<span class="pill">ID ${id}: ${count}</span>`).join('') +
+          '</div>';
       }
     }catch(e){
-      // path belum pernah dibuat oleh bot
+      // path belum ada, biarkan tampilan default
     }
   }
 
