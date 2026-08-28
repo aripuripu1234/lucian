@@ -58,7 +58,7 @@
             </div>
         </div>
 
-        <!-- METRIK RINGKASAN RINGKAS -->
+        <!-- METRIK RINGKASAN -->
         <div class="row text-center mb-4">
             <div class="col-md-6">
                 <div class="card p-3">
@@ -175,7 +175,9 @@
                 let worldRows = "";
                 const nowSec = Math.floor(Date.now() / 1000);
 
-                for (const [wName, wData] of Object.entries(worldsData)) {
+                // ITERASI BERDASARKAN UNIQ KEY WORLD NAME (PENJAMIN ANTI-DUPLIKASI)
+                for (const [rawWName, wData] of Object.entries(worldsData)) {
+                    const wName = rawWName.trim().toUpperCase();
                     const summary = wData.summary || {};
                     const totalSS = summary.total_ss || 0;
 
@@ -277,7 +279,8 @@
 
         async function handleAddGrowscanTarget(e) {
             e.preventDefault();
-            const wName = document.getElementById("gs-world-name").value.trim().toUpperCase();
+            const rawInput = document.getElementById("gs-world-name").value;
+            const wName = rawInput.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
             if (!wName) return;
 
             await fetch(`${FIREBASE_URL}/growscan_targets/${wName}.json`, {
