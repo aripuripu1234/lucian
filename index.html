@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Science & World Monitoring Dashboard</title>
+    <title>Signal Science & World Monitor Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -16,7 +16,38 @@
 </head>
 <body class="p-4">
     <div class="container-fluid">
-        <h2 class="mb-4 text-warning">🔬 Signal Science & World Monitor Dashboard</h2>
+        <h2 class="mb-4 text-warning">🔬 Science & World Monitoring Dashboard</h2>
+
+        <!-- FORMS: TAMBAH WORLD & KONTROL CONFIG -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card p-3">
+                    <h5>➕ Tambah World Science Baru</h5>
+                    <form id="add-world-form" onsubmit="handleAddWorld(event)">
+                        <div class="row g-2 mt-1">
+                            <div class="col-md-6">
+                                <input type="text" id="world-name" class="form-control bg-dark text-white border-secondary" placeholder="Nama World (e.g. SCIENCE1)" required>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" id="world-door" class="form-control bg-dark text-white border-secondary" placeholder="Door ID" required>
+                            </div>
+                            <div class="col-md-2">
+                                <button type="submit" class="btn btn-warning w-100">Tambah</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-3">
+                    <h5>⚙️ Pengaturan Auto Connect Bot</h5>
+                    <div class="form-check form-switch mt-2">
+                        <input class="form-check-input" type="checkbox" id="auto-connect-toggle" onchange="toggleAutoConnect(this.checked)">
+                        <label class="form-check-label text-white" for="auto-connect-toggle">Disconnect Otomatis Setelah Selesai Scan (Auto Connect Mode)</label>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- METRIK RINGKASAN -->
         <div class="row text-center mb-4">
@@ -46,9 +77,9 @@
             </div>
         </div>
 
-        <!-- DAFTAR WORLD SCIENCE & JADWAL PANEN -->
+        <!-- DAFTAR WORLD SCIENCE -->
         <div class="card p-3 mb-4">
-            <h4>📋 Informator & Jadwal Science Station World</h4>
+            <h4>📋 Information & Harvest Log World</h4>
             <div class="table-responsive">
                 <table class="table table-dark table-hover mt-3 align-middle">
                     <thead>
@@ -56,14 +87,15 @@
                             <th>Nama World</th>
                             <th>Door ID</th>
                             <th>Total SS</th>
-                            <th>Ready / Cooldown</th>
-                            <th>Mulai Harvest (WIB)</th>
-                            <th>Estimasi Selesai (WIB)</th>
-                            <th>Info Growscan (Pemain Terdeteksi)</th>
+                            <th>Status SS</th>
+                            <th>Mulai Harvest (Punch Pertama)</th>
+                            <th>Selesai Harvest (SS Ujung)</th>
+                            <th>Growscan (Player In-World)</th>
+                            <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="world-table-body">
-                        <tr><td colspan="7" class="text-center">Memuat Data World...</td></tr>
+                        <tr><td colspan="8" class="text-center">Memuat Data World...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -71,7 +103,7 @@
 
         <!-- DAFTAR BOT MONITORING -->
         <div class="card p-3">
-            <h4>🤖 Status Bot Monitoring</h4>
+            <h4>🤖 Status & Kontrol Bot</h4>
             <div class="table-responsive">
                 <table class="table table-dark table-striped mt-3">
                     <thead>
@@ -79,7 +111,7 @@
                             <th>Nama Bot</th>
                             <th>World Saat Ini</th>
                             <th>Status Bot</th>
-                            <th>Aksi Control</th>
+                            <th>Aksi Manual Connect / Disconnect</th>
                         </tr>
                     </thead>
                     <tbody id="bot-table-body">
@@ -101,11 +133,16 @@
 
         async function fetchDashboardData() {
             try {
-                // Fetch World Data
+                // Config Auto Connect
+                const resConfig = await fetch(`${FIREBASE_URL}/config/auto_connect.json`);
+                const autoConnect = await resConfig.json();
+                document.getElementById("auto-connect-toggle").checked = (autoConnect !== false);
+
+                // World Data
                 const resWorlds = await fetch(`${FIREBASE_URL}/worlds.json`);
                 const worldsData = await resWorlds.json() || {};
 
-                // Fetch Bot Data
+                // Bot Data
                 const resBots = await fetch(`${FIREBASE_URL}/bots.json`);
                 const botsData = await resBots.json() || {};
 
@@ -123,7 +160,7 @@
                     readySSSum += ready;
                     cooldownSSSum += cooldown;
 
-                    // Parse Growscan Data
+                    // Growscan
                     let growscanHTML = "<span class='text-muted'>Tidak ada player terdeteksi</span>";
                     if (wData.growscan && wData.growscan.items) {
                         const items = wData.growscan.items;
@@ -133,9 +170,9 @@
                         }
                         growscanHTML = `
                             <div class="growscan-box">
-                                <strong>⚠️ Trigger: ${wData.growscan.triggered_by}</strong><br>
-                                <small>${itemDetails.slice(0, 5).join(" | ")}...</small><br>
-                                <small class="text-info">Di-scan: ${formatTime(wData.growscan.last_scan_time)}</small>
+                                <strong>⚠️ ${wData.growscan.triggered_by || 'Player Active'}</strong><br>
+                                <small>${itemDetails.slice(0, 4).join(" | ")}...</small><br>
+                                <small class="text-info">Update: ${formatTime(wData.growscan.last_scan_time)}</small>
                             </div>
                         `;
                     }
@@ -149,9 +186,12 @@
                                 <span class="badge badge-ready">${ready} Ready</span>
                                 <span class="badge badge-cooldown">${cooldown} Cooldown</span>
                             </td>
-                            <td>${formatTime(summary.start_harvest_est)}</td>
-                            <td class="text-info">${formatTime(summary.finish_harvest_est)}</td>
+                            <td class="text-success">${formatTime(summary.start_harvest_time)}</td>
+                            <td class="text-info">${formatTime(summary.finish_harvest_time)}</td>
                             <td>${growscanHTML}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteWorld('${wName}')">Hapus</button>
+                            </td>
                         </tr>
                     `;
                 }
@@ -160,7 +200,7 @@
                 document.getElementById("total-ss").innerText = totalSSSum;
                 document.getElementById("ready-ss").innerText = readySSSum;
                 document.getElementById("cooldown-ss").innerText = cooldownSSSum;
-                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="7" class="text-center">Belum ada world.</td></tr>';
+                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="8" class="text-center">Belum ada world. Tambahkan melalui form di atas.</td></tr>';
 
                 // Bot Table
                 let botRows = "";
@@ -171,8 +211,8 @@
                             <td>${bData.current_world || "-"}</td>
                             <td><span class="badge bg-info">${bData.status || "Standby"}</span></td>
                             <td>
-                                <button class="btn btn-sm btn-outline-success" onclick="setBotControl('${bName}', 'ONLINE')">Online</button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="setBotControl('${bName}', 'OFFLINE')">Offline</button>
+                                <button class="btn btn-sm btn-outline-success" onclick="setBotControl('${bName}', 'ONLINE')">Connect (Online)</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="setBotControl('${bName}', 'OFFLINE')">Disconnect (Offline)</button>
                             </td>
                         </tr>
                     `;
@@ -184,12 +224,43 @@
             }
         }
 
+        async function handleAddWorld(e) {
+            e.preventDefault();
+            const wName = document.getElementById("world-name").value.trim().toUpperCase();
+            const wDoor = document.getElementById("world-door").value.trim();
+
+            if (!wName) return;
+
+            await fetch(`${FIREBASE_URL}/worlds/${wName}.json`, {
+                method: 'PUT',
+                body: JSON.stringify({ door_id: wDoor, summary: { total_ss: 0, ready: 0, cooldown: 0 } })
+            });
+
+            document.getElementById("world-name").value = "";
+            document.getElementById("world-door").value = "";
+            fetchDashboardData();
+        }
+
+        async function deleteWorld(worldName) {
+            if (confirm(`Yakin ingin menghapus world ${worldName}?`)) {
+                await fetch(`${FIREBASE_URL}/worlds/${worldName}.json`, { method: 'DELETE' });
+                fetchDashboardData();
+            }
+        }
+
         async function setBotControl(botName, status) {
             await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ control: status })
             });
             fetchDashboardData();
+        }
+
+        async function toggleAutoConnect(enabled) {
+            await fetch(`${FIREBASE_URL}/config.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ auto_connect: enabled })
+            });
         }
 
         setInterval(fetchDashboardData, 5000);
