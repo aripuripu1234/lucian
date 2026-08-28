@@ -19,7 +19,13 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="text-warning font-monospace m-0">🧪 Science Auto-Scheduler Controller</h3>
-            <span class="badge bg-outline-light border">1 Hit / SS & Auto Remote Power</span>
+            <div>
+                <!-- TOMBOL RESET DATA SCIENCE -->
+                <button onclick="resetScienceData()" class="btn btn-outline-danger btn-sm fw-bold me-2">
+                    🗑️ Reset Data Science
+                </button>
+                <span class="badge bg-outline-light border">1 Hit / SS & Auto Remote Power</span>
+            </div>
         </div>
 
         <!-- PANEL STATISTIK HASIL PANEN & OPSI MODE -->
@@ -181,6 +187,46 @@
                 headers: { "Content-Type": "application/json" },
                 body: (isAuto === "true")
             });
+        }
+
+        /* FUNGSI UNTUK RESET DATA SCIENCE */
+        async function resetScienceData() {
+            if (!confirm("Apakah Anda yakin ingin menghapus semua data Science (Ready & Unready)? Data World akan tetap disimpan.")) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`${DB_URL}/worlds.json`);
+                const data = await res.json();
+                if (!data) return;
+
+                for (let worldName in data) {
+                    // Hapus data grid tiles
+                    await fetch(`${DB_URL}/worlds/${worldName}/tiles.json`, { method: "DELETE" });
+
+                    // Reset ringkasan statistik panen tapi pertahankan door_id
+                    const currentDoor = data[worldName]?.summary?.door_id || "-";
+                    await fetch(`${DB_URL}/worlds/${worldName}/summary.json`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            total_ss: 0,
+                            ready: 0,
+                            cooldown: 0,
+                            last_harvest_chem: 0,
+                            start_time: 0,
+                            end_time: 0,
+                            next_ready_time: 0,
+                            door_id: currentDoor
+                        })
+                    });
+                }
+
+                alert("Data Science berhasil di-reset! Data World tetap aman.");
+                loadWorlds();
+            } catch(e) {
+                alert("Gagal mereset data: " + e.message);
+            }
         }
 
         document.getElementById("storageForm").addEventListener("submit", async (e) => {
