@@ -16,18 +16,18 @@
     <div class="container-fluid">
         <h2 class="mb-4 text-warning">🔬 In-World Science & Growscan Target Monitor</h2>
 
-        <!-- INPUT FORMS -->
+        <!-- INPUT FORMS & PENGATURAN GLOBAL -->
         <div class="row mb-4">
             <!-- TARGET GROWSCAN INPUT -->
-            <div class="col-md-6">
+            <div class="col-md-5">
                 <div class="card p-3">
                     <h5>🎯 Tambah World Target Growscan</h5>
                     <form id="add-gs-form" onsubmit="handleAddGrowscanTarget(event)">
                         <div class="row g-2 mt-1">
-                            <div class="col-md-9">
+                            <div class="col-md-8">
                                 <input type="text" id="gs-world-name" class="form-control bg-dark text-white border-secondary" placeholder="Nama World Target (e.g. TARGETSCIENCE)" required>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <button type="submit" class="btn btn-info w-100">Set Target</button>
                             </div>
                         </div>
@@ -36,13 +36,23 @@
                 </div>
             </div>
 
-            <!-- KONTROL AUTO DISCONNECT -->
-            <div class="col-md-6">
+            <!-- KONTROL AUTO CONNECT GLOBAL & RESET DATA MASSAL -->
+            <div class="col-md-7">
                 <div class="card p-3">
-                    <h5>⚙️ Pengaturan Auto Disconnect Bot</h5>
-                    <div class="form-check form-switch mt-2">
-                        <input class="form-check-input" type="checkbox" id="auto-connect-toggle" onchange="toggleAutoConnect(this.checked)">
-                        <label class="form-check-label text-white" for="auto-connect-toggle">Disconnect Otomatis Setelah SEMUA World Selesai Dipanen</label>
+                    <h5>⚙️ Pengaturan Global & Reset Data</h5>
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2">
+                        <!-- TOGGLE AUTO CONNECT GLOBAL -->
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="auto-connect-toggle" onchange="toggleAutoConnect(this.checked)">
+                            <label class="form-check-label text-white fw-bold" for="auto-connect-toggle">
+                                Auto-Connect / Disconnect Sesi Automatic Mode
+                            </label>
+                        </div>
+                        
+                        <!-- TOMBOL HAPUS SELURUH DATA WAKTU & SCIENCE -->
+                        <button class="btn btn-danger btn-sm" onclick="deleteAllData()">
+                            🔥 Hapus Semua Data Panen & World
+                        </button>
                     </div>
                 </div>
             </div>
@@ -93,18 +103,18 @@
             </div>
         </div>
 
-        <!-- TABEL BOT -->
+        <!-- TABEL BOT & KONTROL MANUAL AUTO CONNECT -->
         <div class="card p-3">
             <h4>🤖 Status Bot Monitoring</h4>
             <div class="table-responsive">
-                <table class="table table-dark table-striped mt-3">
+                <table class="table table-dark table-striped mt-3 align-middle">
                     <thead>
                         <tr>
                             <th>Nama Bot</th>
                             <th>World Aktif Saat Ini</th>
                             <th>Status Panen Semua World</th>
                             <th>Status Re-Connect / Retry</th>
-                            <th>Kontrol Bot</th>
+                            <th>Aksi Koneksi Bot</th>
                         </tr>
                     </thead>
                     <tbody id="bot-table-body">
@@ -125,7 +135,7 @@
             return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " WIB";
         }
 
-        // FITUR SEARCH BAR FILTER TABEL WORLD (REALTIME)
+        // FILTER TABEL WORLD DENGAN SEARCH BAR
         function filterWorldTable() {
             const query = document.getElementById("world-search-input").value.toUpperCase();
             const table = document.getElementById("world-table");
@@ -210,7 +220,7 @@
                             <td>${sessionStatusHTML}</td>
                             <td>${growscanHTML}</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteWorld('${wName}')">Hapus</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteWorld('${wName}')">Hapus World</button>
                             </td>
                         </tr>
                     `;
@@ -220,7 +230,6 @@
                 document.getElementById("total-ss").innerText = totalSSSum;
                 document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="7" class="text-center">Belum ada world aktif (>10 SS). Masukkan bot ke world.</td></tr>';
 
-                // Re-apply filter pencarian jika user sedang mengetik di search bar
                 filterWorldTable();
 
                 let botRows = "";
@@ -233,10 +242,12 @@
                     const failCount = bData.fail_count || 0;
                     let retryStatus = `<span class="badge bg-success">Normal</span>`;
                     if (bData.control === "NEEDS_CONFIRM") {
-                        retryStatus = `<span class="badge bg-danger">⚠️ Gagal Connect 3x (Butuh Klik Online)</span>`;
+                        retryStatus = `<span class="badge bg-danger">⚠️ Gagal Connect 3x (Need Confirm)</span>`;
                     } else if (failCount > 0) {
                         retryStatus = `<span class="badge bg-warning text-dark">Retry Gagal: ${failCount}/3</span>`;
                     }
+
+                    const isOnlineControl = bData.control === "ONLINE";
 
                     botRows += `
                         <tr>
@@ -245,8 +256,14 @@
                             <td>${statusBadge}</td>
                             <td>${retryStatus}</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-success" onclick="setBotControl('${bName}', 'ONLINE')">Connect / Confirm</button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="setBotControl('${bName}', 'OFFLINE')">Disconnect</button>
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-sm ${isOnlineControl ? 'btn-success' : 'btn-outline-success'}" onclick="setBotControl('${bName}', 'ONLINE')">
+                                        🟢 Connect
+                                    </button>
+                                    <button class="btn btn-sm ${!isOnlineControl ? 'btn-danger' : 'btn-outline-danger'}" onclick="setBotControl('${bName}', 'OFFLINE')">
+                                        🔴 Disconnect
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     `;
@@ -277,9 +294,19 @@
             fetchDashboardData();
         }
 
+        // HAPUS SATU WORLD
         async function deleteWorld(worldName) {
             if (confirm(`Hapus log world ${worldName}?`)) {
                 await fetch(`${FIREBASE_URL}/worlds/${worldName}.json`, { method: 'DELETE' });
+                fetchDashboardData();
+            }
+        }
+
+        // HAPUS SELURUH DATA WAKTU DAN WORLD SCIENCE (MASS RESET)
+        async function deleteAllData() {
+            if (confirm("⚠️ Apakah Anda yakin ingin MENGHAPUS SEMUA DATA WAKTU DAN LOG SCIENCE WORLD?\n\nTindakan ini akan mengosongkan seluruh histori panen!")) {
+                await fetch(`${FIREBASE_URL}/worlds.json`, { method: 'DELETE' });
+                alert("Berhasil menghapus seluruh data panen world!");
                 fetchDashboardData();
             }
         }
