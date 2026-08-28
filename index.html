@@ -24,8 +24,8 @@
 
         <!-- PANEL STATISTIK HASIL PANEN & OPSI MODE -->
         <div class="row g-3 mb-4">
-            <div class="col-md-8">
-                <div class="card p-3 border-success bg-dark">
+            <div class="col-md-7">
+                <div class="card p-3 border-success bg-dark h-100 justify-content-center">
                     <div class="row text-center">
                         <div class="col-6 col-sm-3 border-end border-secondary">
                             <small class="text-muted d-block">Total SS Ter-Scan</small>
@@ -46,14 +46,21 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-5">
                 <div class="card p-3 h-100 border-warning">
-                    <h6 class="text-warning mb-2">⚙️ Mode Operasi Bot</h6>
+                    <h6 class="text-warning mb-2">⚙️ Opsi & Mode Operasi Bot</h6>
+                    
+                    <label class="form-label mb-1 text-muted small">Mode Panen Tile:</label>
                     <select id="workModeSelect" class="form-select form-select-sm bg-dark text-white border-secondary mb-2" onchange="updateWorkMode(this.value)">
                         <option value="HARVEST">🌾 Cek World & Panen Science</option>
                         <option value="SCAN_ONLY">🔍 Cek World Saja (Tanpa Hit/Panen)</option>
                     </select>
-                    <small class="text-muted" style="font-size: 11px;">Bot otomatis disconnect jika seluruh world cooldown.</small>
+
+                    <label class="form-label mb-1 text-muted small">Mode Koneksi Game:</label>
+                    <select id="connModeSelect" class="form-select form-select-sm bg-dark text-white border-secondary" onchange="updateConnMode(this.value)">
+                        <option value="true">⚡ [AUTO] Connect saat Ready, Off saat Cooldown</option>
+                        <option value="false">🕹️ [MANUAL] Kontrol via Tombol Saklar</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -151,6 +158,12 @@
                 if (modeData) {
                     document.getElementById("workModeSelect").value = modeData;
                 }
+
+                const connRes = await fetch(`${DB_URL}/config/auto_connect.json`);
+                const connData = await connRes.json();
+                if (connData !== null) {
+                    document.getElementById("connModeSelect").value = connData.toString();
+                }
             } catch(e) {}
         }
 
@@ -159,6 +172,14 @@
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(mode)
+            });
+        }
+
+        async function updateConnMode(isAuto) {
+            await fetch(`${DB_URL}/config/auto_connect.json`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: (isAuto === "true")
             });
         }
 
