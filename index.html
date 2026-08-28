@@ -5,53 +5,319 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Signal Science & World Monitor Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .card { background-color: #1e1e1e; border: 1px solid #333; color: #fff; border-radius: 12px; margin-bottom: 20px; }
-        .table-dark { background-color: #1e1e1e; color: #e0e0e0; }
-        .growscan-box { background-color: #2a2a2a; border-left: 4px solid #17a2b8; padding: 10px; font-size: 0.85rem; border-radius: 4px; }
+        :root{
+            --bg: #0a0d12;
+            --panel: #10141c;
+            --panel-alt: #141a24;
+            --border: #232938;
+            --text: #e6e9ef;
+            --muted: #7a8296;
+            --signal: #46e1c4;   /* cyan - live / normal */
+            --alert: #f2a93b;    /* amber - growscan / caution */
+            --danger: #e8536b;   /* red - stop / fail */
+            --info: #5b8def;     /* blue - secondary info */
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            background:
+                radial-gradient(circle at 15% 0%, rgba(70,225,196,0.06), transparent 40%),
+                radial-gradient(circle at 85% 20%, rgba(91,141,239,0.05), transparent 45%),
+                var(--bg);
+            color: var(--text);
+            font-family: 'IBM Plex Sans', sans-serif;
+            min-height: 100vh;
+        }
+
+        h2, h4, h5 {
+            font-family: 'Space Grotesk', sans-serif;
+            letter-spacing: 0.02em;
+        }
+
+        .mono { font-family: 'IBM Plex Mono', monospace; }
+
+        /* ---------- Top status bar ---------- */
+        .console-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 18px 22px;
+            margin-bottom: 24px;
+            background: linear-gradient(180deg, var(--panel-alt), var(--panel));
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+        .console-header::before{
+            content:"";
+            position:absolute; inset:0;
+            background: repeating-linear-gradient(
+                90deg, rgba(70,225,196,0.035) 0px, rgba(70,225,196,0.035) 1px,
+                transparent 1px, transparent 26px
+            );
+            pointer-events:none;
+        }
+        .console-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text);
+            margin: 0;
+            display:flex;
+            align-items:center;
+            gap: 10px;
+            z-index:1;
+        }
+        .console-title .tag {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            color: var(--bg);
+            background: var(--signal);
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+        .live-pulse {
+            display:flex;
+            align-items:center;
+            gap:8px;
+            font-family:'IBM Plex Mono', monospace;
+            font-size:0.75rem;
+            color: var(--muted);
+            z-index:1;
+        }
+        .live-pulse .dot {
+            width: 9px; height: 9px;
+            border-radius: 50%;
+            background: var(--signal);
+            box-shadow: 0 0 0 0 rgba(70,225,196,0.6);
+            animation: pulse-ring 3s ease-out infinite;
+        }
+        @keyframes pulse-ring {
+            0%   { box-shadow: 0 0 0 0 rgba(70,225,196,0.55); }
+            70%  { box-shadow: 0 0 0 9px rgba(70,225,196,0); }
+            100% { box-shadow: 0 0 0 0 rgba(70,225,196,0); }
+        }
+
+        /* ---------- Panels ---------- */
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .card.hud::before, .card.hud::after {
+            content:"";
+            position:absolute;
+            width:14px; height:14px;
+            border: 2px solid var(--signal);
+            opacity:0.7;
+        }
+        .card.hud::before{ top:-1px; left:-1px; border-right:none; border-bottom:none; border-top-left-radius:8px; }
+        .card.hud::after{ bottom:-1px; right:-1px; border-left:none; border-top:none; border-bottom-right-radius:8px; }
+
+        .panel-label {
+            font-family:'IBM Plex Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.14em;
+            color: var(--muted);
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            display:block;
+        }
+
+        .card h5 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+        }
+
+        /* ---------- Form controls ---------- */
+        .form-control {
+            background: var(--panel-alt) !important;
+            border: 1px solid var(--border) !important;
+            color: var(--text) !important;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+        .form-control:focus {
+            background: var(--panel-alt) !important;
+            color: var(--text) !important;
+            border-color: var(--signal) !important;
+            box-shadow: 0 0 0 3px rgba(70,225,196,0.15) !important;
+        }
+        .form-control::placeholder { color: var(--muted); opacity: 0.8; }
+
+        .btn-info {
+            background: var(--signal);
+            border-color: var(--signal);
+            color: #06231d;
+            font-weight: 600;
+        }
+        .btn-info:hover { background:#37c9ae; border-color:#37c9ae; color:#06231d; }
+
+        .btn-danger {
+            background: var(--danger);
+            border-color: var(--danger);
+        }
+        .btn-danger:hover { background:#d13d55; border-color:#d13d55; }
+
+        .btn-outline-danger {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+        .btn-outline-danger:hover { background: var(--danger); border-color: var(--danger); }
+
+        .btn-success { background: var(--signal); border-color: var(--signal); color:#06231d; }
+        .btn-outline-success { color: var(--signal); border-color: var(--signal); }
+        .btn-outline-success:hover { background: var(--signal); color:#06231d; }
+
+        .form-check-input {
+            background-color: var(--panel-alt);
+            border-color: var(--border);
+        }
+        .form-check-input:checked {
+            background-color: var(--signal);
+            border-color: var(--signal);
+        }
+        .form-check-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; }
+
+        /* ---------- Metrics ---------- */
+        .metric-card h5 {
+            color: var(--muted);
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+        .metric-card h2 {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 2.6rem;
+            font-weight: 700;
+        }
+        .metric-card .h2.text-info { color: var(--signal) !important; }
+        .metric-card .h2.text-primary { color: var(--info) !important; }
+
+        /* ---------- Tables ---------- */
+        .table-dark {
+            background-color: var(--panel) !important;
+            color: var(--text) !important;
+        }
+        .table {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.85rem;
+        }
+        .table > :not(caption) > * > * {
+            background-color: var(--panel) !important;
+            border-bottom-color: var(--border) !important;
+            color: var(--text);
+        }
+        .table thead th {
+            font-family: 'IBM Plex Sans', sans-serif;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border) !important;
+            font-weight: 600;
+        }
+        .table-hover > tbody > tr:hover > * {
+            background-color: var(--panel-alt) !important;
+        }
+        .table-striped > tbody > tr:nth-of-type(odd) > * {
+            background-color: rgba(255,255,255,0.02) !important;
+        }
+
+        /* Badge recolor to match palette */
+        .badge.bg-secondary { background-color: #2a3142 !important; color: var(--text) !important; }
+        .badge.bg-info { background-color: rgba(70,225,196,0.15) !important; color: var(--signal) !important; border:1px solid rgba(70,225,196,0.4); }
+        .badge.bg-success { background-color: rgba(70,225,196,0.15) !important; color: var(--signal) !important; border:1px solid rgba(70,225,196,0.4); }
+        .badge.bg-warning { background-color: rgba(242,169,59,0.15) !important; color: var(--alert) !important; border:1px solid rgba(242,169,59,0.4); }
+        .badge.bg-danger { background-color: rgba(232,83,107,0.15) !important; color: var(--danger) !important; border:1px solid rgba(232,83,107,0.4); }
+        .badge.bg-primary { background-color: rgba(91,141,239,0.15) !important; color: var(--info) !important; border:1px solid rgba(91,141,239,0.4); }
+        .badge { font-family:'IBM Plex Mono', monospace; font-weight: 500; padding: 5px 9px; }
+        .badge.text-dark { color: inherit !important; }
+
+        .growscan-box {
+            background-color: var(--panel-alt);
+            border-left: 3px solid var(--alert);
+            padding: 10px 12px;
+            font-size: 0.78rem;
+            border-radius: 4px;
+            font-family: 'IBM Plex Mono', monospace;
+        }
+
+        .text-warning { color: var(--alert) !important; }
+        .text-info { color: var(--signal) !important; }
+        .text-success { color: var(--signal) !important; }
+        .text-primary { color: var(--info) !important; }
+        .text-muted { color: var(--muted) !important; }
+
+        ::-webkit-scrollbar { height: 8px; width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--panel); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
     </style>
 </head>
 <body class="p-4">
     <div class="container-fluid">
-        <h2 class="mb-4 text-warning">🔬 In-World Science & Growscan Target Monitor</h2>
+
+        <!-- CONSOLE HEADER -->
+        <div class="console-header">
+            <h2 class="console-title">
+                <span class="tag">SIGNAL</span>
+                In-World Science &amp; Growscan Target Monitor
+            </h2>
+            <div class="live-pulse">
+                <span class="dot"></span>
+                LIVE · REFRESH 3s
+            </div>
+        </div>
 
         <!-- INPUT FORMS & PENGATURAN GLOBAL -->
         <div class="row mb-4">
             <!-- TARGET GROWSCAN INPUT -->
             <div class="col-md-5">
-                <div class="card p-3">
+                <div class="card hud p-3">
+                    <span class="panel-label">Target Lock</span>
                     <h5>🎯 Tambah World Target Growscan</h5>
                     <form id="add-gs-form" onsubmit="handleAddGrowscanTarget(event)">
                         <div class="row g-2 mt-1">
                             <div class="col-md-8">
-                                <input type="text" id="gs-world-name" class="form-control bg-dark text-white border-secondary" placeholder="Nama World Target (e.g. TARGETSCIENCE)" required>
+                                <input type="text" id="gs-world-name" class="form-control" placeholder="Nama World Target (e.g. TARGETSCIENCE)" required>
                             </div>
                             <div class="col-md-4">
                                 <button type="submit" class="btn btn-info w-100">Set Target</button>
                             </div>
                         </div>
                     </form>
-                    <div id="gs-target-list" class="mt-2 text-muted small">Target Aktif: Loading...</div>
+                    <div id="gs-target-list" class="mt-3 text-muted small">Target Aktif: Loading...</div>
                 </div>
             </div>
 
             <!-- KONTROL AUTO CONNECT GLOBAL & RESET DATA MASSAL -->
             <div class="col-md-7">
-                <div class="card p-3">
-                    <h5>⚙️ Pengaturan Global & Reset Data</h5>
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-2">
+                <div class="card hud p-3">
+                    <span class="panel-label">System Control</span>
+                    <h5>⚙️ Pengaturan Global &amp; Reset Data</h5>
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3">
                         <!-- TOGGLE AUTO CONNECT GLOBAL -->
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="auto-connect-toggle" onchange="toggleAutoConnect(this.checked)">
-                            <label class="form-check-label text-white fw-bold" for="auto-connect-toggle">
+                            <label class="form-check-label fw-bold" for="auto-connect-toggle">
                                 Auto-Connect / Disconnect Sesi Automatic Mode
                             </label>
                         </div>
-                        
+
                         <!-- TOMBOL HAPUS SELURUH DATA WAKTU & SCIENCE -->
                         <button class="btn btn-danger btn-sm" onclick="deleteAllData()">
-                            🔥 Hapus Semua Data Panen & World
+                            🔥 Hapus Semua Data Panen &amp; World
                         </button>
                     </div>
                 </div>
@@ -61,13 +327,13 @@
         <!-- METRIK RINGKASAN -->
         <div class="row text-center mb-4">
             <div class="col-md-6">
-                <div class="card p-3">
-                    <h5>World Dipantau (>10 SS)</h5>
+                <div class="card metric-card p-3">
+                    <h5>World Dipantau (&gt;10 SS)</h5>
                     <h2 id="total-worlds" class="text-info">0</h2>
                 </div>
             </div>
             <div class="col-md-6">
-                <div class="card p-3">
+                <div class="card metric-card p-3">
                     <h5>Total Seluruh Science Station</h5>
                     <h2 id="total-ss" class="text-primary">0</h2>
                 </div>
@@ -76,11 +342,14 @@
 
         <!-- TABEL INFORMASI WORLD + FITUR SEARCH BAR -->
         <div class="card p-3 mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="mb-0">📋 Informator World Science & Log Panen</h4>
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <span class="panel-label mb-0">World Log</span>
+                    <h4 class="mb-0">📋 Informator World Science &amp; Log Panen</h4>
+                </div>
                 <!-- FITUR CARI / SEARCH WORLD -->
                 <div style="width: 300px;">
-                    <input type="text" id="world-search-input" class="form-control bg-dark text-white border-secondary" placeholder="🔍 Cari Nama World..." onkeyup="filterWorldTable()">
+                    <input type="text" id="world-search-input" class="form-control" placeholder="🔍 Cari Nama World..." onkeyup="filterWorldTable()">
                 </div>
             </div>
             <div class="table-responsive">
@@ -105,6 +374,7 @@
 
         <!-- TABEL BOT & KONTROL MANUAL AUTO CONNECT -->
         <div class="card p-3">
+            <span class="panel-label mb-0">Fleet Status</span>
             <h4>🤖 Status Bot Monitoring</h4>
             <div class="table-responsive">
                 <table class="table table-dark table-striped mt-3 align-middle">
@@ -237,10 +507,10 @@
                 let botRows = "";
                 for (const [bName, bData] of Object.entries(botsData)) {
                     const isDone = bData.harvest_done || bData.all_worlds_done;
-                    const statusBadge = isDone 
-                        ? `<span class="badge bg-success">Semua World Selesai</span>` 
+                    const statusBadge = isDone
+                        ? `<span class="badge bg-success">Semua World Selesai</span>`
                         : `<span class="badge bg-warning text-dark">Dalam Proses Panen</span>`;
-                    
+
                     const failCount = bData.fail_count || 0;
                     let retryStatus = `<span class="badge bg-success">Normal</span>`;
                     if (bData.control === "NEEDS_CONFIRM") {
