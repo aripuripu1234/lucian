@@ -3,478 +3,429 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Science Station Control Center</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Science & Storage Remote Controller</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        :root {
-            --bg: #070a10;
-            --panel: #10161f;
-            --panel-alt: #131b26;
-            --border: #1e2836;
-            --border-bright: #2a3a4d;
-            --cyan: #5eead4;
-            --cyan-dim: rgba(94, 234, 212, 0.12);
-            --amber: #fbbf24;
-            --green: #34d399;
-            --red: #fb7185;
-            --text: #e6edf3;
-            --muted: #5b6b7f;
-
-            --chem-914: #34d399;
-            --chem-916: #fb7185;
-            --chem-918: #fbbf24;
-            --chem-920: #60a5fa;
-            --chem-924: #c084fc;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        html, body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        body {
-            padding: 28px 20px 60px;
-            background-image:
-                linear-gradient(rgba(94,234,212,0.035) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(94,234,212,0.035) 1px, transparent 1px);
-            background-size: 36px 36px;
-            min-height: 100vh;
-        }
-
-        .container { max-width: 1100px; margin: 0 auto; }
-
-        /* HEADER */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 24px;
-            padding: 16px 20px;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-left: 3px solid var(--cyan);
-            border-radius: 4px;
-        }
-
-        .header-left { display: flex; align-items: center; gap: 12px; }
-
-        .live-dot {
-            width: 9px; height: 9px;
-            border-radius: 50%;
-            background: var(--green);
-            box-shadow: 0 0 8px var(--green), 0 0 2px var(--green);
-            animation: pulse-dot 1.8s ease-in-out infinite;
-            flex-shrink: 0;
-        }
-
-        @keyframes pulse-dot {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.35; }
-        }
-
-        h1 {
-            font-family: 'Chakra Petch', sans-serif;
-            font-size: 1.15rem;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: var(--text);
-        }
-
-        h1 span { color: var(--cyan); }
-
-        #last-update {
-            font-size: 0.72rem;
-            color: var(--muted);
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        /* CARD SHELL */
-        .card {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 22px;
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        .card::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 1px;
-            background: linear-gradient(90deg, var(--cyan), transparent 60%);
-            opacity: 0.5;
-        }
-
-        .card-title {
-            font-family: 'Chakra Petch', sans-serif;
-            font-size: 0.85rem;
-            font-weight: 600;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            color: var(--muted);
-            margin-bottom: 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card-title::before {
-            content: "// ";
-            color: var(--cyan);
-        }
-
-        /* STORAGE READOUT SECTION */
-        .storage-header {
-            font-size: 0.78rem;
-            color: var(--muted);
-            margin-bottom: 20px;
-            display: flex;
-            gap: 22px;
-            flex-wrap: wrap;
-        }
-
-        .storage-header b { color: var(--cyan); font-weight: 600; }
-        .storage-header .lbl { color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.68rem; margin-right: 6px; }
-
-        .readout-layout {
-            display: flex;
-            gap: 24px;
-            align-items: stretch;
-            flex-wrap: wrap;
-        }
-
-        /* Reactor-style total readout */
-        .reactor {
-            flex: 0 0 180px;
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            background: radial-gradient(circle at center, var(--cyan-dim), transparent 70%);
-        }
-
-        .reactor::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            border: 1px solid var(--border-bright);
-        }
-
-        .reactor::after {
-            content: "";
-            position: absolute;
-            inset: -6px;
-            border-radius: 50%;
-            border: 1px dashed rgba(94, 234, 212, 0.25);
-            animation: spin 14s linear infinite;
-        }
-
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        .reactor-inner {
-            text-align: center;
-            z-index: 1;
-        }
-
-        .stat-box.highlight .stat-label {
-            font-family: 'Chakra Petch', sans-serif;
-            font-size: 0.68rem;
-            letter-spacing: 0.08em;
-            color: var(--muted);
-            text-transform: uppercase;
-            margin-bottom: 6px;
-        }
-
-        .stat-box.highlight #total-chem {
-            font-family: 'Chakra Petch', sans-serif;
-            font-size: 2.1rem;
-            font-weight: 700;
-            color: var(--cyan);
-            text-shadow: 0 0 18px rgba(94, 234, 212, 0.45);
-        }
-
-        .stats-grid {
-            flex: 1;
-            min-width: 260px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
-        }
-
-        .stat-box {
-            background: var(--panel-alt);
-            border: 1px solid var(--border);
-            border-left: 3px solid var(--chem-color, var(--cyan));
-            border-radius: 4px;
-            padding: 14px 16px;
-        }
-
-        .stat-box:nth-of-type(2) { --chem-color: var(--chem-914); }
-        .stat-box:nth-of-type(3) { --chem-color: var(--chem-916); }
-        .stat-box:nth-of-type(4) { --chem-color: var(--chem-918); }
-        .stat-box:nth-of-type(5) { --chem-color: var(--chem-920); }
-        .stat-box:nth-of-type(6) { --chem-color: var(--chem-924); }
-
-        .stat-box:not(.highlight) .stat-label {
-            font-size: 0.72rem;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            margin-bottom: 6px;
-        }
-
-        .stat-box:not(.highlight) .stat-value {
-            font-size: 1.35rem;
-            font-weight: 600;
-            color: var(--text);
-            font-variant-numeric: tabular-nums;
-        }
-
-        /* BOT TABLE */
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.85rem; }
-
-        th {
-            color: var(--muted);
-            font-weight: 600;
-            font-size: 0.68rem;
-            letter-spacing: 0.08em;
-            text-transform: uppercase;
-            padding: 0 12px 12px;
-            border-bottom: 1px solid var(--border-bright);
-        }
-
-        td {
-            padding: 12px;
-            border-bottom: 1px solid var(--border);
-            color: var(--text);
-            font-variant-numeric: tabular-nums;
-        }
-
-        tbody tr { transition: background 0.15s ease; }
-        tbody tr:hover { background: rgba(94, 234, 212, 0.04); }
-        tbody tr:last-child td { border-bottom: none; }
-
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 4px 10px;
-            border-radius: 3px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            border: 1px solid transparent;
-        }
-
-        .badge::before {
-            content: "";
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-
-        .badge-online {
-            background: rgba(52, 211, 153, 0.1);
-            color: var(--green);
-            border-color: rgba(52, 211, 153, 0.3);
-        }
-        .badge-online::before {
-            background: var(--green);
-            box-shadow: 0 0 6px var(--green);
-        }
-
-        .badge-offline {
-            background: rgba(251, 113, 133, 0.1);
-            color: var(--red);
-            border-color: rgba(251, 113, 133, 0.3);
-        }
-        .badge-offline::before { background: var(--red); }
-
-        @media (max-width: 640px) {
-            .readout-layout { flex-direction: column; align-items: center; }
-            .reactor { margin: 0 auto; }
-            table, thead, tbody, th, td, tr { display: block; }
-            thead { display: none; }
-            tbody tr {
-                border: 1px solid var(--border);
-                border-radius: 4px;
-                margin-bottom: 10px;
-                padding: 8px 4px;
-            }
-            td {
-                border-bottom: none;
-                display: flex;
-                justify-content: space-between;
-                padding: 6px 12px;
-            }
-            td:first-child { font-weight: 600; }
-        }
+        body { background-color: #0b0f19; color: #e2e8f0; font-family: 'Inter', sans-serif; }
+        .card { background-color: #161e2e; border: 1px solid #243044; color: #f8fafc; border-radius: 10px; }
+        .tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 6px; max-height: 250px; overflow-y: auto; padding: 4px; }
+        .tile-box { padding: 6px 2px; text-align: center; border-radius: 6px; font-size: 10px; font-weight: bold; }
+        .bg-ready { background-color: #15803d; color: #ffffff; border: 1px solid #22c55e; }
+        .bg-cd { background-color: #1e293b; color: #f59e0b; border: 1px solid #d97706; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
     </style>
 </head>
-<body>
-
-<div class="container">
-    <header>
-        <div class="header-left">
-            <span class="live-dot"></span>
-            <h1>Science Station <span>// Control</span></h1>
-        </div>
-        <div id="last-update">Memuat data...</div>
-    </header>
-
-    <!-- STORAGE GROWSCAN STATS -->
-    <div class="card">
-        <div class="card-title">
-            <span>Hasil GrowScan Storage World</span>
-            <span id="storage-world-tag" class="badge badge-online">-</span>
-        </div>
-        <div class="storage-header">
-            <span><span class="lbl">Dipindai Terakhir Oleh</span><b id="scan-bot">-</b></span>
-            <span><span class="lbl">Waktu</span><b id="scan-time">-</b></span>
-        </div>
-
-        <div class="readout-layout">
-            <div class="reactor">
-                <div class="stat-box highlight reactor-inner">
-                    <div class="stat-label">TOTAL CHEMICAL</div>
-                    <div class="stat-value" id="total-chem">0</div>
-                </div>
-            </div>
-
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="stat-label">Chemical G (914)</div>
-                    <div class="stat-value" id="chem-914">0</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Chemical R (916)</div>
-                    <div class="stat-value" id="chem-916">0</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Chemical Y (918)</div>
-                    <div class="stat-value" id="chem-918">0</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Chemical B (920)</div>
-                    <div class="stat-value" id="chem-920">0</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-label">Chemical P (924)</div>
-                    <div class="stat-value" id="chem-924">0</div>
-                </div>
+<body class="p-3 p-md-4">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="text-warning font-monospace m-0">🧪 Science Auto-Scheduler Controller</h3>
+            <div>
+                <!-- TOMBOL RESET DATA SCIENCE -->
+                <button onclick="resetScienceData()" class="btn btn-outline-danger btn-sm fw-bold me-2">
+                    🗑️ Reset Data Science
+                </button>
+                <span class="badge bg-outline-light border">1 Hit / SS & Auto Remote Power</span>
             </div>
         </div>
-    </div>
 
-    <!-- BOT STATUS TABLE -->
-    <div class="card">
-        <div class="card-title">Status Bot</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Nama Bot</th>
-                    <th>Status</th>
-                    <th>World Saat Ini</th>
-                    <th>Terakhir Aktif</th>
-                </tr>
-            </thead>
-            <tbody id="bot-table-body">
-                <tr><td colspan="4">Memuat data bot...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<script>
-    const FIREBASE_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
-
-    function formatTime(timestamp) {
-        if (!timestamp || timestamp === 0) return "-";
-        const date = new Date(timestamp * 1000);
-        return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    }
-
-    async function fetchStorageStats() {
-        try {
-            const res = await fetch(`${FIREBASE_URL}/storage_stats.json`);
-            const data = await res.json();
-            
-            if (data) {
-                document.getElementById('storage-world-tag').textContent = data.world || "UNSET";
-                document.getElementById('scan-bot').textContent = data.last_scanned_by || "-";
-                document.getElementById('scan-time').textContent = formatTime(data.updated_at);
-                
-                document.getElementById('total-chem').textContent = (data.total || 0).toLocaleString();
-                document.getElementById('chem-914').textContent = (data.chem_914 || 0).toLocaleString();
-                document.getElementById('chem-916').textContent = (data.chem_916 || 0).toLocaleString();
-                document.getElementById('chem-918').textContent = (data.chem_918 || 0).toLocaleString();
-                document.getElementById('chem-920').textContent = (data.chem_920 || 0).toLocaleString();
-                document.getElementById('chem-924').textContent = (data.chem_924 || 0).toLocaleString();
-            }
-        } catch (err) {
-            console.error("Gagal mengambil data storage stats:", err);
-        }
-    }
-
-    async function fetchBotStatus() {
-        try {
-            const res = await fetch(`${FIREBASE_URL}/bots.json`);
-            const data = await res.json();
-            const tbody = document.getElementById('bot-table-body');
-            tbody.innerHTML = '';
-
-            if (data) {
-                Object.keys(data).forEach(botKey => {
-                    const bot = data[botKey];
-                    const isOnline = bot.status && bot.status.includes("Online");
-                    const statusClass = isOnline ? "badge-online" : "badge-offline";
+        <!-- PANEL STATISTIK HASIL PANEN & OPSI MODE -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-7">
+                <div class="card p-3 border-success bg-dark h-100 justify-content-center">
+                    <div class="row text-center">
+                        <div class="col-6 col-sm-3 border-end border-secondary">
+                            <small class="text-muted d-block">Total SS Ter-Scan</small>
+                            <h4 class="text-info font-monospace mb-0" id="statTotalSS">0</h4>
+                        </div>
+                        <div class="col-6 col-sm-3 border-end border-secondary">
+                            <small class="text-muted d-block">SS Siap Panen</small>
+                            <h4 class="text-success font-monospace mb-0" id="statReadySS">0</h4>
+                        </div>
+                        <div class="col-6 col-sm-3 border-end border-secondary">
+                            <small class="text-muted d-block">Total Chemical Panen</small>
+                            <h4 class="text-warning font-monospace mb-0" id="statTotalChem">0</h4>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <small class="text-muted d-block">Rata-Rata / World</small>
+                            <h4 class="text-light font-monospace mb-0" id="statAvgChem">0</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="card p-3 h-100 border-warning">
+                    <h6 class="text-warning mb-2">⚙️ Opsi & Mode Operasi Bot</h6>
                     
-                    const row = `
-                        <tr>
-                            <td><b>${bot.name || botKey}</b></td>
-                            <td><span class="badge ${statusClass}">${bot.status || "Offline"}</span></td>
-                            <td>${bot.current_world || "-"}</td>
-                            <td>${formatTime(bot.last_active)}</td>
-                        </tr>
-                    `;
-                    tbody.innerHTML += row;
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="4">Tidak ada bot terdaftar.</td></tr>';
-            }
-        } catch (err) {
-            console.error("Gagal mengambil data bot:", err);
+                    <label class="form-label mb-1 text-muted small">Mode Panen Tile:</label>
+                    <select id="workModeSelect" class="form-select form-select-sm bg-dark text-white border-secondary mb-2" onchange="updateWorkMode(this.value)">
+                        <option value="HARVEST">🌾 Cek World & Panen Science</option>
+                        <option value="SCAN_ONLY">🔍 Cek World Saja (Tanpa Hit/Panen)</option>
+                    </select>
+
+                    <label class="form-label mb-1 text-muted small">Mode Koneksi Game saat Cooldown:</label>
+                    <select id="connModeSelect" class="form-select form-select-sm bg-dark text-white border-secondary" onchange="updateConnMode(this.value)">
+                        <option value="true">⚡ [AUTO] Connect saat Ready & Disconnect saat Cooldown</option>
+                        <option value="false">🕹️ [MANUAL] Selalu Online selama Saklar Akun ON</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 1: Storage Config & Remote Account Power -->
+        <div class="row g-3 mb-4">
+            <div class="col-lg-4">
+                <div class="card p-3 mb-3 border-info">
+                    <h5 class="text-info">📦 Input Config Storage World</h5>
+                    <form id="storageForm" class="mt-2">
+                        <div class="mb-2">
+                            <label class="form-label small">Nama Storage World</label>
+                            <input type="text" id="storageWorld" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="STORAGEKU01" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">ID Door Storage</label>
+                            <input type="text" id="storageDoor" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="MAIN">
+                        </div>
+                        <button type="submit" class="btn btn-info btn-sm w-100 fw-bold">Update Storage World</button>
+                    </form>
+                </div>
+
+                <div class="card p-3">
+                    <h5 class="text-warning">🌾 Tambah Farm World</h5>
+                    <form id="addWorldForm" class="mt-2">
+                        <div class="mb-2">
+                            <label class="form-label small">Nama Farm World</label>
+                            <input type="text" id="worldName" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="COBATAKA05" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">ID Door World</label>
+                            <input type="text" id="doorId" class="form-control form-control-sm bg-dark text-white border-secondary" placeholder="KW33">
+                        </div>
+                        <button type="submit" class="btn btn-warning btn-sm w-100 fw-bold">Daftarkan Farm World</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="card p-3 h-100">
+                    <h5 class="text-info">Kontrol Saklar Utama Akun</h5>
+                    <div class="table-responsive mt-2">
+                        <table class="table table-dark table-hover small" id="botTable">
+                            <thead>
+                                <tr>
+                                    <th>Username Akun</th>
+                                    <th>World Aktif</th>
+                                    <th>Status In-Game</th>
+                                    <th>Status Saklar</th>
+                                    <th>Aksi Kontrol</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="5" class="text-center text-muted">Memuat data bot...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROW 2: Grid Detail Tile & Status Cooldown -->
+        <div class="row g-3">
+            <div class="col-12">
+                <div class="card p-3">
+                    <h5 class="text-info mb-3">Jadwal & Log Waktu Panen World</h5>
+                    <div id="worldCards" class="row g-3">
+                        <div class="col-12 text-muted">Memuat data world...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const DB_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
+
+        function formatTime(unixSec) {
+            if (!unixSec || unixSec === 0) return "-";
+            const d = new Date(unixSec * 1000);
+            return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
         }
-    }
 
-    function refreshDashboard() {
-        fetchStorageStats();
-        fetchBotStatus();
-        document.getElementById('last-update').textContent = `Update: ${new Date().toLocaleTimeString()}`;
-    }
+        async function loadConfig() {
+            try {
+                const res = await fetch(`${DB_URL}/config/storage.json`);
+                const data = await res.json();
+                if (data) {
+                    document.getElementById("storageWorld").value = data.world || "";
+                    document.getElementById("storageDoor").value = data.door || "";
+                }
+                
+                const modeRes = await fetch(`${DB_URL}/config/mode.json`);
+                const modeData = await modeRes.json();
+                if (modeData) {
+                    document.getElementById("workModeSelect").value = modeData;
+                }
 
-    // Refresh otomatis setiap 5 detik
-    setInterval(refreshDashboard, 5000);
-    refreshDashboard();
-</script>
+                const connRes = await fetch(`${DB_URL}/config/auto_connect.json`);
+                const connData = await connRes.json();
+                if (connData !== null) {
+                    document.getElementById("connModeSelect").value = connData.toString();
+                }
+            } catch(e) {}
+        }
 
+        async function updateWorkMode(mode) {
+            await fetch(`${DB_URL}/config/mode.json`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(mode)
+            });
+        }
+
+        async function updateConnMode(isAuto) {
+            await fetch(`${DB_URL}/config/auto_connect.json`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: (isAuto === "true")
+            });
+        }
+
+        /* FUNGSI UNTUK RESET DATA SCIENCE */
+        async function resetScienceData() {
+            if (!confirm("Apakah Anda yakin ingin menghapus semua data Science (Ready & Unready)? Data World akan tetap disimpan.")) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`${DB_URL}/worlds.json`);
+                const data = await res.json();
+                if (!data) return;
+
+                for (let worldName in data) {
+                    // Hapus data grid tiles
+                    await fetch(`${DB_URL}/worlds/${worldName}/tiles.json`, { method: "DELETE" });
+
+                    // Reset ringkasan statistik panen tapi pertahankan door_id
+                    const currentDoor = data[worldName]?.summary?.door_id || "-";
+                    await fetch(`${DB_URL}/worlds/${worldName}/summary.json`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            total_ss: 0,
+                            ready: 0,
+                            cooldown: 0,
+                            last_harvest_chem: 0,
+                            start_time: 0,
+                            end_time: 0,
+                            next_ready_time: 0,
+                            door_id: currentDoor
+                        })
+                    });
+                }
+
+                alert("Data Science berhasil di-reset! Data World tetap aman.");
+                loadWorlds();
+            } catch(e) {
+                alert("Gagal mereset data: " + e.message);
+            }
+        }
+
+        document.getElementById("storageForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const configData = {
+                world: document.getElementById("storageWorld").value.toUpperCase(),
+                door: document.getElementById("storageDoor").value
+            };
+            await fetch(`${DB_URL}/config/storage.json`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(configData)
+            });
+            alert("Storage World Berhasil Diperbarui!");
+        });
+
+        async function toggleAccountPower(botName, currentControl) {
+            const nextControl = (currentControl === "ONLINE") ? "OFFLINE" : "ONLINE";
+            await fetch(`${DB_URL}/bots/${botName}.json`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    control: nextControl
+                })
+            });
+            loadBots();
+        }
+
+        async function deleteBotManual(botName) {
+            if (confirm(`Hapus permanen data akun ${botName}?`)) {
+                await fetch(`${DB_URL}/bots/${botName}.json`, { method: "DELETE" });
+                loadBots();
+            }
+        }
+
+        async function loadBots() {
+            try {
+                const res = await fetch(`${DB_URL}/bots.json`);
+                const data = await res.json();
+                const tbody = document.querySelector("#botTable tbody");
+                
+                if (!data) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Belum ada data bot terhubung</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = "";
+                const now = Math.floor(Date.now() / 1000);
+                let renderedCount = 0;
+
+                for (let name in data) {
+                    const bot = data[name];
+                    const lastActive = bot.last_active || 0;
+                    const isScriptRunning = (now - lastActive) < 90;
+
+                    if ((now - lastActive) > 600) {
+                        fetch(`${DB_URL}/bots/${name}.json`, { method: "DELETE" });
+                        continue;
+                    }
+
+                    renderedCount++;
+                    const controlState = bot.control || "ONLINE";
+                    const statusText = bot.status || "Offline";
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="fw-bold text-warning">${bot.name || name}</td>
+                            <td><span class="badge bg-secondary">${bot.current_world || '-'}</span></td>
+                            <td>
+                                <span class="status-dot ${isScriptRunning && statusText.includes('Online') ? 'bg-success' : 'bg-danger'}"></span>
+                                ${statusText}
+                            </td>
+                            <td><span class="badge ${controlState === 'ONLINE' ? 'bg-success' : 'bg-danger'}">${controlState}</span></td>
+                            <td>
+                                <button onclick="toggleAccountPower('${name}', '${controlState}')" class="btn ${controlState === 'ONLINE' ? 'btn-danger' : 'btn-success'} btn-sm py-0 fw-bold">
+                                    ${controlState === 'ONLINE' ? 'OFFLINE-KAN AKUN' : 'ONLINE-KAN AKUN'}
+                                </button>
+                                <button onclick="deleteBotManual('${name}')" class="btn btn-outline-danger btn-sm py-0 ms-1" title="Hapus Data Bot">
+                                    🗑️
+                                </button>
+                            </td>
+                        </tr>`;
+                }
+
+                if (renderedCount === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Tidak ada bot aktif saat ini</td></tr>';
+                }
+            } catch(e) {}
+        }
+
+        async function loadWorlds() {
+            try {
+                const res = await fetch(`${DB_URL}/worlds.json`);
+                const data = await res.json();
+                const container = document.querySelector("#worldCards");
+                if (!data) {
+                    container.innerHTML = '<div class="col-12 text-muted">Belum ada data farm world.</div>';
+                    return;
+                }
+                container.innerHTML = "";
+                const now = Math.floor(Date.now() / 1000);
+
+                let globalSS = 0;
+                let globalReady = 0;
+                let globalChem = 0;
+                let worldCount = 0;
+
+                for (let worldName in data) {
+                    worldCount++;
+                    const world = data[worldName];
+                    const summary = world.summary || {};
+                    const tiles = world.tiles || {};
+                    
+                    globalSS += (summary.total_ss || 0);
+                    globalChem += (summary.last_harvest_chem || 0);
+
+                    let tileHtml = "";
+                    let readyCalculated = 0;
+                    let cooldownCalculated = 0;
+
+                    for (let tKey in tiles) {
+                        const tile = tiles[tKey];
+                        const isReady = now >= (tile.next_harvest || 0);
+                        if (isReady) {
+                            readyCalculated++;
+                            tileHtml += `<div class="tile-box bg-ready">(${tile.x},${tile.y})<br>READY</div>`;
+                        } else {
+                            cooldownCalculated++;
+                            const remainingSec = tile.next_harvest - now;
+                            const hoursLeft = Math.floor(remainingSec / 3600);
+                            const minsLeft = Math.floor((remainingSec % 3600) / 60);
+                            tileHtml += `<div class="tile-box bg-cd">(${tile.x},${tile.y})<br>${hoursLeft}j ${minsLeft}m</div>`;
+                        }
+                    }
+
+                    globalReady += readyCalculated;
+
+                    const startTimeStr = formatTime(summary.start_time);
+                    const endTimeStr = formatTime(summary.end_time);
+                    const nextReadyStr = formatTime(summary.next_ready_time);
+
+                    container.innerHTML += `
+                        <div class="col-xl-6">
+                            <div class="card p-3 border-secondary">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h4 class="text-warning font-monospace m-0">${worldName}</h4>
+                                    <span class="badge bg-primary">Door: ${summary.door_id || '-'}</span>
+                                </div>
+                                <div class="row mt-2 small text-muted">
+                                    <div class="col-6">Eksekutor: <b class="text-info">${summary.last_bot || '-'}</b></div>
+                                    <div class="col-6 text-end">Hasil: <b class="text-warning">${summary.last_harvest_chem || 0} Item</b></div>
+                                </div>
+                                <div class="p-2 my-2 bg-dark rounded border border-secondary small">
+                                    <div class="row text-center">
+                                        <div class="col-4">Mulai Panen:<br><b class="text-light">${startTimeStr}</b></div>
+                                        <div class="col-4">Selesai Panen:<br><b class="text-light">${endTimeStr}</b></div>
+                                        <div class="col-4">Siap Panen Lagi:<br><b class="text-success">${nextReadyStr}</b></div>
+                                    </div>
+                                </div>
+                                <div class="row text-center mb-2">
+                                    <div class="col"><b>Total SS</b><br>${summary.total_ss || 0}</div>
+                                    <div class="col text-success"><b>Siap Panen</b><br>${readyCalculated}</div>
+                                    <div class="col text-warning"><b>Cooldown</b><br>${cooldownCalculated}</div>
+                                </div>
+                                <h6 class="small text-muted mb-1">Grid Tile:</h6>
+                                <div class="tile-grid">${tileHtml || '<small class="text-muted">Belum ada data tile</small>'}</div>
+                            </div>
+                        </div>`;
+                }
+
+                document.getElementById("statTotalSS").innerText = globalSS;
+                document.getElementById("statReadySS").innerText = globalReady;
+                document.getElementById("statTotalChem").innerText = globalChem;
+                document.getElementById("statAvgChem").innerText = worldCount > 0 ? (globalChem / worldCount).toFixed(1) : "0";
+
+            } catch(e) {}
+        }
+
+        document.getElementById("addWorldForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const name = document.getElementById("worldName").value.toUpperCase();
+            const door = document.getElementById("doorId").value;
+            await fetch(`${DB_URL}/worlds/${name}/summary.json`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ door_id: door, last_bot: "-", total_ss: 0, ready: 0, cooldown: 0, last_harvest_chem: 0, next_ready_time: 0 })
+            });
+            document.getElementById("addWorldForm").reset();
+            loadWorlds();
+        });
+
+        setInterval(() => {
+            loadBots();
+            loadWorlds();
+        }, 3000);
+
+        loadConfig();
+        loadBots();
+        loadWorlds();
+    </script>
 </body>
 </html>
