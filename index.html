@@ -3,802 +3,735 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signal Room — Science Controller</title>
+    <title>Signal Room — Science Auto-Scheduler</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-dark: #0f172a;
-            --card-bg: #1e293b;
-            --accent: #38bdf8;
-            --accent-hover: #0284c7;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border: #334155;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --danger: #ef4444;
+            --bg: #0a0e17;
+            --panel: #101828;
+            --panel-2: #0d1420;
+            --border: #1e2a40;
+            --text: #e6ecf5;
+            --muted: #7c8aa3;
+            --signal: #35e0c4;
+            --signal-dim: #1c5c52;
+            --ready: #34d67f;
+            --ready-dim: #123c28;
+            --cd: #f2a53c;
+            --cd-dim: #3d2c10;
+            --danger: #ef5462;
+            --danger-dim: #3a1418;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        * { box-sizing: border-box; }
 
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
+            background:
+                radial-gradient(circle at 15% 0%, rgba(53,224,196,0.06), transparent 40%),
+                radial-gradient(circle at 85% 10%, rgba(242,165,60,0.05), transparent 35%),
+                var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
             padding: 20px;
-            line-height: 1.5;
+            min-height: 100vh;
         }
 
-        .container {
-            max-width: 1300px;
-            margin: 0 auto;
-        }
+        .wrap { max-width: 1400px; margin: 0 auto; }
 
-        header {
+        .mono { font-family: 'Space Mono', monospace; }
+
+        /* ===== Header ===== */
+        .topbar {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 14px;
             border-bottom: 1px solid var(--border);
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+        }
+        .topbar .eyebrow {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            letter-spacing: 0.18em;
+            color: var(--signal);
+            text-transform: uppercase;
+            margin: 0 0 6px 0;
+        }
+        .topbar h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: 26px;
+            font-weight: 700;
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+        .topbar h1 .flask { filter: saturate(1.1); }
+
+        .btn {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 13px;
+            border-radius: 8px;
+            padding: 9px 16px;
+            border: 1px solid var(--border);
+            background: var(--panel);
+            color: var(--text);
+            cursor: pointer;
+            transition: border-color .15s ease, background .15s ease, transform .1s ease;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-danger-outline {
+            color: var(--danger);
+            border-color: rgba(239,84,98,0.4);
+            background: transparent;
+        }
+        .btn-danger-outline:hover { background: var(--danger-dim); border-color: var(--danger); }
+        .btn-full { width: 100%; }
+        .btn-primary { background: var(--signal); color: #06231d; border-color: var(--signal); }
+        .btn-primary:hover { background: #4cf0d6; }
+        .btn-warn { background: var(--cd); color: #2a1c04; border-color: var(--cd); }
+        .btn-warn:hover { background: #ffb84f; }
+
+        .tag {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            color: var(--muted);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 5px 12px;
         }
 
-        h1 {
-            font-size: 1.8rem;
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        /* ===== Stat strip ===== */
+        .stat-strip {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: var(--border);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
         }
+        .stat-cell {
+            background: var(--panel);
+            padding: 16px 18px;
+        }
+        .stat-cell .label {
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+            display: block;
+            margin-bottom: 6px;
+        }
+        .stat-cell .value {
+            font-family: 'Space Mono', monospace;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        .stat-cell.c-signal .value { color: var(--signal); }
+        .stat-cell.c-ready .value { color: var(--ready); }
+        .stat-cell.c-cd .value { color: var(--cd); }
+        .stat-cell.c-text .value { color: var(--text); }
 
-        .header-status {
+        /* ===== Panels ===== */
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+        }
+        .panel + .panel { margin-top: 14px; }
+        .panel h2, .panel h3 {
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            letter-spacing: 0.03em;
+            margin: 0 0 14px 0;
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: 0.9rem;
-            color: var(--success);
-            background: rgba(34, 197, 94, 0.1);
-            padding: 6px 12px;
-            border-radius: 20px;
-            border: 1px solid rgba(34, 197, 94, 0.3);
         }
+        .accent-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+        .accent-dot.signal { background: var(--signal); box-shadow: 0 0 8px var(--signal); }
+        .accent-dot.cd { background: var(--cd); box-shadow: 0 0 8px var(--cd); }
+        .accent-dot.ready { background: var(--ready); box-shadow: 0 0 8px var(--ready); }
 
-        /* Stats Strip */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            background: var(--card-bg);
-            padding: 18px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .stat-card .label {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stat-card .value {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: var(--accent);
-            margin-top: 6px;
-        }
-
-        /* Main Section Grid */
-        .section-grid {
-            display: grid;
-            grid-template-columns: 360px 1fr;
-            gap: 24px;
-        }
-
-        @media (max-width: 960px) {
-            .section-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .panel {
-            background: var(--card-bg);
-            border-radius: 8px;
-            padding: 20px;
-            border: 1px solid var(--border);
-            margin-bottom: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .panel h2 {
-            font-size: 1.1rem;
-            margin-bottom: 16px;
-            color: var(--text-main);
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-
-        label {
+        .field { margin-bottom: 12px; }
+        .field label {
             display: block;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-            font-weight: 500;
+            font-size: 11.5px;
+            color: var(--muted);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
         }
-
-        input, select {
+        .field input, .field select {
             width: 100%;
-            padding: 10px 12px;
-            background: #0f172a;
+            background: var(--panel-2);
             border: 1px solid var(--border);
-            border-radius: 6px;
-            color: var(--text-main);
-            font-size: 0.9rem;
+            color: var(--text);
+            border-radius: 8px;
+            padding: 9px 11px;
+            font-size: 13.5px;
+            font-family: 'Inter', sans-serif;
             outline: none;
-            transition: border-color 0.2s;
+            transition: border-color .15s ease;
+        }
+        .field input::placeholder { color: #4c5a72; }
+        .field input:focus, .field select:focus { border-color: var(--signal); }
+        .field select { cursor: pointer; }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 340px 1fr;
+            gap: 16px;
+            align-items: start;
+            margin-bottom: 16px;
+        }
+        @media (max-width: 980px) {
+            .layout-grid { grid-template-columns: 1fr; }
+            .stat-strip { grid-template-columns: repeat(2, 1fr); }
         }
 
-        input:focus, select:focus {
-            border-color: var(--accent);
+        /* ===== Bot roster table ===== */
+        .roster-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .roster-table thead th {
+            text-align: left;
+            font-family: 'Space Mono', monospace;
+            font-size: 10.5px;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--muted);
+            border-bottom: 1px solid var(--border);
+            padding: 8px 10px;
+            font-weight: 400;
         }
-
-        .btn {
-            background: var(--accent);
-            color: #0f172a;
-            border: none;
-            padding: 10px 16px;
+        .roster-table tbody td {
+            padding: 10px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .roster-table tbody tr:last-child td { border-bottom: none; }
+        .roster-table tbody tr:hover { background: rgba(255,255,255,0.02); }
+        .acct-name { font-weight: 700; color: var(--cd); }
+        .world-pill {
+            background: var(--panel-2);
+            border: 1px solid var(--border);
+            color: var(--muted);
+            padding: 3px 9px;
             border-radius: 6px;
-            font-weight: bold;
+            font-family: 'Space Mono', monospace;
+            font-size: 11.5px;
+        }
+        .status-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+        .status-dot.live { background: var(--ready); box-shadow: 0 0 6px var(--ready); }
+        .status-dot.dead { background: var(--danger); }
+        .pill {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.03em;
+        }
+        .pill.on { background: var(--ready-dim); color: var(--ready); }
+        .pill.off { background: var(--danger-dim); color: var(--danger); }
+        .row-actions { display: flex; gap: 6px; align-items: center; }
+        .icon-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--danger);
+            border-radius: 6px;
+            width: 28px;
+            height: 28px;
             cursor: pointer;
-            width: 100%;
-            font-size: 0.9rem;
-            transition: background 0.2s, transform 0.1s;
         }
+        .icon-btn:hover { background: var(--danger-dim); }
+        .empty-row { text-align: center; color: var(--muted); padding: 22px !important; font-size: 13px; }
 
-        .btn:hover {
-            background: var(--accent-hover);
-            color: #fff;
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn-danger {
-            background: var(--danger);
-            color: #fff;
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-
-        /* World Cards & Status */
+        /* ===== World modules ===== */
+        .world-modules { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 14px; }
         .world-card {
-            background: #0f172a;
+            background: var(--panel-2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .world-card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .world-card-head h4 {
+            font-family: 'Space Mono', monospace;
+            color: var(--cd);
+            margin: 0;
+            font-size: 17px;
+            letter-spacing: 0.01em;
+        }
+        .door-badge {
+            font-family: 'Space Mono', monospace;
+            font-size: 11px;
+            background: var(--signal-dim);
+            color: var(--signal);
+            padding: 3px 10px;
+            border-radius: 20px;
+        }
+        .world-meta { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+        .world-meta b { color: var(--text); }
+
+        .timing-strip {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 8px;
-            padding: 18px;
-            margin-bottom: 16px;
-            transition: border-color 0.2s;
-        }
-
-        .world-card:hover {
-            border-color: var(--accent);
-        }
-
-        .world-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 14px;
-        }
-
-        .world-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--accent);
-            letter-spacing: 0.5px;
-        }
-
-        .badge {
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-weight: bold;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .badge-warning {
-            background: rgba(245, 158, 11, 0.15);
-            color: var(--warning);
-            border: 1px solid var(--warning);
-        }
-
-        .badge-success {
-            background: rgba(34, 197, 94, 0.15);
-            color: var(--success);
-            border: 1px solid var(--success);
-        }
-
-        .badge-secondary {
-            background: rgba(148, 163, 184, 0.15);
-            color: var(--text-muted);
-            border: 1px solid var(--text-muted);
-        }
-
-        .world-stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            background: rgba(255, 255, 255, 0.02);
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 10px;
             margin-bottom: 12px;
+            font-size: 11px;
+            text-align: center;
+            color: var(--muted);
         }
+        .timing-strip b { display: block; margin-top: 3px; font-family: 'Space Mono', monospace; font-size: 13px; color: var(--text); }
+        .timing-strip .next b { color: var(--ready); }
 
-        @media (max-width: 600px) {
-            .world-stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
+        .mini-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; text-align: center; }
+        .mini-stats div { font-size: 11px; color: var(--muted); }
+        .mini-stats b { display: block; font-family: 'Space Mono', monospace; font-size: 16px; color: var(--text); margin-top: 2px; }
+        .mini-stats .ms-ready b { color: var(--ready); }
+        .mini-stats .ms-cd b { color: var(--cd); }
 
-        .world-stat-item {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-        }
-
-        .world-stat-item div {
-            font-size: 1rem;
-            font-weight: bold;
-            color: var(--text-main);
-            margin-top: 2px;
-        }
-
-        /* Tile Status Visualizer */
-        .tile-container {
-            margin-top: 10px;
-        }
-
-        .tile-label {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-bottom: 6px;
-        }
-
+        .tile-grid-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 8px; }
         .tile-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            max-height: 120px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+            gap: 6px;
+            max-height: 240px;
             overflow-y: auto;
-            padding: 6px;
-            background: rgba(0, 0, 0, 0.2);
+            padding: 2px;
+        }
+        .tile-grid::-webkit-scrollbar { width: 6px; }
+        .tile-grid::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        .tile-box {
+            padding: 7px 3px;
+            text-align: center;
             border-radius: 6px;
-            border: 1px solid var(--border);
+            font-size: 10px;
+            font-weight: 700;
+            font-family: 'Space Mono', monospace;
+            line-height: 1.4;
         }
-
-        .tile {
-            width: 22px;
-            height: 22px;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.6rem;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.1s;
+        .bg-ready { background: var(--ready-dim); color: var(--ready); border: 1px solid rgba(52,214,127,0.4); position: relative; }
+        .bg-ready::before {
+            content: "";
+            position: absolute; top: 4px; right: 4px;
+            width: 5px; height: 5px; border-radius: 50%;
+            background: var(--ready);
+            box-shadow: 0 0 5px var(--ready);
         }
-
-        .tile:hover {
-            transform: scale(1.2);
-        }
-
-        .tile-harvested {
-            background: var(--success);
-            color: #000;
-        }
-
-        .tile-cooldown {
-            background: var(--warning);
-            color: #000;
-        }
-
-        .tile-ready {
-            background: var(--accent);
-            color: #000;
-        }
-
-        /* Bot Roster Item */
-        .bot-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: #0f172a;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            margin-bottom: 10px;
-        }
-
-        .bot-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .bot-name {
-            font-weight: bold;
-            font-size: 0.95rem;
-            color: var(--text-main);
-        }
-
-        .bot-world {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-        }
-
-        .delete-btn {
-            background: transparent;
-            border: none;
-            color: var(--danger);
-            cursor: pointer;
-            font-size: 1.1rem;
-            padding: 4px 8px;
-            border-radius: 4px;
-            transition: background 0.2s;
-        }
-
-        .delete-btn:hover {
-            background: rgba(239, 68, 68, 0.1);
-        }
+        .bg-cd { background: var(--cd-dim); color: var(--cd); border: 1px solid rgba(242,165,60,0.35); }
+        .empty-tiles { color: var(--muted); font-size: 12px; grid-column: 1 / -1; }
+        .no-worlds { color: var(--muted); font-size: 13px; grid-column: 1 / -1; }
     </style>
 </head>
 <body>
+    <div class="wrap">
 
-<div class="container">
-    <header>
-        <h1>🎮 Signal Room — Science Controller</h1>
-        <div class="header-status">
-            <span style="height: 8px; width: 8px; background-color: var(--success); border-radius: 50%; display: inline-block;"></span>
-            <span id="connection-status">Connected to Database</span>
+        <!-- Header -->
+        <div class="topbar">
+            <div>
+                <p class="eyebrow">Auto-Scheduler / Live Feed</p>
+                <h1><span class="flask">🧪</span> Signal Room — Science Controller</h1>
+            </div>
+            <div class="row-actions">
+                <span class="tag">1 Hit / SS · Auto Remote Power</span>
+                <button onclick="resetScienceData()" class="btn btn-danger-outline">🗑️ Reset Data Science</button>
+            </div>
         </div>
-    </header>
 
-    <!-- Global Stat Strip -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="label">Total Science Station</div>
-            <div class="value" id="stat-total-ss">0</div>
+        <!-- Global stat strip -->
+        <div class="stat-strip">
+            <div class="stat-cell c-signal">
+                <span class="label">Total SS Ter-Scan</span>
+                <span class="value mono" id="statTotalSS">0</span>
+            </div>
+            <div class="stat-cell c-ready">
+                <span class="label">SS Siap Panen</span>
+                <span class="value mono" id="statReadySS">0</span>
+            </div>
+            <div class="stat-cell c-cd">
+                <span class="label">Total Chemical Panen</span>
+                <span class="value mono" id="statTotalChem">0</span>
+            </div>
+            <div class="stat-cell c-text">
+                <span class="label">Rata-Rata / World</span>
+                <span class="value mono" id="statAvgChem">0</span>
+            </div>
         </div>
-        <div class="stat-card">
-            <div class="label">Sudah Dipanen (Punched)</div>
-            <div class="value" style="color: var(--success);" id="stat-harvested">0</div>
+
+        <!-- Config + Bot roster -->
+        <div class="layout-grid">
+            <div>
+                <div class="panel">
+                    <h3><span class="accent-dot signal"></span>Input Config Storage World</h3>
+                    <form id="storageForm">
+                        <div class="field">
+                            <label>Nama Storage World</label>
+                            <input type="text" id="storageWorld" placeholder="STORAGEKU01" required>
+                        </div>
+                        <div class="field">
+                            <label>ID Door Storage</label>
+                            <input type="text" id="storageDoor" placeholder="MAIN">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Update Storage World</button>
+                    </form>
+                </div>
+
+                <div class="panel">
+                    <h3><span class="accent-dot cd"></span>Tambah Farm World</h3>
+                    <form id="addWorldForm">
+                        <div class="field">
+                            <label>Nama Farm World</label>
+                            <input type="text" id="worldName" placeholder="COBATAKA05" required>
+                        </div>
+                        <div class="field">
+                            <label>ID Door World</label>
+                            <input type="text" id="doorId" placeholder="KW33">
+                        </div>
+                        <button type="submit" class="btn btn-warn btn-full">Daftarkan Farm World</button>
+                    </form>
+                </div>
+
+                <div class="panel">
+                    <h3><span class="accent-dot ready"></span>Mode Operasi Bot</h3>
+                    <div class="field">
+                        <label>Mode Panen Tile</label>
+                        <select id="workModeSelect" onchange="updateWorkMode(this.value)">
+                            <option value="HARVEST">🌾 Cek World &amp; Panen Science</option>
+                            <option value="SCAN_ONLY">🔍 Cek World Saja (Tanpa Hit/Panen)</option>
+                        </select>
+                    </div>
+                    <div class="field" style="margin-bottom:0;">
+                        <label>Mode Koneksi Game saat Cooldown</label>
+                        <select id="connModeSelect" onchange="updateConnMode(this.value)">
+                            <option value="true">⚡ [AUTO] Connect saat Ready &amp; Disconnect saat Cooldown</option>
+                            <option value="false">🕹️ [MANUAL] Selalu Online selama Saklar Akun ON</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel" style="height:100%;">
+                <h3><span class="accent-dot signal"></span>Kontrol Saklar Utama Akun</h3>
+                <div style="overflow-x:auto;">
+                    <table class="roster-table" id="botTable">
+                        <thead>
+                            <tr>
+                                <th>Username Akun</th>
+                                <th>World Aktif</th>
+                                <th>Status In-Game</th>
+                                <th>Status Saklar</th>
+                                <th>Aksi Kontrol</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="5" class="empty-row">Memuat data bot...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <div class="stat-card">
-            <div class="label">Dalam Cooldown</div>
-            <div class="value" style="color: var(--warning);" id="stat-cooldown">0</div>
+
+        <!-- World modules -->
+        <div class="panel">
+            <h3><span class="accent-dot cd"></span>Jadwal &amp; Log Waktu Panen World</h3>
+            <div id="worldCards" class="world-modules">
+                <div class="no-worlds">Memuat data world...</div>
+            </div>
         </div>
-        <div class="stat-card">
-            <div class="label">Status Re-Check Sistem</div>
-            <div class="value" id="stat-recheck-status" style="font-size: 1.1rem; color: var(--accent);">Standby</div>
-        </div>
+
     </div>
 
-    <div class="section-grid">
-        <!-- Left Panel: Configurations & Bot List -->
-        <div class="left-column">
-            <!-- Global Config -->
-            <div class="panel">
-                <h2>Konfigurasi Global</h2>
-                <div class="form-group">
-                    <label for="config-storage">Storage World & Door</label>
-                    <input type="text" id="config-storage" placeholder="NAMAWORLD|DOORID">
-                </div>
-                <div class="form-group">
-                    <label for="config-mode">Mode Operasi Bot</label>
-                    <select id="config-mode">
-                        <option value="HARVEST">HARVEST (Panen & Punch)</option>
-                        <option value="SCAN_ONLY">SCAN ONLY (Monitoring)</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="config-disconnect">Auto Disconnect saat Cooldown</label>
-                    <select id="config-disconnect">
-                        <option value="ENABLE">Aktif (Hemat Resource)</option>
-                        <option value="DISABLE">Nonaktif (Tetap Online)</option>
-                    </select>
-                </div>
-                <button class="btn" onclick="saveConfig()">Simpan Konfigurasi</button>
-            </div>
+    <script>
+        const DB_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
 
-            <!-- Add New Farm World -->
-            <div class="panel">
-                <h2>Tambah World Farm</h2>
-                <div class="form-group">
-                    <label for="input-world-name">Nama World</label>
-                    <input type="text" id="input-world-name" placeholder="CONTOHWORLD">
-                </div>
-                <div class="form-group">
-                    <label for="input-world-door">Door ID (Optional)</label>
-                    <input type="text" id="input-world-door" placeholder="MAIN">
-                </div>
-                <button class="btn" onclick="addWorld()">Tambah World</button>
-            </div>
+        function formatTime(unixSec) {
+            if (!unixSec || unixSec === 0) return "-";
+            const d = new Date(unixSec * 1000);
+            return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        }
 
-            <!-- Bot Roster -->
-            <div class="panel">
-                <h2>Roster Bot Connected</h2>
-                <div id="bot-list">
-                    <div style="color: var(--text-muted); font-size: 0.85rem;">Memuat data bot...</div>
-                </div>
-            </div>
-        </div>
+        async function loadConfig() {
+            try {
+                const res = await fetch(`${DB_URL}/config/storage.json`);
+                const data = await res.json();
+                if (data) {
+                    document.getElementById("storageWorld").value = data.world || "";
+                    document.getElementById("storageDoor").value = data.door || "";
+                }
+                
+                const modeRes = await fetch(`${DB_URL}/config/mode.json`);
+                const modeData = await modeRes.json();
+                if (modeData) {
+                    document.getElementById("workModeSelect").value = modeData;
+                }
 
-        <!-- Right Panel: World Farm Status & Timers -->
-        <div class="right-column">
-            <div class="panel">
-                <h2>
-                    <span>Daftar Farm World & Status Panen</span>
-                    <button class="btn btn-danger" style="width: auto; padding: 6px 12px; font-size: 0.8rem;" onclick="resetAllData()">Reset Semua Data</button>
-                </h2>
-                <div id="world-list">
-                    <div style="color: var(--text-muted); font-size: 0.85rem;">Memuat daftar world...</div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                const connRes = await fetch(`${DB_URL}/config/auto_connect.json`);
+                const connData = await connRes.json();
+                if (connData !== null) {
+                    document.getElementById("connModeSelect").value = connData.toString();
+                }
+            } catch(e) {}
+        }
 
-<script>
-    const DB_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
+        async function updateWorkMode(mode) {
+            await fetch(`${DB_URL}/config/mode.json`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(mode)
+            });
+        }
 
-    document.addEventListener("DOMContentLoaded", () => {
-        loadConfig();
-        loadBots();
-        loadWorlds();
+        async function updateConnMode(isAuto) {
+            await fetch(`${DB_URL}/config/auto_connect.json`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: (isAuto === "true")
+            });
+        }
 
-        // Polling Realtime tiap 3 Detik
+        /* FUNGSI UNTUK RESET DATA SCIENCE */
+        async function resetScienceData() {
+            if (!confirm("Apakah Anda yakin ingin menghapus semua data Science (Ready & Unready)? Data World akan tetap disimpan.")) {
+                return;
+            }
+
+            try {
+                const res = await fetch(`${DB_URL}/worlds.json`);
+                const data = await res.json();
+                if (!data) return;
+
+                for (let worldName in data) {
+                    // Hapus data grid tiles
+                    await fetch(`${DB_URL}/worlds/${worldName}/tiles.json`, { method: "DELETE" });
+
+                    // Reset ringkasan statistik panen tapi pertahankan door_id
+                    const currentDoor = data[worldName]?.summary?.door_id || "-";
+                    await fetch(`${DB_URL}/worlds/${worldName}/summary.json`, {
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            total_ss: 0,
+                            ready: 0,
+                            cooldown: 0,
+                            last_harvest_chem: 0,
+                            start_time: 0,
+                            end_time: 0,
+                            next_ready_time: 0,
+                            door_id: currentDoor
+                        })
+                    });
+                }
+
+                alert("Data Science berhasil di-reset! Data World tetap aman.");
+                loadWorlds();
+            } catch(e) {
+                alert("Gagal mereset data: " + e.message);
+            }
+        }
+
+        document.getElementById("storageForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const configData = {
+                world: document.getElementById("storageWorld").value.toUpperCase(),
+                door: document.getElementById("storageDoor").value
+            };
+            await fetch(`${DB_URL}/config/storage.json`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(configData)
+            });
+            alert("Storage World Berhasil Diperbarui!");
+        });
+
+        async function toggleAccountPower(botName, currentControl) {
+            const nextControl = (currentControl === "ONLINE") ? "OFFLINE" : "ONLINE";
+            await fetch(`${DB_URL}/bots/${botName}.json`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    control: nextControl
+                })
+            });
+            loadBots();
+        }
+
+        async function deleteBotManual(botName) {
+            if (confirm(`Hapus permanen data akun ${botName}?`)) {
+                await fetch(`${DB_URL}/bots/${botName}.json`, { method: "DELETE" });
+                loadBots();
+            }
+        }
+
+        async function loadBots() {
+            try {
+                const res = await fetch(`${DB_URL}/bots.json`);
+                const data = await res.json();
+                const tbody = document.querySelector("#botTable tbody");
+                
+                if (!data) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty-row">Belum ada data bot terhubung</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = "";
+                const now = Math.floor(Date.now() / 1000);
+                let renderedCount = 0;
+
+                for (let name in data) {
+                    const bot = data[name];
+                    const lastActive = bot.last_active || 0;
+                    const isScriptRunning = (now - lastActive) < 90;
+
+                    if ((now - lastActive) > 600) {
+                        fetch(`${DB_URL}/bots/${name}.json`, { method: "DELETE" });
+                        continue;
+                    }
+
+                    renderedCount++;
+                    const controlState = bot.control || "ONLINE";
+                    const statusText = bot.status || "Offline";
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td class="acct-name">${bot.name || name}</td>
+                            <td><span class="world-pill">${bot.current_world || '-'}</span></td>
+                            <td>
+                                <span class="status-dot ${isScriptRunning && statusText.includes('Online') ? 'live' : 'dead'}"></span>
+                                ${statusText}
+                            </td>
+                            <td><span class="pill ${controlState === 'ONLINE' ? 'on' : 'off'}">${controlState}</span></td>
+                            <td>
+                                <div class="row-actions">
+                                    <button onclick="toggleAccountPower('${name}', '${controlState}')" class="btn ${controlState === 'ONLINE' ? 'btn-danger-outline' : 'btn-primary'}" style="padding:6px 12px; font-size:11.5px;">
+                                        ${controlState === 'ONLINE' ? 'OFFLINE-KAN' : 'ONLINE-KAN'}
+                                    </button>
+                                    <button onclick="deleteBotManual('${name}')" class="icon-btn" title="Hapus Data Bot">🗑️</button>
+                                </div>
+                            </td>
+                        </tr>`;
+                }
+
+                if (renderedCount === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="empty-row">Tidak ada bot aktif saat ini</td></tr>';
+                }
+            } catch(e) {}
+        }
+
+        async function loadWorlds() {
+            try {
+                const res = await fetch(`${DB_URL}/worlds.json`);
+                const data = await res.json();
+                const container = document.querySelector("#worldCards");
+                if (!data) {
+                    container.innerHTML = '<div class="no-worlds">Belum ada data farm world.</div>';
+                    return;
+                }
+                container.innerHTML = "";
+                const now = Math.floor(Date.now() / 1000);
+
+                let globalSS = 0;
+                let globalReady = 0;
+                let globalChem = 0;
+                let worldCount = 0;
+
+                for (let worldName in data) {
+                    worldCount++;
+                    const world = data[worldName];
+                    const summary = world.summary || {};
+                    const tiles = world.tiles || {};
+                    
+                    globalSS += (summary.total_ss || 0);
+                    globalChem += (summary.last_harvest_chem || 0);
+
+                    let tileHtml = "";
+                    let readyCalculated = 0;
+                    let cooldownCalculated = 0;
+
+                    for (let tKey in tiles) {
+                        const tile = tiles[tKey];
+                        const isReady = now >= (tile.next_harvest || 0);
+                        if (isReady) {
+                            readyCalculated++;
+                            tileHtml += `<div class="tile-box bg-ready">(${tile.x},${tile.y})<br>READY</div>`;
+                        } else {
+                            cooldownCalculated++;
+                            const remainingSec = tile.next_harvest - now;
+                            const hoursLeft = Math.floor(remainingSec / 3600);
+                            const minsLeft = Math.floor((remainingSec % 3600) / 60);
+                            tileHtml += `<div class="tile-box bg-cd">(${tile.x},${tile.y})<br>${hoursLeft}j ${minsLeft}m</div>`;
+                        }
+                    }
+
+                    globalReady += readyCalculated;
+
+                    const startTimeStr = formatTime(summary.start_time);
+                    const endTimeStr = formatTime(summary.end_time);
+                    const nextReadyStr = formatTime(summary.next_ready_time);
+
+                    container.innerHTML += `
+                        <div class="world-card">
+                            <div class="world-card-head">
+                                <h4>${worldName}</h4>
+                                <span class="door-badge">Door: ${summary.door_id || '-'}</span>
+                            </div>
+                            <div class="world-meta">
+                                <span>Eksekutor: <b>${summary.last_bot || '-'}</b></span>
+                                <span>Hasil: <b>${summary.last_harvest_chem || 0} Item</b></span>
+                            </div>
+                            <div class="timing-strip">
+                                <div>Mulai Panen<b>${startTimeStr}</b></div>
+                                <div>Selesai Panen<b>${endTimeStr}</b></div>
+                                <div class="next">Siap Lagi<b>${nextReadyStr}</b></div>
+                            </div>
+                            <div class="mini-stats">
+                                <div>Total SS<b>${summary.total_ss || 0}</b></div>
+                                <div class="ms-ready">Siap Panen<b>${readyCalculated}</b></div>
+                                <div class="ms-cd">Cooldown<b>${cooldownCalculated}</b></div>
+                            </div>
+                            <div class="tile-grid-label">Grid Tile</div>
+                            <div class="tile-grid">${tileHtml || '<span class="empty-tiles">Belum ada data tile</span>'}</div>
+                        </div>`;
+                }
+
+                document.getElementById("statTotalSS").innerText = globalSS;
+                document.getElementById("statReadySS").innerText = globalReady;
+                document.getElementById("statTotalChem").innerText = globalChem;
+                document.getElementById("statAvgChem").innerText = worldCount > 0 ? (globalChem / worldCount).toFixed(1) : "0";
+
+            } catch(e) {}
+        }
+
+        document.getElementById("addWorldForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const name = document.getElementById("worldName").value.toUpperCase();
+            const door = document.getElementById("doorId").value;
+            await fetch(`${DB_URL}/worlds/${name}/summary.json`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ door_id: door, last_bot: "-", total_ss: 0, ready: 0, cooldown: 0, last_harvest_chem: 0, next_ready_time: 0 })
+            });
+            document.getElementById("addWorldForm").reset();
+            loadWorlds();
+        });
+
         setInterval(() => {
             loadBots();
             loadWorlds();
         }, 3000);
-    });
 
-    // --- 1. MEMUAT & MENYIMPAN KONFIGURASI GLOBAL ---
-    async function loadConfig() {
-        try {
-            const res = await fetch(`${DB_URL}/config.json`);
-            const data = await res.json();
-            if (data) {
-                if (data.storage) document.getElementById("config-storage").value = data.storage;
-                if (data.mode) document.getElementById("config-mode").value = data.mode;
-                if (data.auto_disconnect) document.getElementById("config-disconnect").value = data.auto_disconnect;
-            }
-        } catch (e) {
-            console.error("Gagal memuat konfigurasi", e);
-        }
-    }
-
-    async function saveConfig() {
-        const storage = document.getElementById("config-storage").value.trim();
-        const mode = document.getElementById("config-mode").value;
-        const auto_disconnect = document.getElementById("config-disconnect").value;
-
-        await fetch(`${DB_URL}/config.json`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ storage, mode, auto_disconnect })
-        });
-        alert("Konfigurasi global berhasil diperbarui!");
-    }
-
-    // --- 2. MANAJEMEN ROSTER BOT ---
-    async function loadBots() {
-        try {
-            const res = await fetch(`${DB_URL}/bots.json`);
-            const data = await res.json() || {};
-            const container = document.getElementById("bot-list");
-            container.innerHTML = "";
-
-            const now = Math.floor(Date.now() / 1000);
-            const botKeys = Object.keys(data);
-
-            if (botKeys.length === 0) {
-                container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem;">Tidak ada bot aktif saat ini.</div>`;
-                return;
-            }
-
-            for (const botId of botKeys) {
-                const bot = data[botId];
-
-                // Auto-cleanup bot yang inactivity > 10 Menit (600 detik)
-                if (bot.last_active && (now - bot.last_active > 600)) {
-                    await fetch(`${DB_URL}/bots/${botId}.json`, { method: "DELETE" });
-                    continue;
-                }
-
-                const isOnline = bot.status === "ONLINE";
-
-                container.innerHTML += `
-                    <div class="bot-item">
-                        <div class="bot-info">
-                            <span class="bot-name">${botId}</span>
-                            <span class="bot-world">World: ${bot.world || 'Unknown'} | Door: ${bot.door || '-'}</span>
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span class="badge ${isOnline ? 'badge-success' : 'badge-warning'}">${bot.status || 'OFFLINE'}</span>
-                            <button class="delete-btn" title="Hapus Bot" onclick="deleteBot('${botId}')">✕</button>
-                        </div>
-                    </div>
-                `;
-            }
-        } catch (e) {
-            console.error("Gagal memuat bot list", e);
-        }
-    }
-
-    async function deleteBot(botId) {
-        if (confirm(`Hapus bot ${botId} dari daftar?`)) {
-            await fetch(`${DB_URL}/bots/${botId}.json`, { method: "DELETE" });
-            loadBots();
-        }
-    }
-
-    // --- 3. LOGIKA HARVEST & RE-CHECK ADAPTIF 1 JAM ---
-    /**
-     * Dipanggil saat Bot/Simulasi melakukan scan/punch di World.
-     * Mengatur pemisahan status "Sudah Dipanen" (Punched) vs "Cooldown",
-     * serta memperbarui waktu selesai panen secara adaptif.
-     */
-    async function processHarvestLogic(worldName, tiles, currentWorldData = {}) {
-        const now = Date.now();
-        
-        let totalReadyCount = 0;
-        let harvestedCount = 0;
-        let cooldownCount = 0;
-
-        // 1. Klasifikasi Status Tile
-        tiles.forEach(tile => {
-            if (tile.isPunched) {
-                harvestedCount++; // Masuk ke Sudah Dipanen
-            } else if (tile.isReady) {
-                totalReadyCount++;
-            } else {
-                cooldownCount++; // Masuk ke Cooldown
-            }
-        });
-
-        // 2. Evaluasi Adaptif Waktu Selesai Panen (Finish Time)
-        let updatedFinishTime = currentWorldData.finish_time || null;
-        let isNewHarvestExecuted = harvestedCount > 0;
-
-        if (isNewHarvestExecuted) {
-            // Ada yang baru dipanen -> Pakai timestamp panen terbaru
-            updatedFinishTime = now;
-        } else {
-            // TIDAK ADA yang berhasil dipanen (tetap cooldown):
-            // Pertahankan finish_time sebelumnya agar jadwal siklus tetap efisien
-            if (!updatedFinishTime) {
-                updatedFinishTime = now;
-            }
-        }
-
-        // 3. Tentukan Jadwal Pengecekan Berikutnya (Next Check Schedule)
-        let nextCheckTime;
-        if (cooldownCount > 0) {
-            // Sisa cooldown -> Jadwalkan Re-check +1 Jam lagi
-            nextCheckTime = now + (1 * 60 * 60 * 1000); 
-        } else {
-            // Semua tile bersih -> Jadwalkan Cooldown Penuh 24 Jam
-            nextCheckTime = now + (24 * 60 * 60 * 1000); 
-        }
-
-        const updatedPayload = {
-            total_ss: tiles.length,
-            harvested_count: (currentWorldData.harvested_count || 0) + harvestedCount,
-            cooldown_count: cooldownCount,
-            ready_count: totalReadyCount,
-            finish_time: updatedFinishTime, 
-            last_check_time: now,
-            next_check_time: nextCheckTime,
-            tiles_status: tiles.map(t => ({
-                x: t.x,
-                y: t.y,
-                status: t.isPunched ? "HARVESTED" : (t.isReady ? "READY" : "COOLDOWN")
-            }))
-        };
-
-        await fetch(`${DB_URL}/worlds/${worldName}.json`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(updatedPayload)
-        });
-
-        return updatedPayload;
-    }
-
-    // --- 4. MANAJEMEN WORLD & RENDER ---
-    async function addWorld() {
-        const nameInput = document.getElementById("input-world-name");
-        const doorInput = document.getElementById("input-world-door");
-
-        const worldName = nameInput.value.trim().toUpperCase();
-        const doorId = doorInput.value.trim().toUpperCase() || "MAIN";
-
-        if (!worldName) return alert("Masukkan nama world!");
-
-        await fetch(`${DB_URL}/worlds/${worldName}.json`, {
-            method: "SET",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                door: doorId,
-                total_ss: 0,
-                harvested_count: 0,
-                cooldown_count: 0,
-                ready_count: 0,
-                created_at: Date.now()
-            })
-        });
-
-        nameInput.value = "";
-        doorInput.value = "";
+        loadConfig();
+        loadBots();
         loadWorlds();
-    }
-
-    async function loadWorlds() {
-        try {
-            const res = await fetch(`${DB_URL}/worlds.json`);
-            const data = await res.json() || {};
-            const container = document.getElementById("world-list");
-            container.innerHTML = "";
-
-            let globalTotalSS = 0;
-            let globalHarvested = 0;
-            let globalCooldown = 0;
-            let pendingRechecks = 0;
-
-            const worldKeys = Object.keys(data);
-
-            if (worldKeys.length === 0) {
-                container.innerHTML = `<div style="color: var(--text-muted); font-size: 0.85rem;">Belum ada farm world yang didaftarkan.</div>`;
-            }
-
-            for (const worldName of worldKeys) {
-                const world = data[worldName];
-
-                const totalSS = world.total_ss || 0;
-                const harvested = world.harvested_count || 0;
-                const cooldown = world.cooldown_count || 0;
-
-                globalTotalSS += totalSS;
-                globalHarvested += harvested;
-                globalCooldown += cooldown;
-
-                // Hitung Jadwal Re-Check +1 Jam
-                const now = Date.now();
-                const hasCooldown = cooldown > 0;
-                let recheckBadgeHtml = "";
-
-                if (hasCooldown) {
-                    pendingRechecks++;
-                    const diffMs = (world.next_check_time || 0) - now;
-                    if (diffMs > 0) {
-                        const diffMins = Math.floor(diffMs / 60000);
-                        recheckBadgeHtml = `<span class="badge badge-warning">⏳ Re-check ${diffMins} mnt lagi</span>`;
-                    } else {
-                        recheckBadgeHtml = `<span class="badge badge-warning">⚠️ Siap Di-check Sekarang</span>`;
-                    }
-                } else {
-                    recheckBadgeHtml = `<span class="badge badge-success">✓ Panen Selesai</span>`;
-                }
-
-                // Render Visual Tile Grid
-                let tileGridHtml = "";
-                if (world.tiles_status && Array.isArray(world.tiles_status) && world.tiles_status.length > 0) {
-                    tileGridHtml = `
-                        <div class="tile-container">
-                            <div class="tile-label">Peta Tile SS World (Hover untuk Detail):</div>
-                            <div class="tile-grid">` + 
-                                world.tiles_status.map(t => {
-                                    let tileClass = "tile-ready";
-                                    if (t.status === "HARVESTED") tileClass = "tile-harvested";
-                                    if (t.status === "COOLDOWN") tileClass = "tile-cooldown";
-                                    return `<div class="tile ${tileClass}" title="Posisi (${t.x}, ${t.y}) — Status: ${t.status}"></div>`;
-                                }).join('') + 
-                            `</div>
-                        </div>`;
-                }
-
-                // Format Waktu Selesai Panen
-                const finishTimeFormatted = world.finish_time 
-                    ? new Date(world.finish_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                    : '-';
-
-                container.innerHTML += `
-                    <div class="world-card">
-                        <div class="world-header">
-                            <div>
-                                <span class="world-title">${worldName}</span>
-                                <span class="badge badge-secondary" style="margin-left: 6px;">Door: ${world.door || 'MAIN'}</span>
-                            </div>
-                            <div>
-                                ${recheckBadgeHtml}
-                                <button class="delete-btn" style="margin-left:8px;" onclick="deleteWorld('${worldName}')" title="Hapus World">✕</button>
-                            </div>
-                        </div>
-
-                        <div class="world-stats-grid">
-                            <div class="world-stat-item">Total SS <div>${totalSS}</div></div>
-                            <div class="world-stat-item">Dipanen <div><span style="color:var(--success)">${harvested}</span></div></div>
-                            <div class="world-stat-item">Cooldown <div><span style="color:var(--warning)">${cooldown}</span></div></div>
-                            <div class="world-stat-item">Selesai Panen <div>${finishTimeFormatted}</div></div>
-                        </div>
-
-                        ${tileGridHtml}
-                    </div>
-                `;
-            }
-
-            // Update Stat Strip Global
-            document.getElementById("stat-total-ss").innerText = globalTotalSS;
-            document.getElementById("stat-harvested").innerText = globalHarvested;
-            document.getElementById("stat-cooldown").innerText = globalCooldown;
-            document.getElementById("stat-recheck-status").innerText = pendingRechecks > 0 ? `${pendingRechecks} World Re-Check` : "Semua Bersih";
-
-        } catch (e) {
-            console.error("Gagal memuat data world", e);
-        }
-    }
-
-    async function deleteWorld(worldName) {
-        if (confirm(`Hapus world ${worldName} dari daftar monitor?`)) {
-            await fetch(`${DB_URL}/worlds/${worldName}.json`, { method: "DELETE" });
-            loadWorlds();
-        }
-    }
-
-    async function resetAllData() {
-        if (confirm("Reset statistik panen untuk semua world? (Nama world dan Door tetap tersimpan)")) {
-            const res = await fetch(`${DB_URL}/worlds.json`);
-            const data = await res.json() || {};
-            for (const worldName of Object.keys(data)) {
-                await fetch(`${DB_URL}/worlds/${worldName}.json`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        harvested_count: 0,
-                        cooldown_count: 0,
-                        ready_count: 0,
-                        finish_time: null,
-                        next_check_time: null,
-                        tiles_status: []
-                    })
-                });
-            }
-            loadWorlds();
-        }
-    }
-</script>
-
+    </script>
 </body>
 </html>
