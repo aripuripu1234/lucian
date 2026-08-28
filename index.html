@@ -16,20 +16,20 @@
 </head>
 <body class="p-4">
     <div class="container-fluid">
-        <h2 class="mb-4 text-warning">🔬 Science & World Monitoring Dashboard</h2>
+        <h2 class="mb-4 text-warning">🔬 In-World Science Monitoring Dashboard</h2>
 
         <!-- FORMS: TAMBAH WORLD & KONTROL CONFIG -->
         <div class="row mb-4">
             <div class="col-md-6">
                 <div class="card p-3">
-                    <h5>➕ Tambah World Science Baru</h5>
+                    <h5>➕ Registrasi / Tambah World Science</h5>
                     <form id="add-world-form" onsubmit="handleAddWorld(event)">
                         <div class="row g-2 mt-1">
                             <div class="col-md-6">
                                 <input type="text" id="world-name" class="form-control bg-dark text-white border-secondary" placeholder="Nama World (e.g. SCIENCE1)" required>
                             </div>
                             <div class="col-md-4">
-                                <input type="text" id="world-door" class="form-control bg-dark text-white border-secondary" placeholder="Door ID" required>
+                                <input type="text" id="world-door" class="form-control bg-dark text-white border-secondary" placeholder="Door ID (Opsional)">
                             </div>
                             <div class="col-md-2">
                                 <button type="submit" class="btn btn-warning w-100">Tambah</button>
@@ -40,10 +40,10 @@
             </div>
             <div class="col-md-6">
                 <div class="card p-3">
-                    <h5>⚙️ Pengaturan Auto Connect Bot</h5>
+                    <h5>⚙️ Mode Koneksi Bot</h5>
                     <div class="form-check form-switch mt-2">
                         <input class="form-check-input" type="checkbox" id="auto-connect-toggle" onchange="toggleAutoConnect(this.checked)">
-                        <label class="form-check-label text-white" for="auto-connect-toggle">Disconnect Otomatis Setelah Selesai Scan (Auto Connect Mode)</label>
+                        <label class="form-check-label text-white" for="auto-connect-toggle">Auto Disconnect jika bot di luar World (Lobby/Exit)</label>
                     </div>
                 </div>
             </div>
@@ -53,7 +53,7 @@
         <div class="row text-center mb-4">
             <div class="col-md-3">
                 <div class="card p-3">
-                    <h5>Total World</h5>
+                    <h5>Total World Dipantau</h5>
                     <h2 id="total-worlds" class="text-info">0</h2>
                 </div>
             </div>
@@ -65,7 +65,7 @@
             </div>
             <div class="col-md-3">
                 <div class="card p-3">
-                    <h5>SS Siap Panen</h5>
+                    <h5>SS Ready</h5>
                     <h2 id="ready-ss" class="text-success">0</h2>
                 </div>
             </div>
@@ -79,7 +79,7 @@
 
         <!-- DAFTAR WORLD SCIENCE -->
         <div class="card p-3 mb-4">
-            <h4>📋 Information & Harvest Log World</h4>
+            <h4>📋 Informator Science & Log Panen Real-Time</h4>
             <div class="table-responsive">
                 <table class="table table-dark table-hover mt-3 align-middle">
                     <thead>
@@ -88,9 +88,9 @@
                             <th>Door ID</th>
                             <th>Total SS</th>
                             <th>Status SS</th>
-                            <th>Mulai Harvest (Punch Pertama)</th>
-                            <th>Selesai Harvest (SS Ujung)</th>
-                            <th>Growscan (Player In-World)</th>
+                            <th>Mulai Panen (Punch SS 1)</th>
+                            <th>Selesai Panen (SS Ujung)</th>
+                            <th>Growscan Info</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -103,15 +103,15 @@
 
         <!-- DAFTAR BOT MONITORING -->
         <div class="card p-3">
-            <h4>🤖 Status & Kontrol Bot</h4>
+            <h4>🤖 Status & Kontrol Bot In-World</h4>
             <div class="table-responsive">
                 <table class="table table-dark table-striped mt-3">
                     <thead>
                         <tr>
                             <th>Nama Bot</th>
-                            <th>World Saat Ini</th>
+                            <th>World Aktif Saat Ini</th>
                             <th>Status Bot</th>
-                            <th>Aksi Manual Connect / Disconnect</th>
+                            <th>Kontrol Bot</th>
                         </tr>
                     </thead>
                     <tbody id="bot-table-body">
@@ -133,16 +133,16 @@
 
         async function fetchDashboardData() {
             try {
-                // Config Auto Connect
+                // Auto Connect Config
                 const resConfig = await fetch(`${FIREBASE_URL}/config/auto_connect.json`);
                 const autoConnect = await resConfig.json();
                 document.getElementById("auto-connect-toggle").checked = (autoConnect !== false);
 
-                // World Data
+                // Fetch World Data
                 const resWorlds = await fetch(`${FIREBASE_URL}/worlds.json`);
                 const worldsData = await resWorlds.json() || {};
 
-                // Bot Data
+                // Fetch Bot Data
                 const resBots = await fetch(`${FIREBASE_URL}/bots.json`);
                 const botsData = await resBots.json() || {};
 
@@ -172,7 +172,7 @@
                             <div class="growscan-box">
                                 <strong>⚠️ ${wData.growscan.triggered_by || 'Player Active'}</strong><br>
                                 <small>${itemDetails.slice(0, 4).join(" | ")}...</small><br>
-                                <small class="text-info">Update: ${formatTime(wData.growscan.last_scan_time)}</small>
+                                <small class="text-info">Di-scan: ${formatTime(wData.growscan.last_scan_time)}</small>
                             </div>
                         `;
                     }
@@ -200,7 +200,7 @@
                 document.getElementById("total-ss").innerText = totalSSSum;
                 document.getElementById("ready-ss").innerText = readySSSum;
                 document.getElementById("cooldown-ss").innerText = cooldownSSSum;
-                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="8" class="text-center">Belum ada world. Tambahkan melalui form di atas.</td></tr>';
+                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="8" class="text-center">Belum ada world terdaftar.</td></tr>';
 
                 // Bot Table
                 let botRows = "";
@@ -208,11 +208,11 @@
                     botRows += `
                         <tr>
                             <td class="fw-bold">${bName}</td>
-                            <td>${bData.current_world || "-"}</td>
+                            <td><span class="badge bg-warning text-dark">${bData.current_world || "-"}</span></td>
                             <td><span class="badge bg-info">${bData.status || "Standby"}</span></td>
                             <td>
-                                <button class="btn btn-sm btn-outline-success" onclick="setBotControl('${bName}', 'ONLINE')">Connect (Online)</button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="setBotControl('${bName}', 'OFFLINE')">Disconnect (Offline)</button>
+                                <button class="btn btn-sm btn-outline-success" onclick="setBotControl('${bName}', 'ONLINE')">Connect</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="setBotControl('${bName}', 'OFFLINE')">Disconnect</button>
                             </td>
                         </tr>
                     `;
@@ -220,7 +220,7 @@
                 document.getElementById("bot-table-body").innerHTML = botRows || '<tr><td colspan="4" class="text-center">Belum ada bot aktif.</td></tr>';
 
             } catch (err) {
-                console.error("Gagal mengambil data Firebase:", err);
+                console.error("Gagal mengambil data dari Firebase:", err);
             }
         }
 
@@ -263,7 +263,7 @@
             });
         }
 
-        setInterval(fetchDashboardData, 5000);
+        setInterval(fetchDashboardData, 3000);
         fetchDashboardData();
     </script>
 </body>
