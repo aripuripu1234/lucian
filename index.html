@@ -8,7 +8,7 @@
     <style>
         body { background-color: #0b0f19; color: #e2e8f0; font-family: 'Inter', sans-serif; }
         .card { background-color: #161e2e; border: 1px solid #243044; color: #f8fafc; border-radius: 10px; }
-        .tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 6px; max-height: 320px; overflow-y: auto; padding: 4px; }
+        .tile-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 6px; max-height: 250px; overflow-y: auto; padding: 4px; }
         .tile-box { padding: 6px 2px; text-align: center; border-radius: 6px; font-size: 10px; font-weight: bold; }
         .bg-ready { background-color: #15803d; color: #ffffff; border: 1px solid #22c55e; }
         .bg-cd { background-color: #1e293b; color: #f59e0b; border: 1px solid #d97706; }
@@ -17,11 +17,47 @@
 </head>
 <body class="p-3 p-md-4">
     <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="text-warning font-monospace">🧪 Science Account Power Controller</h3>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="text-warning font-monospace m-0">🧪 Science Account Power Controller</h3>
             <span class="badge bg-outline-light border">Max Cooldown: 12 Jam</span>
         </div>
-        
+
+        <!-- PANEL STATISTIK HASIL PANEN & OPSI MODE -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-8">
+                <div class="card p-3 border-success bg-dark">
+                    <div class="row text-center">
+                        <div class="col-6 col-sm-3 border-end border-secondary">
+                            <small class="text-muted d-block">Total SS Ter-Scan</small>
+                            <h4 class="text-info font-monospace mb-0" id="statTotalSS">0</h4>
+                        </div>
+                        <div class="col-6 col-sm-3 border-end border-secondary">
+                            <small class="text-muted d-block">SS Siap Panen</small>
+                            <h4 class="text-success font-monospace mb-0" id="statReadySS">0</h4>
+                        </div>
+                        <div class="col-6 col-sm-3 border-end border-secondary">
+                            <small class="text-muted d-block">Total Chemical Panen</small>
+                            <h4 class="text-warning font-monospace mb-0" id="statTotalChem">0</h4>
+                        </div>
+                        <div class="col-6 col-sm-3">
+                            <small class="text-muted d-block">Rata-Rata / World</small>
+                            <h4 class="text-light font-monospace mb-0" id="statAvgChem">0</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card p-3 h-100 border-warning">
+                    <h6 class="text-warning mb-2">⚙️ Mode Operasi Bot</h6>
+                    <select id="workModeSelect" class="form-select form-select-sm bg-dark text-white border-secondary mb-2" onchange="updateWorkMode(this.value)">
+                        <option value="HARVEST">🌾 Cek World & Panen Science</option>
+                        <option value="SCAN_ONLY">🔍 Cek World Saja (Tanpa Panen)</option>
+                    </select>
+                    <small class="text-muted" style="font-size: 11px;">Mode ini berlaku untuk seluruh bot saat berkeliling ke target world.</small>
+                </div>
+            </div>
+        </div>
+
         <!-- ROW 1: Storage Config & Remote Account Power -->
         <div class="row g-3 mb-4">
             <div class="col-lg-4">
@@ -95,15 +131,31 @@
     <script>
         const DB_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
 
-        async function loadStorageConfig() {
+        async function loadConfig() {
             try {
+                // Storage config
                 const res = await fetch(`${DB_URL}/config/storage.json`);
                 const data = await res.json();
                 if (data) {
                     document.getElementById("storageWorld").value = data.world || "";
                     document.getElementById("storageDoor").value = data.door || "";
                 }
+                
+                // Work mode
+                const modeRes = await fetch(`${DB_URL}/config/mode.json`);
+                const modeData = await modeRes.json();
+                if (modeData) {
+                    document.getElementById("workModeSelect").value = modeData;
+                }
             } catch(e) {}
+        }
+
+        async function updateWorkMode(mode) {
+            await fetch(`${DB_URL}/config/mode.json`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(mode)
+            });
         }
 
         document.getElementById("storageForm").addEventListener("submit", async (e) => {
@@ -112,7 +164,6 @@
                 world: document.getElementById("storageWorld").value.toUpperCase(),
                 door: document.getElementById("storageDoor").value
             };
-
             await fetch(`${DB_URL}/config/storage.json`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -136,21 +187,17 @@
                 const res = await fetch(`${DB_URL}/bots.json`);
                 const data = await res.json();
                 const tbody = document.querySelector("#botTable tbody");
-                
                 if (!data) {
                     tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Belum ada data bot terhubung</td></tr>';
                     return;
                 }
-                
                 tbody.innerHTML = "";
                 const now = Math.floor(Date.now() / 1000);
-
                 for (let name in data) {
                     const bot = data[name];
                     const isScriptRunning = (now - (bot.last_active || 0)) < 60;
                     const controlState = bot.control || "ONLINE";
                     const statusText = bot.status || "Offline";
-
                     tbody.innerHTML += `
                         <tr>
                             <td class="fw-bold text-warning">${bot.name || name}</td>
@@ -159,16 +206,13 @@
                                 <span class="status-dot ${isScriptRunning && statusText.includes('Online') ? 'bg-success' : 'bg-danger'}"></span>
                                 ${statusText}
                             </td>
-                            <td>
-                                <span class="badge ${controlState === 'ONLINE' ? 'bg-success' : 'bg-danger'}">${controlState}</span>
-                            </td>
+                            <td><span class="badge ${controlState === 'ONLINE' ? 'bg-success' : 'bg-danger'}">${controlState}</span></td>
                             <td>
                                 <button onclick="toggleAccountPower('${name}', '${controlState}')" class="btn ${controlState === 'ONLINE' ? 'btn-danger' : 'btn-success'} btn-sm py-0 fw-bold">
                                     ${controlState === 'ONLINE' ? 'OFFLINE-KAN AKUN' : 'ONLINE-KAN AKUN'}
                                 </button>
                             </td>
-                        </tr>
-                    `;
+                        </tr>`;
                 }
             } catch(e) {}
         }
@@ -178,20 +222,27 @@
                 const res = await fetch(`${DB_URL}/worlds.json`);
                 const data = await res.json();
                 const container = document.querySelector("#worldCards");
-
                 if (!data) {
-                    container.innerHTML = '<div class="col-12 text-muted">Belum ada data farm world. Silakan tambahkan world di form atas.</div>';
+                    container.innerHTML = '<div class="col-12 text-muted">Belum ada data farm world.</div>';
                     return;
                 }
-
                 container.innerHTML = "";
                 const now = Math.floor(Date.now() / 1000);
 
+                let globalSS = 0;
+                let globalReady = 0;
+                let globalChem = 0;
+                let worldCount = 0;
+
                 for (let worldName in data) {
+                    worldCount++;
                     const world = data[worldName];
-                    const summary = world.summary || { total_ss: 0, ready: 0, cooldown: 0, door_id: "-", last_bot: "-" };
+                    const summary = world.summary || { total_ss: 0, ready: 0, cooldown: 0, door_id: "-", last_bot: "-", last_harvest_chem: 0 };
                     const tiles = world.tiles || {};
                     
+                    globalSS += (summary.total_ss || 0);
+                    globalChem += (summary.last_harvest_chem || 0);
+
                     let tileHtml = "";
                     let readyCalculated = 0;
                     let cooldownCalculated = 0;
@@ -199,24 +250,19 @@
                     for (let tKey in tiles) {
                         const tile = tiles[tKey];
                         const isReady = now >= (tile.next_harvest || 0);
-                        
                         if (isReady) {
                             readyCalculated++;
-                            tileHtml += `
-                                <div class="tile-box bg-ready" title="Tile (${tile.x}, ${tile.y}) - READY">
-                                    (${tile.x},${tile.y})<br>READY
-                                </div>`;
+                            tileHtml += `<div class="tile-box bg-ready">(${tile.x},${tile.y})<br>READY</div>`;
                         } else {
                             cooldownCalculated++;
                             const remainingSec = tile.next_harvest - now;
                             const hoursLeft = Math.floor(remainingSec / 3600);
                             const minsLeft = Math.floor((remainingSec % 3600) / 60);
-                            tileHtml += `
-                                <div class="tile-box bg-cd" title="Tile (${tile.x}, ${tile.y}) - Belum Dipanen">
-                                    (${tile.x},${tile.y})<br>${hoursLeft}j ${minsLeft}m
-                                </div>`;
+                            tileHtml += `<div class="tile-box bg-cd">(${tile.x},${tile.y})<br>${hoursLeft}j ${minsLeft}m</div>`;
                         }
                     }
+
+                    globalReady += readyCalculated;
 
                     container.innerHTML += `
                         <div class="col-xl-6">
@@ -225,21 +271,25 @@
                                     <h4 class="text-warning font-monospace m-0">${worldName}</h4>
                                     <span class="badge bg-primary">Door: ${summary.door_id}</span>
                                 </div>
-                                <small class="text-muted mt-1">Bot Pengelola: <b class="text-info">${summary.last_bot}</b></small>
+                                <small class="text-muted mt-1">Bot: <b class="text-info">${summary.last_bot}</b> | Hasill Panen Terakhir: <b class="text-warning">${summary.last_harvest_chem || 0} Item</b></small>
                                 <hr class="border-secondary my-2">
-                                
                                 <div class="row text-center mb-3">
                                     <div class="col"><b>Total SS</b><br>${summary.total_ss}</div>
                                     <div class="col text-success"><b>Siap Panen</b><br>${readyCalculated}</div>
                                     <div class="col text-warning"><b>Cooldown</b><br>${cooldownCalculated}</div>
                                 </div>
-
-                                <h6 class="small text-muted mb-1">Grid Tile & Status Cooldown (Koordinat X,Y):</h6>
-                                <div class="tile-grid">${tileHtml || '<small class="text-muted">Belum ada data tile ter-scan</small>'}</div>
+                                <h6 class="small text-muted mb-1">Grid Tile & Status Cooldown:</h6>
+                                <div class="tile-grid">${tileHtml || '<small class="text-muted">Belum ada data tile</small>'}</div>
                             </div>
-                        </div>
-                    `;
+                        </div>`;
                 }
+
+                // Update UI Ringkasan Atas
+                document.getElementById("statTotalSS").innerText = globalSS;
+                document.getElementById("statReadySS").innerText = globalReady;
+                document.getElementById("statTotalChem").innerText = globalChem;
+                document.getElementById("statAvgChem").innerText = worldCount > 0 ? (globalChem / worldCount).toFixed(1) : "0";
+
             } catch(e) {}
         }
 
@@ -247,13 +297,11 @@
             e.preventDefault();
             const name = document.getElementById("worldName").value.toUpperCase();
             const door = document.getElementById("doorId").value;
-
             await fetch(`${DB_URL}/worlds/${name}/summary.json`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ door_id: door, last_bot: "-", total_ss: 0, ready: 0, cooldown: 0 })
+                body: JSON.stringify({ door_id: door, last_bot: "-", total_ss: 0, ready: 0, cooldown: 0, last_harvest_chem: 0 })
             });
-
             document.getElementById("addWorldForm").reset();
             loadWorlds();
         });
@@ -263,7 +311,7 @@
             loadWorlds();
         }, 3000);
 
-        loadStorageConfig();
+        loadConfig();
         loadBots();
         loadWorlds();
     </script>
