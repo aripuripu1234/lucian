@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Science & Storage Management System</title>
+    <title>Science & Storage Account Controller</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #0b0f19; color: #e2e8f0; font-family: 'Inter', sans-serif; }
@@ -18,14 +18,13 @@
 <body class="p-3 p-md-4">
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="text-warning font-monospace">🧪 Science & Storage Manager</h3>
+            <h3 class="text-warning font-monospace">🧪 Science Account Power Controller</h3>
             <span class="badge bg-outline-light border">Max Cooldown: 12 Jam</span>
         </div>
         
-        <!-- ROW 1: Storage Config, Farm World & Monitoring Akun -->
+        <!-- ROW 1: Storage Config & Remote Account Power -->
         <div class="row g-3 mb-4">
             <div class="col-lg-4">
-                <!-- Storage Config (Tanpa Koordinat Manual) -->
                 <div class="card p-3 mb-3 border-info">
                     <h5 class="text-info">📦 Input Config Storage World</h5>
                     <form id="storageForm" class="mt-2">
@@ -41,7 +40,6 @@
                     </form>
                 </div>
 
-                <!-- Form Tambah Farm World -->
                 <div class="card p-3">
                     <h5 class="text-warning">🌾 Tambah Farm World</h5>
                     <form id="addWorldForm" class="mt-2">
@@ -58,18 +56,19 @@
                 </div>
             </div>
 
-            <!-- Monitoring Akun Bot -->
+            <!-- Monitoring & Tombol Saklar Connect/Disconnect Game -->
             <div class="col-lg-8">
                 <div class="card p-3 h-100">
-                    <h5 class="text-info">Monitoring Username Akun Bot Terhubung</h5>
+                    <h5 class="text-info">Kontrol Saklar Akun (Online / Offline Game)</h5>
                     <div class="table-responsive mt-2">
                         <table class="table table-dark table-hover small" id="botTable">
                             <thead>
                                 <tr>
                                     <th>Username Akun</th>
                                     <th>World Aktif</th>
-                                    <th>Status Koneksi</th>
-                                    <th>Terakhir Aktif</th>
+                                    <th>Status In-Game</th>
+                                    <th>Saklar Web</th>
+                                    <th>Aksi Kontrol</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -93,7 +92,6 @@
     <script>
         const DB_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
 
-        // Load Storage Config dari Server
         async function loadStorageConfig() {
             try {
                 const res = await fetch(`${DB_URL}/config/storage.json`);
@@ -105,7 +103,6 @@
             } catch(e) {}
         }
 
-        // Simpan Config Storage ke Server
         document.getElementById("storageForm").addEventListener("submit", async (e) => {
             e.preventDefault();
             const configData = {
@@ -121,7 +118,17 @@
             alert("Storage World Berhasil Diperbarui!");
         });
 
-        // Load Status Bot Terkoneksi
+        // Mengganti Status Saklar Akun (Online / Offline)
+        async function toggleAccountPower(botName, currentControl) {
+            const nextControl = (currentControl === "ONLINE") ? "OFFLINE" : "ONLINE";
+            await fetch(`${DB_URL}/bots/${botName}/control.json`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(nextControl)
+            });
+            loadBots();
+        }
+
         async function loadBots() {
             try {
                 const res = await fetch(`${DB_URL}/bots.json`);
@@ -134,24 +141,31 @@
 
                 for (let name in data) {
                     const bot = data[name];
-                    const isOnline = (now - bot.last_active) < 120;
-                    const timeStr = new Date(bot.last_active * 1000).toLocaleTimeString();
+                    const isScriptRunning = (now - bot.last_active) < 60;
+                    const controlState = bot.control || "ONLINE";
+
                     tbody.innerHTML += `
                         <tr>
                             <td class="fw-bold text-warning">${bot.name}</td>
                             <td><span class="badge bg-secondary">${bot.current_world || '-'}</span></td>
                             <td>
-                                <span class="status-dot ${isOnline ? 'bg-success' : 'bg-danger'}"></span>
-                                ${isOnline ? 'Online' : 'Offline'}
+                                <span class="status-dot ${isScriptRunning && bot.status.includes('Online') ? 'bg-success' : 'bg-danger'}"></span>
+                                ${bot.status || 'Offline'}
                             </td>
-                            <td>${timeStr}</td>
+                            <td>
+                                <span class="badge ${controlState === 'ONLINE' ? 'bg-success' : 'bg-danger'}">${controlState}</span>
+                            </td>
+                            <td>
+                                <button onclick="toggleAccountPower('${bot.name}', '${controlState}')" class="btn ${controlState === 'ONLINE' ? 'btn-danger' : 'btn-success'} btn-sm py-0 fw-bold">
+                                    ${controlState === 'ONLINE' ? 'OFFLINE-KAN AKUN' : 'ONLINE-KAN AKUN'}
+                                </button>
+                            </td>
                         </tr>
                     `;
                 }
             } catch(e) {}
         }
 
-        // Load Detail World & Tile Cooldown
         async function loadWorlds() {
             try {
                 const res = await fetch(`${DB_URL}/worlds.json`);
@@ -218,7 +232,6 @@
             } catch(e) {}
         }
 
-        // Form Submit Tambah Farm World
         document.getElementById("addWorldForm").addEventListener("submit", async (e) => {
             e.preventDefault();
             const name = document.getElementById("worldName").value.toUpperCase();
