@@ -18,8 +18,8 @@
 <body class="p-3 p-md-4">
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h3 class="text-warning font-monospace m-0">🧪 Science Account Power Controller</h3>
-            <span class="badge bg-outline-light border">Max Cooldown: 12 Jam</span>
+            <h3 class="text-warning font-monospace m-0">🧪 Science Auto-Scheduler Controller</h3>
+            <span class="badge bg-outline-light border">1 Hit / SS & Auto Offline-Online</span>
         </div>
 
         <!-- PANEL STATISTIK HASIL PANEN & OPSI MODE -->
@@ -53,7 +53,7 @@
                         <option value="HARVEST">🌾 Cek World & Panen Science</option>
                         <option value="SCAN_ONLY">🔍 Cek World Saja (Tanpa Hit/Panen)</option>
                     </select>
-                    <small class="text-muted" style="font-size: 11px;">Mode "Cek World Saja" tetap scan seluruh SS tapi tidak memukul/memanen.</small>
+                    <small class="text-muted" style="font-size: 11px;">Bot otomatis disconnect jika seluruh world cooldown.</small>
                 </div>
             </div>
         </div>
@@ -119,7 +119,7 @@
         <div class="row g-3">
             <div class="col-12">
                 <div class="card p-3">
-                    <h5 class="text-info mb-3">Detail Koordinat Tile & Estimasi Cooldown</h5>
+                    <h5 class="text-info mb-3">Jadwal & Log Waktu Panen World</h5>
                     <div id="worldCards" class="row g-3">
                         <div class="col-12 text-muted">Memuat data world...</div>
                     </div>
@@ -130,6 +130,12 @@
 
     <script>
         const DB_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
+
+        function formatTime(unixSec) {
+            if (!unixSec || unixSec === 0) return "-";
+            const d = new Date(unixSec * 1000);
+            return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        }
 
         async function loadConfig() {
             try {
@@ -170,11 +176,8 @@
             alert("Storage World Berhasil Diperbarui!");
         });
 
-        // SAKLAR OFFLINE / ONLINE LANGSUNG REALTIME
         async function toggleAccountPower(botName, currentControl) {
             const nextControl = (currentControl === "ONLINE") ? "OFFLINE" : "ONLINE";
-            
-            // Patch sekaligus control dan status tampilan
             await fetch(`${DB_URL}/bots/${botName}.json`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -183,7 +186,6 @@
                     status: (nextControl === "OFFLINE") ? "Offline / Disconnected" : "Connecting..."
                 })
             });
-            
             loadBots();
         }
 
@@ -214,7 +216,6 @@
                     const lastActive = bot.last_active || 0;
                     const isScriptRunning = (now - lastActive) < 90;
 
-                    // Hapus jika mati total > 10 menit
                     if ((now - lastActive) > 600) {
                         fetch(`${DB_URL}/bots/${name}.json`, { method: "DELETE" });
                         continue;
@@ -270,7 +271,7 @@
                 for (let worldName in data) {
                     worldCount++;
                     const world = data[worldName];
-                    const summary = world.summary || { total_ss: 0, ready: 0, cooldown: 0, door_id: "-", last_bot: "-", last_harvest_chem: 0 };
+                    const summary = world.summary || {};
                     const tiles = world.tiles || {};
                     
                     globalSS += (summary.total_ss || 0);
@@ -297,21 +298,34 @@
 
                     globalReady += readyCalculated;
 
+                    const startTimeStr = formatTime(summary.start_time);
+                    const endTimeStr = formatTime(summary.end_time);
+                    const nextReadyStr = formatTime(summary.next_ready_time);
+
                     container.innerHTML += `
                         <div class="col-xl-6">
                             <div class="card p-3 border-secondary">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h4 class="text-warning font-monospace m-0">${worldName}</h4>
-                                    <span class="badge bg-primary">Door: ${summary.door_id}</span>
+                                    <span class="badge bg-primary">Door: ${summary.door_id || '-'}</span>
                                 </div>
-                                <small class="text-muted mt-1">Bot: <b class="text-info">${summary.last_bot}</b> | Hasil Panen Terakhir: <b class="text-warning">${summary.last_harvest_chem || 0} Item</b></small>
-                                <hr class="border-secondary my-2">
-                                <div class="row text-center mb-3">
-                                    <div class="col"><b>Total SS</b><br>${summary.total_ss}</div>
+                                <div class="row mt-2 small text-muted">
+                                    <div class="col-6">Eksekutor: <b class="text-info">${summary.last_bot || '-'}</b></div>
+                                    <div class="col-6 text-end">Hasil: <b class="text-warning">${summary.last_harvest_chem || 0} Item</b></div>
+                                </div>
+                                <div class="p-2 my-2 bg-dark rounded border border-secondary small">
+                                    <div class="row text-center">
+                                        <div class="col-4">Mulai Panen:<br><b class="text-light">${startTimeStr}</b></div>
+                                        <div class="col-4">Selesai Panen:<br><b class="text-light">${endTimeStr}</b></div>
+                                        <div class="col-4">Siap Panen Lagi:<br><b class="text-success">${nextReadyStr}</b></div>
+                                    </div>
+                                </div>
+                                <div class="row text-center mb-2">
+                                    <div class="col"><b>Total SS</b><br>${summary.total_ss || 0}</div>
                                     <div class="col text-success"><b>Siap Panen</b><br>${readyCalculated}</div>
                                     <div class="col text-warning"><b>Cooldown</b><br>${cooldownCalculated}</div>
                                 </div>
-                                <h6 class="small text-muted mb-1">Grid Tile & Status Cooldown:</h6>
+                                <h6 class="small text-muted mb-1">Grid Tile:</h6>
                                 <div class="tile-grid">${tileHtml || '<small class="text-muted">Belum ada data tile</small>'}</div>
                             </div>
                         </div>`;
@@ -332,7 +346,7 @@
             await fetch(`${DB_URL}/worlds/${name}/summary.json`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ door_id: door, last_bot: "-", total_ss: 0, ready: 0, cooldown: 0, last_harvest_chem: 0 })
+                body: JSON.stringify({ door_id: door, last_bot: "-", total_ss: 0, ready: 0, cooldown: 0, last_harvest_chem: 0, next_ready_time: 0 })
             });
             document.getElementById("addWorldForm").reset();
             loadWorlds();
