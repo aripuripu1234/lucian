@@ -170,13 +170,20 @@
             alert("Storage World Berhasil Diperbarui!");
         });
 
+        // SAKLAR OFFLINE / ONLINE LANGSUNG REALTIME
         async function toggleAccountPower(botName, currentControl) {
             const nextControl = (currentControl === "ONLINE") ? "OFFLINE" : "ONLINE";
-            await fetch(`${DB_URL}/bots/${botName}/control.json`, {
-                method: "PUT",
+            
+            // Patch sekaligus control dan status tampilan
+            await fetch(`${DB_URL}/bots/${botName}.json`, {
+                method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(nextControl)
+                body: JSON.stringify({
+                    control: nextControl,
+                    status: (nextControl === "OFFLINE") ? "Offline / Disconnected" : "Connecting..."
+                })
             });
+            
             loadBots();
         }
 
@@ -207,6 +214,7 @@
                     const lastActive = bot.last_active || 0;
                     const isScriptRunning = (now - lastActive) < 90;
 
+                    // Hapus jika mati total > 10 menit
                     if ((now - lastActive) > 600) {
                         fetch(`${DB_URL}/bots/${name}.json`, { method: "DELETE" });
                         continue;
