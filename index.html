@@ -19,7 +19,7 @@
     <div class="container-fluid">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h3 class="text-warning font-monospace m-0">🧪 Science Auto-Scheduler Controller</h3>
-            <span class="badge bg-outline-light border">1 Hit / SS & Auto Offline-Online</span>
+            <span class="badge bg-outline-light border">1 Hit / SS & Auto Remote Power</span>
         </div>
 
         <!-- PANEL STATISTIK HASIL PANEN & OPSI MODE -->
@@ -56,10 +56,10 @@
                         <option value="SCAN_ONLY">🔍 Cek World Saja (Tanpa Hit/Panen)</option>
                     </select>
 
-                    <label class="form-label mb-1 text-muted small">Mode Koneksi Game:</label>
+                    <label class="form-label mb-1 text-muted small">Mode Koneksi Game saat Cooldown:</label>
                     <select id="connModeSelect" class="form-select form-select-sm bg-dark text-white border-secondary" onchange="updateConnMode(this.value)">
-                        <option value="true">⚡ [AUTO] Connect saat Ready, Off saat Cooldown</option>
-                        <option value="false">🕹️ [MANUAL] Kontrol via Tombol Saklar</option>
+                        <option value="true">⚡ [AUTO] Connect saat Ready & Disconnect saat Cooldown</option>
+                        <option value="false">🕹️ [MANUAL] Selalu Online selama Saklar Akun ON</option>
                     </select>
                 </div>
             </div>
@@ -101,7 +101,7 @@
 
             <div class="col-lg-8">
                 <div class="card p-3 h-100">
-                    <h5 class="text-info">Kontrol Saklar Akun (Online / Offline Game)</h5>
+                    <h5 class="text-info">Kontrol Saklar Utama Akun</h5>
                     <div class="table-responsive mt-2">
                         <table class="table table-dark table-hover small" id="botTable">
                             <thead>
@@ -203,8 +203,7 @@
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    control: nextControl,
-                    status: (nextControl === "OFFLINE") ? "Offline / Disconnected" : "Connecting..."
+                    control: nextControl
                 })
             });
             loadBots();
