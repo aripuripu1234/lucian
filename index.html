@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Science & Storage Account Controller</title>
+    <title>Science & Storage Remote Controller</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body { background-color: #0b0f19; color: #e2e8f0; font-family: 'Inter', sans-serif; }
@@ -56,7 +56,6 @@
                 </div>
             </div>
 
-            <!-- Monitoring & Tombol Saklar Connect/Disconnect Game -->
             <div class="col-lg-8">
                 <div class="card p-3 h-100">
                     <h5 class="text-info">Kontrol Saklar Akun (Online / Offline Game)</h5>
@@ -71,7 +70,9 @@
                                     <th>Aksi Kontrol</th>
                                 </tr>
                             </thead>
-                            <tbody></tbody>
+                            <tbody>
+                                <tr><td colspan="5" class="text-center text-muted">Memuat data bot...</td></tr>
+                            </tbody>
                         </table>
                     </div>
                 </div>
@@ -83,7 +84,9 @@
             <div class="col-12">
                 <div class="card p-3">
                     <h5 class="text-info mb-3">Detail Koordinat Tile & Estimasi Cooldown</h5>
-                    <div id="worldCards" class="row g-3"></div>
+                    <div id="worldCards" class="row g-3">
+                        <div class="col-12 text-muted">Memuat data world...</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -118,7 +121,6 @@
             alert("Storage World Berhasil Diperbarui!");
         });
 
-        // Mengganti Status Saklar Akun (Online / Offline)
         async function toggleAccountPower(botName, currentControl) {
             const nextControl = (currentControl === "ONLINE") ? "OFFLINE" : "ONLINE";
             await fetch(`${DB_URL}/bots/${botName}/control.json`, {
@@ -134,29 +136,34 @@
                 const res = await fetch(`${DB_URL}/bots.json`);
                 const data = await res.json();
                 const tbody = document.querySelector("#botTable tbody");
-                tbody.innerHTML = "";
                 
-                if (!data) return;
+                if (!data) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Belum ada data bot terhubung</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = "";
                 const now = Math.floor(Date.now() / 1000);
 
                 for (let name in data) {
                     const bot = data[name];
-                    const isScriptRunning = (now - bot.last_active) < 60;
+                    const isScriptRunning = (now - (bot.last_active || 0)) < 60;
                     const controlState = bot.control || "ONLINE";
+                    const statusText = bot.status || "Offline";
 
                     tbody.innerHTML += `
                         <tr>
-                            <td class="fw-bold text-warning">${bot.name}</td>
+                            <td class="fw-bold text-warning">${bot.name || name}</td>
                             <td><span class="badge bg-secondary">${bot.current_world || '-'}</span></td>
                             <td>
-                                <span class="status-dot ${isScriptRunning && bot.status.includes('Online') ? 'bg-success' : 'bg-danger'}"></span>
-                                ${bot.status || 'Offline'}
+                                <span class="status-dot ${isScriptRunning && statusText.includes('Online') ? 'bg-success' : 'bg-danger'}"></span>
+                                ${statusText}
                             </td>
                             <td>
                                 <span class="badge ${controlState === 'ONLINE' ? 'bg-success' : 'bg-danger'}">${controlState}</span>
                             </td>
                             <td>
-                                <button onclick="toggleAccountPower('${bot.name}', '${controlState}')" class="btn ${controlState === 'ONLINE' ? 'btn-danger' : 'btn-success'} btn-sm py-0 fw-bold">
+                                <button onclick="toggleAccountPower('${name}', '${controlState}')" class="btn ${controlState === 'ONLINE' ? 'btn-danger' : 'btn-success'} btn-sm py-0 fw-bold">
                                     ${controlState === 'ONLINE' ? 'OFFLINE-KAN AKUN' : 'ONLINE-KAN AKUN'}
                                 </button>
                             </td>
@@ -171,9 +178,13 @@
                 const res = await fetch(`${DB_URL}/worlds.json`);
                 const data = await res.json();
                 const container = document.querySelector("#worldCards");
-                container.innerHTML = "";
 
-                if (!data) return;
+                if (!data) {
+                    container.innerHTML = '<div class="col-12 text-muted">Belum ada data farm world. Silakan tambahkan world di form atas.</div>';
+                    return;
+                }
+
+                container.innerHTML = "";
                 const now = Math.floor(Date.now() / 1000);
 
                 for (let worldName in data) {
@@ -250,7 +261,7 @@
         setInterval(() => {
             loadBots();
             loadWorlds();
-        }, 5000);
+        }, 3000);
 
         loadStorageConfig();
         loadBots();
