@@ -9,113 +9,106 @@
         body { background-color: #121212; color: #e0e0e0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .card { background-color: #1e1e1e; border: 1px solid #333; color: #fff; border-radius: 12px; margin-bottom: 20px; }
         .table-dark { background-color: #1e1e1e; color: #e0e0e0; }
-        .badge-ready { background-color: #28a745; }
-        .badge-cooldown { background-color: #ffc107; color: #000; }
         .growscan-box { background-color: #2a2a2a; border-left: 4px solid #17a2b8; padding: 10px; font-size: 0.85rem; border-radius: 4px; }
     </style>
 </head>
 <body class="p-4">
     <div class="container-fluid">
-        <h2 class="mb-4 text-warning">🔬 In-World Science Monitoring Dashboard</h2>
+        <h2 class="mb-4 text-warning">🔬 In-World Science & Growscan Target Monitor</h2>
 
-        <!-- FORMS: TAMBAH WORLD & KONTROL CONFIG -->
+        <!-- INPUT FORMS -->
         <div class="row mb-4">
+            <!-- TARGET GROWSCAN INPUT -->
             <div class="col-md-6">
                 <div class="card p-3">
-                    <h5>➕ Registrasi / Tambah World Science</h5>
-                    <form id="add-world-form" onsubmit="handleAddWorld(event)">
+                    <h5>🎯 Tambah World Target Growscan</h5>
+                    <form id="add-gs-form" onsubmit="handleAddGrowscanTarget(event)">
                         <div class="row g-2 mt-1">
-                            <div class="col-md-6">
-                                <input type="text" id="world-name" class="form-control bg-dark text-white border-secondary" placeholder="Nama World (e.g. SCIENCE1)" required>
+                            <div class="col-md-9">
+                                <input type="text" id="gs-world-name" class="form-control bg-dark text-white border-secondary" placeholder="Nama World Target (e.g. TARGETSCIENCE)" required>
                             </div>
-                            <div class="col-md-4">
-                                <input type="text" id="world-door" class="form-control bg-dark text-white border-secondary" placeholder="Door ID (Opsional)">
-                            </div>
-                            <div class="col-md-2">
-                                <button type="submit" class="btn btn-warning w-100">Tambah</button>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-info w-100">Set Target</button>
                             </div>
                         </div>
                     </form>
+                    <div id="gs-target-list" class="mt-2 text-muted small">Target Aktif: Loading...</div>
                 </div>
             </div>
+
+            <!-- KONTROL AUTO DISCONNECT -->
             <div class="col-md-6">
                 <div class="card p-3">
-                    <h5>⚙️ Mode Koneksi Bot</h5>
+                    <h5>⚙️ Pengaturan Auto Disconnect Bot</h5>
                     <div class="form-check form-switch mt-2">
                         <input class="form-check-input" type="checkbox" id="auto-connect-toggle" onchange="toggleAutoConnect(this.checked)">
-                        <label class="form-check-label text-white" for="auto-connect-toggle">Auto Disconnect jika bot di luar World (Lobby/Exit)</label>
+                        <label class="form-check-label text-white" for="auto-connect-toggle">Disconnect Otomatis Setelah SEMUA World Selesai Dipanen</label>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- METRIK RINGKASAN -->
+        <!-- METRIK RINGKASAN RINGKAS -->
         <div class="row text-center mb-4">
-            <div class="col-md-3">
+            <div class="col-md-6">
                 <div class="card p-3">
-                    <h5>Total World Dipantau</h5>
+                    <h5>World Dipantau (>10 SS)</h5>
                     <h2 id="total-worlds" class="text-info">0</h2>
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-6">
                 <div class="card p-3">
-                    <h5>Total Science Station</h5>
+                    <h5>Total Seluruh Science Station</h5>
                     <h2 id="total-ss" class="text-primary">0</h2>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card p-3">
-                    <h5>SS Ready</h5>
-                    <h2 id="ready-ss" class="text-success">0</h2>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card p-3">
-                    <h5>SS Cooldown</h5>
-                    <h2 id="cooldown-ss" class="text-warning">0</h2>
                 </div>
             </div>
         </div>
 
-        <!-- DAFTAR WORLD SCIENCE -->
+        <!-- TABEL INFORMASI WORLD + FITUR SEARCH BAR -->
         <div class="card p-3 mb-4">
-            <h4>📋 Informator Science & Log Panen Real-Time</h4>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0">📋 Informator World Science & Log Panen</h4>
+                <!-- FITUR CARI / SEARCH WORLD -->
+                <div style="width: 300px;">
+                    <input type="text" id="world-search-input" class="form-control bg-dark text-white border-secondary" placeholder="🔍 Cari Nama World..." onkeyup="filterWorldTable()">
+                </div>
+            </div>
             <div class="table-responsive">
-                <table class="table table-dark table-hover mt-3 align-middle">
+                <table class="table table-dark table-hover align-middle" id="world-table">
                     <thead>
                         <tr>
                             <th>Nama World</th>
-                            <th>Door ID</th>
                             <th>Total SS</th>
-                            <th>Status SS</th>
-                            <th>Mulai Panen (Punch SS 1)</th>
+                            <th>Mulai Panen (Punch 1)</th>
                             <th>Selesai Panen (SS Ujung)</th>
+                            <th>Status Sesi 12 Jam</th>
                             <th>Growscan Info</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="world-table-body">
-                        <tr><td colspan="8" class="text-center">Memuat Data World...</td></tr>
+                        <tr><td colspan="7" class="text-center">Memuat Data World...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
-        <!-- DAFTAR BOT MONITORING -->
+        <!-- TABEL BOT -->
         <div class="card p-3">
-            <h4>🤖 Status & Kontrol Bot In-World</h4>
+            <h4>🤖 Status Bot Monitoring</h4>
             <div class="table-responsive">
                 <table class="table table-dark table-striped mt-3">
                     <thead>
                         <tr>
                             <th>Nama Bot</th>
                             <th>World Aktif Saat Ini</th>
-                            <th>Status Bot</th>
+                            <th>Status Panen Semua World</th>
+                            <th>Status Re-Connect / Retry</th>
                             <th>Kontrol Bot</th>
                         </tr>
                     </thead>
                     <tbody id="bot-table-body">
-                        <tr><td colspan="4" class="text-center">Memuat Data Bot...</td></tr>
+                        <tr><td colspan="5" class="text-center">Memuat Data Bot...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -124,6 +117,7 @@
 
     <script>
         const FIREBASE_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
+        const SS_COOLDOWN_TIME = 43200; // 12 Jam Cooldown
 
         function formatTime(timestamp) {
             if (!timestamp || timestamp === 0) return "-";
@@ -131,37 +125,67 @@
             return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " WIB";
         }
 
+        // FITUR SEARCH BAR FILTER TABEL WORLD (REALTIME)
+        function filterWorldTable() {
+            const query = document.getElementById("world-search-input").value.toUpperCase();
+            const table = document.getElementById("world-table");
+            const trs = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < trs.length; i++) {
+                const tdName = trs[i].getElementsByTagName("td")[0];
+                if (tdName) {
+                    const txtValue = tdName.textContent || tdName.innerText;
+                    if (txtValue.toUpperCase().indexOf(query) > -1) {
+                        trs[i].style.display = "";
+                    } else {
+                        trs[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
         async function fetchDashboardData() {
             try {
-                // Auto Connect Config
                 const resConfig = await fetch(`${FIREBASE_URL}/config/auto_connect.json`);
                 const autoConnect = await resConfig.json();
                 document.getElementById("auto-connect-toggle").checked = (autoConnect !== false);
 
-                // Fetch World Data
+                const resGSTargets = await fetch(`${FIREBASE_URL}/growscan_targets.json`);
+                const gsTargets = await resGSTargets.json() || {};
+                const gsNames = Object.keys(gsTargets);
+                document.getElementById("gs-target-list").innerHTML = `Target Aktif: ${gsNames.length > 0 ? gsNames.map(n => `<span class="badge bg-info text-dark me-1">${n} <a href="#" onclick="removeGSTarget('${n}')" class="text-danger fw-bold ms-1" style="text-decoration:none;">×</a></span>`).join("") : '<em>Tidak ada target Growscan set.</em>'}`;
+
                 const resWorlds = await fetch(`${FIREBASE_URL}/worlds.json`);
                 const worldsData = await resWorlds.json() || {};
 
-                // Fetch Bot Data
                 const resBots = await fetch(`${FIREBASE_URL}/bots.json`);
                 const botsData = await resBots.json() || {};
 
-                let totalSSSum = 0, readySSSum = 0, cooldownSSSum = 0, worldCount = 0;
+                let totalSSSum = 0, worldCount = 0;
                 let worldRows = "";
+                const nowSec = Math.floor(Date.now() / 1000);
 
                 for (const [wName, wData] of Object.entries(worldsData)) {
-                    worldCount++;
                     const summary = wData.summary || {};
                     const totalSS = summary.total_ss || 0;
-                    const ready = summary.ready || 0;
-                    const cooldown = summary.cooldown || 0;
 
+                    if (totalSS <= 10) continue;
+
+                    worldCount++;
                     totalSSSum += totalSS;
-                    readySSSum += ready;
-                    cooldownSSSum += cooldown;
 
-                    // Growscan
-                    let growscanHTML = "<span class='text-muted'>Tidak ada player terdeteksi</span>";
+                    const finishTime = summary.finish_harvest_time || 0;
+                    let sessionStatusHTML = `<span class="badge bg-warning text-dark">Sedang Berlangsung / Pending</span>`;
+
+                    if (finishTime > 0) {
+                        if (nowSec - finishTime >= SS_COOLDOWN_TIME) {
+                            sessionStatusHTML = `<span class="badge bg-info">♻️ Siap Sesi Panen Baru</span>`;
+                        } else {
+                            sessionStatusHTML = `<span class="badge bg-success">✅ Selesai (Cooldown Active)</span>`;
+                        }
+                    }
+
+                    let growscanHTML = "<span class='text-muted'>-</span>";
                     if (wData.growscan && wData.growscan.items) {
                         const items = wData.growscan.items;
                         let itemDetails = [];
@@ -170,7 +194,7 @@
                         }
                         growscanHTML = `
                             <div class="growscan-box">
-                                <strong>⚠️ ${wData.growscan.triggered_by || 'Player Active'}</strong><br>
+                                <strong>⚠️ ${wData.growscan.triggered_by || 'Target Player Active'}</strong><br>
                                 <small>${itemDetails.slice(0, 4).join(" | ")}...</small><br>
                                 <small class="text-info">Di-scan: ${formatTime(wData.growscan.last_scan_time)}</small>
                             </div>
@@ -180,14 +204,10 @@
                     worldRows += `
                         <tr>
                             <td class="fw-bold text-warning">${wName}</td>
-                            <td>${wData.door_id || "-"}</td>
-                            <td><span class="badge bg-secondary">${totalSS}</span></td>
-                            <td>
-                                <span class="badge badge-ready">${ready} Ready</span>
-                                <span class="badge badge-cooldown">${cooldown} Cooldown</span>
-                            </td>
+                            <td><span class="badge bg-secondary">${totalSS} SS</span></td>
                             <td class="text-success">${formatTime(summary.start_harvest_time)}</td>
                             <td class="text-info">${formatTime(summary.finish_harvest_time)}</td>
+                            <td>${sessionStatusHTML}</td>
                             <td>${growscanHTML}</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-danger" onclick="deleteWorld('${wName}')">Hapus</button>
@@ -198,51 +218,67 @@
 
                 document.getElementById("total-worlds").innerText = worldCount;
                 document.getElementById("total-ss").innerText = totalSSSum;
-                document.getElementById("ready-ss").innerText = readySSSum;
-                document.getElementById("cooldown-ss").innerText = cooldownSSSum;
-                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="8" class="text-center">Belum ada world terdaftar.</td></tr>';
+                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="7" class="text-center">Belum ada world aktif (>10 SS). Masukkan bot ke world.</td></tr>';
 
-                // Bot Table
+                // Re-apply filter pencarian jika user sedang mengetik di search bar
+                filterWorldTable();
+
                 let botRows = "";
                 for (const [bName, bData] of Object.entries(botsData)) {
+                    const isDone = bData.harvest_done || bData.all_worlds_done;
+                    const statusBadge = isDone 
+                        ? `<span class="badge bg-success">Semua World Selesai</span>` 
+                        : `<span class="badge bg-warning text-dark">Dalam Proses Panen</span>`;
+                    
+                    const failCount = bData.fail_count || 0;
+                    let retryStatus = `<span class="badge bg-success">Normal</span>`;
+                    if (bData.control === "NEEDS_CONFIRM") {
+                        retryStatus = `<span class="badge bg-danger">⚠️ Gagal Connect 3x (Butuh Klik Online)</span>`;
+                    } else if (failCount > 0) {
+                        retryStatus = `<span class="badge bg-warning text-dark">Retry Gagal: ${failCount}/3</span>`;
+                    }
+
                     botRows += `
                         <tr>
                             <td class="fw-bold">${bName}</td>
-                            <td><span class="badge bg-warning text-dark">${bData.current_world || "-"}</span></td>
-                            <td><span class="badge bg-info">${bData.status || "Standby"}</span></td>
+                            <td><span class="badge bg-primary">${bData.current_world || "-"}</span></td>
+                            <td>${statusBadge}</td>
+                            <td>${retryStatus}</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-success" onclick="setBotControl('${bName}', 'ONLINE')">Connect</button>
+                                <button class="btn btn-sm btn-outline-success" onclick="setBotControl('${bName}', 'ONLINE')">Connect / Confirm</button>
                                 <button class="btn btn-sm btn-outline-danger" onclick="setBotControl('${bName}', 'OFFLINE')">Disconnect</button>
                             </td>
                         </tr>
                     `;
                 }
-                document.getElementById("bot-table-body").innerHTML = botRows || '<tr><td colspan="4" class="text-center">Belum ada bot aktif.</td></tr>';
+                document.getElementById("bot-table-body").innerHTML = botRows || '<tr><td colspan="5" class="text-center">Belum ada bot aktif.</td></tr>';
 
             } catch (err) {
                 console.error("Gagal mengambil data dari Firebase:", err);
             }
         }
 
-        async function handleAddWorld(e) {
+        async function handleAddGrowscanTarget(e) {
             e.preventDefault();
-            const wName = document.getElementById("world-name").value.trim().toUpperCase();
-            const wDoor = document.getElementById("world-door").value.trim();
-
+            const wName = document.getElementById("gs-world-name").value.trim().toUpperCase();
             if (!wName) return;
 
-            await fetch(`${FIREBASE_URL}/worlds/${wName}.json`, {
+            await fetch(`${FIREBASE_URL}/growscan_targets/${wName}.json`, {
                 method: 'PUT',
-                body: JSON.stringify({ door_id: wDoor, summary: { total_ss: 0, ready: 0, cooldown: 0 } })
+                body: JSON.stringify({ active: true, added_at: Date.now() })
             });
 
-            document.getElementById("world-name").value = "";
-            document.getElementById("world-door").value = "";
+            document.getElementById("gs-world-name").value = "";
+            fetchDashboardData();
+        }
+
+        async function removeGSTarget(wName) {
+            await fetch(`${FIREBASE_URL}/growscan_targets/${wName}.json`, { method: 'DELETE' });
             fetchDashboardData();
         }
 
         async function deleteWorld(worldName) {
-            if (confirm(`Yakin ingin menghapus world ${worldName}?`)) {
+            if (confirm(`Hapus log world ${worldName}?`)) {
                 await fetch(`${FIREBASE_URL}/worlds/${worldName}.json`, { method: 'DELETE' });
                 fetchDashboardData();
             }
