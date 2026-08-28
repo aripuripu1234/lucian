@@ -133,7 +133,6 @@
 
         async function loadConfig() {
             try {
-                // Storage config
                 const res = await fetch(`${DB_URL}/config/storage.json`);
                 const data = await res.json();
                 if (data) {
@@ -141,7 +140,6 @@
                     document.getElementById("storageDoor").value = data.door || "";
                 }
                 
-                // Work mode
                 const modeRes = await fetch(`${DB_URL}/config/mode.json`);
                 const modeData = await modeRes.json();
                 if (modeData) {
@@ -207,12 +205,12 @@
                 for (let name in data) {
                     const bot = data[name];
                     const lastActive = bot.last_active || 0;
-                    const isScriptRunning = (now - lastActive) < 60;
+                    const isScriptRunning = (now - lastActive) < 90;
 
-                    // OTOMATIS HAPUS DARI FIREBASE JIKA BOT BERHENTI/MATI LEBIH DARI 2 MENIT (120 DETIK)
-                    if ((now - lastActive) > 120) {
+                    // HAPUS OTOMATIS HANYA JIKA BOT MATI > 10 MENIT (600 DETIK)
+                    if ((now - lastActive) > 600) {
                         fetch(`${DB_URL}/bots/${name}.json`, { method: "DELETE" });
-                        continue; // Skip render
+                        continue;
                     }
 
                     renderedCount++;
@@ -232,7 +230,7 @@
                                 <button onclick="toggleAccountPower('${name}', '${controlState}')" class="btn ${controlState === 'ONLINE' ? 'btn-danger' : 'btn-success'} btn-sm py-0 fw-bold">
                                     ${controlState === 'ONLINE' ? 'OFFLINE-KAN AKUN' : 'ONLINE-KAN AKUN'}
                                 </button>
-                                <button onclick="deleteBotManual('${name}')" class="btn btn-outline-danger btn-sm py-0 ms-1">
+                                <button onclick="deleteBotManual('${name}')" class="btn btn-outline-danger btn-sm py-0 ms-1" title="Hapus Data">
                                     🗑️
                                 </button>
                             </td>
@@ -312,7 +310,6 @@
                         </div>`;
                 }
 
-                // Update UI Ringkasan Atas
                 document.getElementById("statTotalSS").innerText = globalSS;
                 document.getElementById("statReadySS").innerText = globalReady;
                 document.getElementById("statTotalChem").innerText = globalChem;
