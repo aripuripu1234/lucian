@@ -51,9 +51,9 @@
                     <h6 class="text-warning mb-2">⚙️ Mode Operasi Bot</h6>
                     <select id="workModeSelect" class="form-select form-select-sm bg-dark text-white border-secondary mb-2" onchange="updateWorkMode(this.value)">
                         <option value="HARVEST">🌾 Cek World & Panen Science</option>
-                        <option value="SCAN_ONLY">🔍 Cek World Saja (Tanpa Panen)</option>
+                        <option value="SCAN_ONLY">🔍 Cek World Saja (Tanpa Hit/Panen)</option>
                     </select>
-                    <small class="text-muted" style="font-size: 11px;">Mode ini berlaku untuk seluruh bot saat berkeliling ke target world.</small>
+                    <small class="text-muted" style="font-size: 11px;">Mode "Cek World Saja" tetap scan seluruh SS tapi tidak memukul/memanen.</small>
                 </div>
             </div>
         </div>
@@ -102,7 +102,7 @@
                                     <th>Username Akun</th>
                                     <th>World Aktif</th>
                                     <th>Status In-Game</th>
-                                    <th>Saklar Web</th>
+                                    <th>Status Saklar</th>
                                     <th>Aksi Kontrol</th>
                                 </tr>
                             </thead>
@@ -207,7 +207,6 @@
                     const lastActive = bot.last_active || 0;
                     const isScriptRunning = (now - lastActive) < 90;
 
-                    // HAPUS OTOMATIS HANYA JIKA BOT MATI > 10 MENIT (600 DETIK)
                     if ((now - lastActive) > 600) {
                         fetch(`${DB_URL}/bots/${name}.json`, { method: "DELETE" });
                         continue;
@@ -230,7 +229,7 @@
                                 <button onclick="toggleAccountPower('${name}', '${controlState}')" class="btn ${controlState === 'ONLINE' ? 'btn-danger' : 'btn-success'} btn-sm py-0 fw-bold">
                                     ${controlState === 'ONLINE' ? 'OFFLINE-KAN AKUN' : 'ONLINE-KAN AKUN'}
                                 </button>
-                                <button onclick="deleteBotManual('${name}')" class="btn btn-outline-danger btn-sm py-0 ms-1" title="Hapus Data">
+                                <button onclick="deleteBotManual('${name}')" class="btn btn-outline-danger btn-sm py-0 ms-1" title="Hapus Data Bot">
                                     🗑️
                                 </button>
                             </td>
