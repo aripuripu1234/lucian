@@ -249,6 +249,21 @@
         .badge { font-family:'IBM Plex Mono', monospace; font-weight: 500; padding: 5px 9px; }
         .badge.text-dark { color: inherit !important; }
 
+        /* Progress Bar UI Science */
+        .progress {
+            background-color: var(--panel-alt);
+            border: 1px solid var(--border);
+            height: 18px;
+            border-radius: 4px;
+        }
+        .progress-bar {
+            background-color: var(--signal);
+            color: #06231d;
+            font-weight: bold;
+            font-size: 0.72rem;
+            line-height: 18px;
+        }
+
         .growscan-box {
             background-color: var(--panel-alt);
             border-left: 3px solid var(--alert);
@@ -330,7 +345,7 @@
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="auto-connect-toggle" onchange="toggleAutoConnect(this.checked)">
                             <label class="form-check-label fw-bold" for="auto-connect-toggle">
-                                Auto-Connect / Disconnect Otomatis (ikut jumlah world ready)
+                                Auto-Connect / Disconnect Otomatis (ikut jumlah world ready 12 jam)
                             </label>
                         </div>
                         <button class="btn btn-danger btn-sm" onclick="deleteAllData()">
@@ -351,7 +366,7 @@
             </div>
             <div class="col-md-4">
                 <div class="card metric-card p-3">
-                    <h5>World Ready Dipanen</h5>
+                    <h5>World Ready Dipanen (12 Jam)</h5>
                     <h2 id="total-ready" class="text-warning">0</h2>
                 </div>
             </div>
@@ -374,7 +389,7 @@
                             <th>Nama World</th>
                             <th>Door ID</th>
                             <th>Item ID</th>
-                            <th>Status</th>
+                            <th>Status Cooldown</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
@@ -385,7 +400,7 @@
             </div>
         </div>
 
-        <!-- TABEL INFORMASI WORLD + FITUR SEARCH BAR -->
+        <!-- TABEL INFORMASI WORLD + FITUR SEARCH BAR & PROGRESS PERSEN -->
         <div class="card p-3 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div>
@@ -402,15 +417,17 @@
                         <tr>
                             <th>Nama World</th>
                             <th>Total SS</th>
+                            <th>Progress Panen (%)</th>
                             <th>Mulai Panen (Punch 1)</th>
                             <th>Selesai Panen (SS Ujung)</th>
                             <th>Status Sesi 12 Jam</th>
+                            <th>Bot Pemproses</th>
                             <th>Growscan Info</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="world-table-body">
-                        <tr><td colspan="7" class="text-center">Memuat Data World...</td></tr>
+                        <tr><td colspan="9" class="text-center">Memuat Data World...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -442,8 +459,7 @@
 
     <script>
         const FIREBASE_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
-        const SS_COOLDOWN_TIME = 43200; // 12 Jam Cooldown
-        const FARM_PRE_ADD_SEC = 300;   // 5 Menit sebelum siap
+        const SS_COOLDOWN_TIME = 43200; // Strictly 12 Jam Cooldown
 
         function formatTime(timestamp) {
             if (!timestamp || timestamp === 0) return "-";
@@ -500,11 +516,8 @@
                     if (finishTime > 0) {
                         const remaining = SS_COOLDOWN_TIME - (nowSec - finishTime);
                         if (remaining <= 0) {
-                            statusHTML = `<span class="badge bg-info">♻️ Ready (Cooldown Selesai)</span>`;
+                            statusHTML = `<span class="badge bg-info">♻️ Ready (12 Jam Met)</span>`;
                             isReady = true;
-                        } else if (remaining <= FARM_PRE_ADD_SEC) {
-                            statusHTML = `<span class="badge bg-warning text-dark">⏳ Segera Ready (&lt; 5 menit)</span>`;
-                            isReady = false;
                         } else {
                             const mins = Math.ceil(remaining / 60);
                             statusHTML = `<span class="badge bg-secondary">🕒 Cooldown (~${mins} menit lagi)</span>`;
@@ -527,7 +540,7 @@
                 document.getElementById("pool-table-body").innerHTML = poolRows || '<tr><td colspan="5" class="text-center">World Pool masih kosong. Tambahkan lewat form di atas.</td></tr>';
                 document.getElementById("total-ready").innerText = readyCount;
 
-                // --- TABEL WORLD LOG ---
+                // --- TABEL WORLD LOG WITH PROGRESS PERCENTAGE ---
                 let totalSSSum = 0, worldCount = 0;
                 let worldRows = "";
 
@@ -542,11 +555,14 @@
                     totalSSSum += totalSS;
 
                     const finishTime = summary.finish_harvest_time || 0;
+                    const progressPct = summary.harvest_progress || 0;
+                    const claimedBy = summary.claimed_by || summary.last_bot || "-";
+
                     let sessionStatusHTML = `<span class="badge bg-warning text-dark">Sedang Berlangsung / Pending</span>`;
 
                     if (finishTime > 0) {
                         if (nowSec - finishTime >= SS_COOLDOWN_TIME) {
-                            sessionStatusHTML = `<span class="badge bg-info">♻️ Siap Sesi Panen Baru</span>`;
+                            sessionStatusHTML = `<span class="badge bg-info">♻️ Siap Sesi Panen Baru (12h)</span>`;
                         } else {
                             sessionStatusHTML = `<span class="badge bg-success">✅ Selesai (Cooldown Active)</span>`;
                         }
@@ -572,9 +588,15 @@
                         <tr>
                             <td class="fw-bold text-warning">${wName}</td>
                             <td><span class="badge bg-secondary">${totalSS} SS</span></td>
+                            <td style="min-width: 150px;">
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" style="width: ${progressPct}%;">${progressPct}%</div>
+                                </div>
+                            </td>
                             <td class="text-success">${formatTime(summary.start_harvest_time)}</td>
                             <td class="text-info">${formatTime(summary.finish_harvest_time)}</td>
                             <td>${sessionStatusHTML}</td>
+                            <td><span class="badge bg-primary">${claimedBy}</span></td>
                             <td>${growscanHTML}</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-danger" onclick="deleteWorld('${wName}')">Hapus World</button>
@@ -585,7 +607,7 @@
 
                 document.getElementById("total-worlds").innerText = worldCount;
                 document.getElementById("total-ss").innerText = totalSSSum;
-                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="7" class="text-center">Belum ada world aktif (>10 SS). Masukkan bot ke world.</td></tr>';
+                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="9" class="text-center">Belum ada world aktif (>10 SS). Masukkan bot ke world.</td></tr>';
 
                 filterWorldTable();
 
@@ -706,8 +728,6 @@
             }
         }
 
-        // "AUTO" akan MENGHAPUS field control (PATCH null = Firebase menghapus key itu),
-        // supaya bot balik mengikuti hasil assignment World Manager (auto connect/disconnect).
         async function setBotControl(botName, status) {
             const value = (status === 'AUTO') ? null : status;
             await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
