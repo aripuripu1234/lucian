@@ -437,7 +437,7 @@
         <div class="card p-3">
             <span class="panel-label mb-0">Fleet Status</span>
             <h4>🤖 Status Bot Monitoring</h4>
-            <p class="text-muted small mb-2">Mode <strong>Auto</strong> = bot ikut assignment World Manager (connect kalau kebagian world, disconnect kalau tidak). Connect/Disconnect manual akan meng-override mode Auto.</p>
+            <p class="text-muted small mb-2">Mode <strong>Auto</strong> = bot ikut assignment World Manager (connect kalau kebagian world, disconnect kalau tidak). Connect/Disconnect manual akan meng-override mode Auto. Tombol <strong>Hapus Akun</strong> akan menghapus akun/bot ini secara permanen dari daftar.</p>
             <div class="table-responsive">
                 <table class="table table-dark table-striped mt-3 align-middle">
                     <thead>
@@ -447,10 +447,11 @@
                             <th>Kebagian World?</th>
                             <th>Status Re-Connect / Retry</th>
                             <th>Aksi Koneksi Bot</th>
+                            <th>Aksi Akun</th>
                         </tr>
                     </thead>
                     <tbody id="bot-table-body">
-                        <tr><td colspan="5" class="text-center">Memuat Data Bot...</td></tr>
+                        <tr><td colspan="6" class="text-center">Memuat Data Bot...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -651,10 +652,13 @@
                                     </button>
                                 </div>
                             </td>
+                            <td>
+                                <button class="btn btn-sm btn-danger" onclick="deleteBotAccount('${bName}')">🗑️ Hapus Akun</button>
+                            </td>
                         </tr>
                     `;
                 }
-                document.getElementById("bot-table-body").innerHTML = botRows || '<tr><td colspan="5" class="text-center">Belum ada bot aktif.</td></tr>';
+                document.getElementById("bot-table-body").innerHTML = botRows || '<tr><td colspan="6" class="text-center">Belum ada bot aktif.</td></tr>';
 
             } catch (err) {
                 console.error("Gagal mengambil data dari Firebase:", err);
@@ -735,6 +739,19 @@
                 body: JSON.stringify({ control: value })
             });
             fetchDashboardData();
+        }
+
+        // HAPUS AKUN / BOT SECARA PERMANEN
+        async function deleteBotAccount(botName) {
+            if (confirm(`⚠️ Hapus akun/bot "${botName}" secara PERMANEN dari daftar?\n\nAkun ini akan hilang dari monitoring dan tidak akan otomatis di-assign world lagi.`)) {
+                try {
+                    await fetch(`${FIREBASE_URL}/bots/${botName}.json`, { method: 'DELETE' });
+                    fetchDashboardData();
+                } catch (err) {
+                    alert("Gagal menghapus akun. Coba lagi.");
+                    console.error(err);
+                }
+            }
         }
 
         async function toggleAutoConnect(enabled) {
