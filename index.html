@@ -591,6 +591,35 @@
                         }
                     }
 
+                    // [FIX] SEBELUMNYA: status "Ready" cuma dilihat dari finish_harvest_time,
+                    // tidak peduli apakah world SEDANG diklaim/dipanen bot lain saat ini juga
+                    // (claimed_by kosong atau tidak). Akibatnya, begitu sebuah world berhasil
+                    // diklaim lewat manual_add_requests (request-nya dihapus krn sudah diambil
+                    // bot), tapi finish_harvest_time-nya masih 0 (belum pernah selesai dipanen),
+                    // tombol "▶️ Add ke Antrian" muncul LAGI di sini seolah-olah world itu masih
+                    // nganggur -- padahal ada bot yang sedang aktif motongnya. Kalau diklik lagi,
+                    // bot LAIN yang nganggur bisa ikut ngerebut world yang sama (claimWorldSafely
+                    // di script cuma overwrite, tidak cek dulu apakah masih dipegang bot lain
+                    // yang masih aktif) -> 2 bot rebutan 1 world, world lain jadi ke-skip, dan
+                    // jumlah world yang benar2 nyantol di tabel app jadi kelihatan "random".
+                    //
+                    // Sekarang: kalau claimed_by terisi DAN last_scan masih fresh (<30 detik,
+                    // artinya memang lagi aktif dipantau bot itu), world dianggap SEDANG
+                    // DIPANEN -> tombol Add disembunyikan & tidak dihitung "ready" lagi.
+                    // Kalau claimed_by terisi tapi last_scan sudah basi/tidak ada (kemungkinan
+                    // claim nyangkut/orphan, misal bot crash sebelum sempat masuk world), world
+                    // tetap ditampilkan bisa direbut ulang supaya tidak permanen macet.
+                    const claimedBy = summary.claimed_by || "";
+                    const lastScan = summary.last_scan || 0;
+                    const claimIsLive = claimedBy !== "" && (nowSec - lastScan) < 30;
+
+                    if (claimIsLive) {
+                        statusHTML = `<span class="badge bg-primary">🤖 Sedang Dipanen (${claimedBy})</span>`;
+                        isReady = false;
+                    } else if (claimedBy !== "") {
+                        statusHTML += ` <span class="badge bg-warning text-dark" title="claimed_by masih terisi tapi tidak ada aktivitas terbaru">⚠️ Claim nyangkut, bisa direbut</span>`;
+                    }
+
                     if (isReady) readyCount++;
 
                     // BARU: tombol/badge tambah manual ke antrian, menggantikan sistem
