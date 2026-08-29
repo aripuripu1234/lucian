@@ -141,7 +141,7 @@
         }
 
         /* ---------- Form controls ---------- */
-        .form-control {
+        .form-control, textarea.form-control {
             background: var(--panel-alt) !important;
             border: 1px solid var(--border) !important;
             color: var(--text) !important;
@@ -179,6 +179,9 @@
         .btn-outline-success { color: var(--signal); border-color: var(--signal); }
         .btn-outline-success:hover { background: var(--signal); color:#06231d; }
 
+        .btn-outline-secondary { color: var(--muted); border-color: var(--border); }
+        .btn-outline-secondary:hover { background: var(--border); color: var(--text); }
+
         .form-check-input {
             background-color: var(--panel-alt);
             border-color: var(--border);
@@ -204,6 +207,7 @@
         }
         .metric-card .h2.text-info { color: var(--signal) !important; }
         .metric-card .h2.text-primary { color: var(--info) !important; }
+        .metric-card .h2.text-warning { color: var(--alert) !important; }
 
         /* ---------- Tables ---------- */
         .table-dark {
@@ -282,6 +286,20 @@
 
         <!-- INPUT FORMS & PENGATURAN GLOBAL -->
         <div class="row mb-4">
+            <!-- WORLD POOL BULK ADD -->
+            <div class="col-md-7">
+                <div class="card hud p-3">
+                    <span class="panel-label">World Pool</span>
+                    <h5>🌍 Tambah World ke Pool (Bisa Banyak Sekaligus)</h5>
+                    <p class="text-muted small mb-2">Satu baris satu world. Format: <code>NAMA_WORLD:ID_DOOR:ID_ITEM</code></p>
+                    <form id="add-pool-form" onsubmit="handleAddWorldPool(event)">
+                        <textarea id="pool-bulk-input" class="form-control mb-2" rows="4"
+                            placeholder="SAKINATA05:KW33:928&#10;SAKINATA06:KW33:928&#10;COBATAKA02:KW33:928"></textarea>
+                        <button type="submit" class="btn btn-info">➕ Tambahkan Semua ke Pool</button>
+                    </form>
+                </div>
+            </div>
+
             <!-- TARGET GROWSCAN INPUT -->
             <div class="col-md-5">
                 <div class="card hud p-3">
@@ -290,7 +308,7 @@
                     <form id="add-gs-form" onsubmit="handleAddGrowscanTarget(event)">
                         <div class="row g-2 mt-1">
                             <div class="col-md-8">
-                                <input type="text" id="gs-world-name" class="form-control" placeholder="Nama World Target (e.g. TARGETSCIENCE)" required>
+                                <input type="text" id="gs-world-name" class="form-control" placeholder="Nama World Target" required>
                             </div>
                             <div class="col-md-4">
                                 <button type="submit" class="btn btn-info w-100">Set Target</button>
@@ -300,22 +318,21 @@
                     <div id="gs-target-list" class="mt-3 text-muted small">Target Aktif: Loading...</div>
                 </div>
             </div>
+        </div>
 
+        <div class="row mb-4">
             <!-- KONTROL AUTO CONNECT GLOBAL & RESET DATA MASSAL -->
-            <div class="col-md-7">
+            <div class="col-md-12">
                 <div class="card hud p-3">
                     <span class="panel-label">System Control</span>
                     <h5>⚙️ Pengaturan Global &amp; Reset Data</h5>
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3">
-                        <!-- TOGGLE AUTO CONNECT GLOBAL -->
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="auto-connect-toggle" onchange="toggleAutoConnect(this.checked)">
                             <label class="form-check-label fw-bold" for="auto-connect-toggle">
-                                Auto-Connect / Disconnect Sesi Automatic Mode
+                                Auto-Connect / Disconnect Otomatis (ikut jumlah world ready)
                             </label>
                         </div>
-
-                        <!-- TOMBOL HAPUS SELURUH DATA WAKTU & SCIENCE -->
                         <button class="btn btn-danger btn-sm" onclick="deleteAllData()">
                             🔥 Hapus Semua Data Panen &amp; World
                         </button>
@@ -326,17 +343,45 @@
 
         <!-- METRIK RINGKASAN -->
         <div class="row text-center mb-4">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <div class="card metric-card p-3">
                     <h5>World Dipantau (&gt;10 SS)</h5>
                     <h2 id="total-worlds" class="text-info">0</h2>
                 </div>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-4">
+                <div class="card metric-card p-3">
+                    <h5>World Ready Dipanen</h5>
+                    <h2 id="total-ready" class="text-warning">0</h2>
+                </div>
+            </div>
+            <div class="col-md-4">
                 <div class="card metric-card p-3">
                     <h5>Total Seluruh Science Station</h5>
                     <h2 id="total-ss" class="text-primary">0</h2>
                 </div>
+            </div>
+        </div>
+
+        <!-- TABEL WORLD POOL (MASTER LIST) -->
+        <div class="card p-3 mb-4">
+            <span class="panel-label mb-0">World Pool</span>
+            <h4 class="mb-3">🗺️ Master List World Pool</h4>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>Nama World</th>
+                            <th>Door ID</th>
+                            <th>Item ID</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pool-table-body">
+                        <tr><td colspan="5" class="text-center">Memuat Data World Pool...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
@@ -347,7 +392,6 @@
                     <span class="panel-label mb-0">World Log</span>
                     <h4 class="mb-0">📋 Informator World Science &amp; Log Panen</h4>
                 </div>
-                <!-- FITUR CARI / SEARCH WORLD -->
                 <div style="width: 300px;">
                     <input type="text" id="world-search-input" class="form-control" placeholder="🔍 Cari Nama World..." onkeyup="filterWorldTable()">
                 </div>
@@ -376,13 +420,14 @@
         <div class="card p-3">
             <span class="panel-label mb-0">Fleet Status</span>
             <h4>🤖 Status Bot Monitoring</h4>
+            <p class="text-muted small mb-2">Mode <strong>Auto</strong> = bot ikut assignment World Manager (connect kalau kebagian world, disconnect kalau tidak). Connect/Disconnect manual akan meng-override mode Auto.</p>
             <div class="table-responsive">
                 <table class="table table-dark table-striped mt-3 align-middle">
                     <thead>
                         <tr>
                             <th>Nama Bot</th>
                             <th>World Aktif Saat Ini</th>
-                            <th>Status Panen Semua World</th>
+                            <th>Kebagian World?</th>
                             <th>Status Re-Connect / Retry</th>
                             <th>Aksi Koneksi Bot</th>
                         </tr>
@@ -398,6 +443,7 @@
     <script>
         const FIREBASE_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
         const SS_COOLDOWN_TIME = 43200; // 12 Jam Cooldown
+        const FARM_PRE_ADD_SEC = 300;   // 5 Menit sebelum siap
 
         function formatTime(timestamp) {
             if (!timestamp || timestamp === 0) return "-";
@@ -405,7 +451,6 @@
             return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " WIB";
         }
 
-        // FILTER TABEL WORLD DENGAN SEARCH BAR
         function filterWorldTable() {
             const query = document.getElementById("world-search-input").value.toUpperCase();
             const table = document.getElementById("world-table");
@@ -415,11 +460,7 @@
                 const tdName = trs[i].getElementsByTagName("td")[0];
                 if (tdName) {
                     const txtValue = tdName.textContent || tdName.innerText;
-                    if (txtValue.toUpperCase().indexOf(query) > -1) {
-                        trs[i].style.display = "";
-                    } else {
-                        trs[i].style.display = "none";
-                    }
+                    trs[i].style.display = (txtValue.toUpperCase().indexOf(query) > -1) ? "" : "none";
                 }
             }
         }
@@ -435,17 +476,61 @@
                 const gsNames = Object.keys(gsTargets);
                 document.getElementById("gs-target-list").innerHTML = `Target Aktif: ${gsNames.length > 0 ? gsNames.map(n => `<span class="badge bg-info text-dark me-1">${n} <a href="#" onclick="removeGSTarget('${n}')" class="text-danger fw-bold ms-1" style="text-decoration:none;">×</a></span>`).join("") : '<em>Tidak ada target Growscan set.</em>'}`;
 
+                const resPool = await fetch(`${FIREBASE_URL}/world_pool.json`);
+                const poolData = await resPool.json() || {};
+
                 const resWorlds = await fetch(`${FIREBASE_URL}/worlds.json`);
                 const worldsData = await resWorlds.json() || {};
 
                 const resBots = await fetch(`${FIREBASE_URL}/bots.json`);
                 const botsData = await resBots.json() || {};
 
-                let totalSSSum = 0, worldCount = 0;
-                let worldRows = "";
                 const nowSec = Math.floor(Date.now() / 1000);
 
-                // ITERASI BERDASARKAN UNIQ KEY WORLD NAME (PENJAMIN ANTI-DUPLIKASI)
+                // --- TABEL WORLD POOL ---
+                let poolRows = "";
+                let readyCount = 0;
+                for (const [wName, wInfo] of Object.entries(poolData)) {
+                    const summary = (worldsData[wName] && worldsData[wName].summary) || {};
+                    const finishTime = summary.finish_harvest_time || 0;
+
+                    let statusHTML = `<span class="badge bg-info">♻️ Belum Pernah Dipanen (Ready)</span>`;
+                    let isReady = true;
+
+                    if (finishTime > 0) {
+                        const remaining = SS_COOLDOWN_TIME - (nowSec - finishTime);
+                        if (remaining <= 0) {
+                            statusHTML = `<span class="badge bg-info">♻️ Ready (Cooldown Selesai)</span>`;
+                            isReady = true;
+                        } else if (remaining <= FARM_PRE_ADD_SEC) {
+                            statusHTML = `<span class="badge bg-warning text-dark">⏳ Segera Ready (&lt; 5 menit)</span>`;
+                            isReady = false;
+                        } else {
+                            const mins = Math.ceil(remaining / 60);
+                            statusHTML = `<span class="badge bg-secondary">🕒 Cooldown (~${mins} menit lagi)</span>`;
+                            isReady = false;
+                        }
+                    }
+
+                    if (isReady) readyCount++;
+
+                    poolRows += `
+                        <tr>
+                            <td class="fw-bold">${wName}</td>
+                            <td>${wInfo.door_id || "-"}</td>
+                            <td>${wInfo.item_id || "-"}</td>
+                            <td>${statusHTML}</td>
+                            <td><button class="btn btn-sm btn-outline-danger" onclick="removePoolWorld('${wName}')">Hapus dari Pool</button></td>
+                        </tr>
+                    `;
+                }
+                document.getElementById("pool-table-body").innerHTML = poolRows || '<tr><td colspan="5" class="text-center">World Pool masih kosong. Tambahkan lewat form di atas.</td></tr>';
+                document.getElementById("total-ready").innerText = readyCount;
+
+                // --- TABEL WORLD LOG ---
+                let totalSSSum = 0, worldCount = 0;
+                let worldRows = "";
+
                 for (const [rawWName, wData] of Object.entries(worldsData)) {
                     const wName = rawWName.trim().toUpperCase();
                     const summary = wData.summary || {};
@@ -504,12 +589,13 @@
 
                 filterWorldTable();
 
+                // --- TABEL BOT ---
                 let botRows = "";
                 for (const [bName, bData] of Object.entries(botsData)) {
-                    const isDone = bData.harvest_done || bData.all_worlds_done;
-                    const statusBadge = isDone
-                        ? `<span class="badge bg-success">Semua World Selesai</span>`
-                        : `<span class="badge bg-warning text-dark">Dalam Proses Panen</span>`;
+                    const hasFarm = !!bData.has_farm;
+                    const farmBadge = hasFarm
+                        ? `<span class="badge bg-success">✅ Kebagian World</span>`
+                        : `<span class="badge bg-secondary">⏸️ Tidak Kebagian</span>`;
 
                     const failCount = bData.fail_count || 0;
                     let retryStatus = `<span class="badge bg-success">Normal</span>`;
@@ -519,20 +605,26 @@
                         retryStatus = `<span class="badge bg-warning text-dark">Retry Gagal: ${failCount}/3</span>`;
                     }
 
-                    const isOnlineControl = bData.control === "ONLINE";
+                    const control = bData.control || null;
+                    const isOnlineManual = control === "ONLINE";
+                    const isOfflineManual = control === "OFFLINE";
+                    const isAuto = !isOnlineManual && !isOfflineManual;
 
                     botRows += `
                         <tr>
                             <td class="fw-bold">${bName}</td>
                             <td><span class="badge bg-primary">${bData.current_world || "-"}</span></td>
-                            <td>${statusBadge}</td>
+                            <td>${farmBadge}</td>
                             <td>${retryStatus}</td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <button class="btn btn-sm ${isOnlineControl ? 'btn-success' : 'btn-outline-success'}" onclick="setBotControl('${bName}', 'ONLINE')">
+                                    <button class="btn btn-sm ${isAuto ? 'btn-success' : 'btn-outline-success'}" onclick="setBotControl('${bName}', 'AUTO')">
+                                        🔄 Auto
+                                    </button>
+                                    <button class="btn btn-sm ${isOnlineManual ? 'btn-info' : 'btn-outline-secondary'}" onclick="setBotControl('${bName}', 'ONLINE')">
                                         🟢 Connect
                                     </button>
-                                    <button class="btn btn-sm ${!isOnlineControl ? 'btn-danger' : 'btn-outline-danger'}" onclick="setBotControl('${bName}', 'OFFLINE')">
+                                    <button class="btn btn-sm ${isOfflineManual ? 'btn-danger' : 'btn-outline-danger'}" onclick="setBotControl('${bName}', 'OFFLINE')">
                                         🔴 Disconnect
                                     </button>
                                 </div>
@@ -544,6 +636,38 @@
 
             } catch (err) {
                 console.error("Gagal mengambil data dari Firebase:", err);
+            }
+        }
+
+        // TAMBAH WORLD MASSAL KE POOL
+        async function handleAddWorldPool(e) {
+            e.preventDefault();
+            const raw = document.getElementById("pool-bulk-input").value;
+            const lines = raw.split("\n").map(l => l.trim()).filter(l => l.length > 0);
+
+            for (const line of lines) {
+                const parts = line.split(":");
+                if (parts.length < 3) continue;
+
+                const wName = parts[0].replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+                const doorId = parts[1].trim();
+                const itemId = parseInt(parts[2].trim(), 10) || 0;
+                if (!wName) continue;
+
+                await fetch(`${FIREBASE_URL}/world_pool/${wName}.json`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ door_id: doorId, item_id: itemId, added_time: Date.now() })
+                });
+            }
+
+            document.getElementById("pool-bulk-input").value = "";
+            fetchDashboardData();
+        }
+
+        async function removePoolWorld(wName) {
+            if (confirm(`Hapus ${wName} dari World Pool? (Log panen di World Log tidak ikut terhapus)`)) {
+                await fetch(`${FIREBASE_URL}/world_pool/${wName}.json`, { method: 'DELETE' });
+                fetchDashboardData();
             }
         }
 
@@ -567,7 +691,6 @@
             fetchDashboardData();
         }
 
-        // HAPUS SATU WORLD
         async function deleteWorld(worldName) {
             if (confirm(`Hapus log world ${worldName}?`)) {
                 await fetch(`${FIREBASE_URL}/worlds/${worldName}.json`, { method: 'DELETE' });
@@ -575,7 +698,6 @@
             }
         }
 
-        // HAPUS SELURUH DATA WAKTU DAN WORLD SCIENCE (MASS RESET)
         async function deleteAllData() {
             if (confirm("⚠️ Apakah Anda yakin ingin MENGHAPUS SEMUA DATA WAKTU DAN LOG SCIENCE WORLD?\n\nTindakan ini akan mengosongkan seluruh histori panen!")) {
                 await fetch(`${FIREBASE_URL}/worlds.json`, { method: 'DELETE' });
@@ -584,10 +706,13 @@
             }
         }
 
+        // "AUTO" akan MENGHAPUS field control (PATCH null = Firebase menghapus key itu),
+        // supaya bot balik mengikuti hasil assignment World Manager (auto connect/disconnect).
         async function setBotControl(botName, status) {
+            const value = (status === 'AUTO') ? null : status;
             await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
                 method: 'PATCH',
-                body: JSON.stringify({ control: status })
+                body: JSON.stringify({ control: value })
             });
             fetchDashboardData();
         }
