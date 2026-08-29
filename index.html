@@ -410,12 +410,24 @@
 
         <!-- TABEL WORLD POOL (MASTER LIST) -->
         <div class="card p-3 mb-4">
-            <span class="panel-label mb-0">World Pool</span>
-            <h4 class="mb-3">🗺️ Master List World Pool</h4>
+            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                <div>
+                    <span class="panel-label mb-0">World Pool</span>
+                    <h4 class="mb-0">🗺️ Master List World Pool</h4>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <span id="pool-selected-count" class="text-muted small mono">0 dipilih</span>
+                    <button class="btn btn-sm btn-outline-info" onclick="selectAllReadyWorlds()">☑️ Pilih Semua Ready</button>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="clearSelectedWorlds()">✖️ Kosongkan Pilihan</button>
+                    <button class="btn btn-sm btn-success" onclick="addSelectedWorldsToQueue()">▶️ Tambah yang Dipilih ke Antrian</button>
+                </div>
+            </div>
+            <p class="text-muted small mb-2">Checklist beberapa world sekaligus (atau pakai "Pilih Semua Ready") lalu klik "Tambah yang Dipilih" -- semua world terpilih masuk antrian manual dalam satu kali kirim. Bot yang lagi nganggur akan otomatis ambil satu-satu dari antrian ini sesuai jumlah bot yang aktif.</p>
             <div class="table-responsive">
                 <table class="table table-dark table-hover align-middle">
                     <thead>
                         <tr>
+                            <th style="width:36px;"><input type="checkbox" class="form-check-input" id="pool-select-all-checkbox" onchange="toggleSelectAllCheckbox(this.checked)" title="Pilih semua world yang sedang ready"></th>
                             <th>Nama World</th>
                             <th>Door ID</th>
                             <th>Item ID</th>
@@ -425,7 +437,7 @@
                         </tr>
                     </thead>
                     <tbody id="pool-table-body">
-                        <tr><td colspan="6" class="text-center">Memuat Data World Pool...</td></tr>
+                        <tr><td colspan="7" class="text-center">Memuat Data World Pool...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -493,6 +505,11 @@
         const FIREBASE_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
         const SS_COOLDOWN_TIME = 43200; // Strictly 12 Jam Cooldown
 
+        // BARU: nama-nama world yang lagi dicentang utk tambah massal ke antrian.
+        // Disimpan terpisah dari DOM karena tabel di-render ulang tiap 3 detik
+        // (biar checklist tidak kereset pas auto-refresh).
+        const selectedWorldsForQueue = new Set();
+
         function formatTime(timestamp) {
             if (!timestamp || timestamp === 0) return "-";
             const date = new Date(timestamp * 1000);
@@ -554,6 +571,7 @@
                 // --- TABEL WORLD POOL ---
                 let poolRows = "";
                 let readyCount = 0;
+                const currentlySelectableWorlds = new Set(); // world ready & belum diantrikan manual, boleh dicentang
                 for (const [wName, wInfo] of Object.entries(poolData)) {
                     const summary = (worldsData[wName] && worldsData[wName].summary) || {};
                     const finishTime = summary.finish_harvest_time || 0;
@@ -587,8 +605,17 @@
                         addActionHTML = `<span class="text-muted">-</span>`;
                     }
 
+                    // BARU: checkbox bulk-select -- cuma bisa dicentang kalau world ready
+                    // & belum ada di antrian manual. State-nya dijaga lewat selectedWorldsForQueue
+                    // supaya tidak kereset tiap auto-refresh 3 detik.
+                    const canSelect = isReady && !isQueuedManual;
+                    if (canSelect) currentlySelectableWorlds.add(wName);
+                    const isChecked = canSelect && selectedWorldsForQueue.has(wName);
+                    const checkboxHTML = `<input type="checkbox" class="form-check-input" ${canSelect ? "" : "disabled"} ${isChecked ? "checked" : ""} onchange="toggleWorldSelection('${wName}', this.checked)">`;
+
                     poolRows += `
                         <tr>
+                            <td>${checkboxHTML}</td>
                             <td class="fw-bold">${wName}</td>
                             <td>${wInfo.door_id || "-"}</td>
                             <td>${wInfo.item_id || "-"}</td>
@@ -598,8 +625,18 @@
                         </tr>
                     `;
                 }
-                document.getElementById("pool-table-body").innerHTML = poolRows || '<tr><td colspan="6" class="text-center">World Pool masih kosong. Tambahkan lewat form di atas.</td></tr>';
+                document.getElementById("pool-table-body").innerHTML = poolRows || '<tr><td colspan="7" class="text-center">World Pool masih kosong. Tambahkan lewat form di atas.</td></tr>';
                 document.getElementById("total-ready").innerText = readyCount;
+
+                // BARU: buang dari Set world yang sudah tidak lagi bisa dipilih (misalnya
+                // sudah masuk antrian manual dari device lain, sudah cooldown lagi, atau
+                // sudah dihapus dari pool) supaya jumlah "dipilih" tetap akurat.
+                for (const wName of [...selectedWorldsForQueue]) {
+                    if (!currentlySelectableWorlds.has(wName)) selectedWorldsForQueue.delete(wName);
+                }
+                document.getElementById("pool-selected-count").innerText = `${selectedWorldsForQueue.size} dipilih`;
+                document.getElementById("pool-select-all-checkbox").checked =
+                    currentlySelectableWorlds.size > 0 && selectedWorldsForQueue.size === currentlySelectableWorlds.size;
 
                 // BARU: ringkasan antrian manual yang masih pending diambil bot
                 const manualQueueNames = Object.keys(manualQueueData);
@@ -880,6 +917,76 @@
         // Batalkan permintaan tambah manual yang belum sempat diambil bot.
         async function cancelManualAdd(wName) {
             await fetch(`${FIREBASE_URL}/manual_add_requests/${wName}.json`, { method: 'DELETE' });
+            fetchDashboardData();
+        }
+
+        // BARU: toggle centang satu world di tabel World Pool (dipakai buat tambah massal).
+        function toggleWorldSelection(wName, checked) {
+            if (checked) {
+                selectedWorldsForQueue.add(wName);
+            } else {
+                selectedWorldsForQueue.delete(wName);
+            }
+            document.getElementById("pool-selected-count").innerText = `${selectedWorldsForQueue.size} dipilih`;
+        }
+
+        // BARU: centang/un-centang semua checkbox lewat checkbox di header tabel.
+        function toggleSelectAllCheckbox(checked) {
+            if (checked) {
+                selectAllReadyWorlds();
+            } else {
+                clearSelectedWorlds();
+            }
+        }
+
+        // BARU: pilih semua world yang statusnya lagi READY & belum di antrian manual.
+        function selectAllReadyWorlds() {
+            document.querySelectorAll('#pool-table-body input[type="checkbox"]:not(:disabled)').forEach(cb => {
+                cb.checked = true;
+            });
+            document.querySelectorAll('#pool-table-body tr').forEach(tr => {
+                const cb = tr.querySelector('input[type="checkbox"]');
+                const nameCell = tr.querySelectorAll('td')[1];
+                if (cb && !cb.disabled && nameCell) {
+                    selectedWorldsForQueue.add(nameCell.textContent.trim());
+                }
+            });
+            document.getElementById("pool-selected-count").innerText = `${selectedWorldsForQueue.size} dipilih`;
+            document.getElementById("pool-select-all-checkbox").checked = selectedWorldsForQueue.size > 0;
+        }
+
+        // BARU: kosongkan semua pilihan checkbox.
+        function clearSelectedWorlds() {
+            selectedWorldsForQueue.clear();
+            document.querySelectorAll('#pool-table-body input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+            document.getElementById("pool-selected-count").innerText = "0 dipilih";
+            document.getElementById("pool-select-all-checkbox").checked = false;
+        }
+
+        // BARU: kirim SEMUA world yang dicentang ke antrian manual sekaligus, dalam
+        // SATU request pakai Firebase multi-location update (PATCH ke root ".json"
+        // dengan banyak path sebagai key) -- jadi bukan tambah satu-satu lagi.
+        // Bot-bot yang lagi nganggur akan otomatis ambil satu per satu dari antrian
+        // ini sesuai jumlah bot yang aktif saat itu.
+        async function addSelectedWorldsToQueue() {
+            const selected = [...selectedWorldsForQueue];
+            if (selected.length === 0) {
+                alert("Belum ada world yang dicentang. Centang dulu world yang mau ditambahkan, atau pakai \"Pilih Semua Ready\".");
+                return;
+            }
+
+            const updates = {};
+            const requestedAt = Date.now();
+            for (const wName of selected) {
+                updates[`manual_add_requests/${wName}`] = { requested_at: requestedAt };
+            }
+
+            await fetch(`${FIREBASE_URL}/.json`, {
+                method: 'PATCH',
+                body: JSON.stringify(updates)
+            });
+
+            selectedWorldsForQueue.clear();
             fetchDashboardData();
         }
 
