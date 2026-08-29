@@ -386,6 +386,29 @@
             </div>
         </div>
 
+        <!-- BARU: KONTROL STORAGE WORLD BUAT DROP ITEM HASIL PANEN (914/916/918/920/924) -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card hud p-3">
+                    <span class="panel-label">Drop Control</span>
+                    <h5>📦 Storage World untuk Drop Item</h5>
+                    <p class="text-muted small mb-3">
+                        Kalau backpack bot sudah punya <strong>≥200</strong> salah satu item
+                        (914 / 916 / 918 / 920 / 924), bot otomatis masuk ke world ini buat drop,
+                        geser cari tempat kosong, lalu balik ke farm.
+                    </p>
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <label class="form-check-label fw-bold mb-0 mono" for="storage-world-name-input">🌍 Nama World:</label>
+                        <input type="text" id="storage-world-name-input" class="form-control text-uppercase" style="width:180px;" placeholder="cth: MYSTORAGE">
+                        <label class="form-check-label fw-bold mb-0 mono" for="storage-door-id-input">🚪 Door ID:</label>
+                        <input type="text" id="storage-door-id-input" class="form-control" style="width:140px;" placeholder="cth: 12345">
+                        <button class="btn btn-sm btn-info" onclick="saveStorageDoorId()">💾 Simpan</button>
+                    </div>
+                    <div id="storage-door-status" class="mt-2 text-muted small"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- METRIK RINGKASAN -->
         <div class="row text-center mb-4">
             <div class="col-md-4">
@@ -546,6 +569,22 @@
                 const intervalInputEl = document.getElementById("add-world-interval-input");
                 if (document.activeElement !== intervalInputEl) {
                     intervalInputEl.value = addIntervalVal || 5;
+                }
+
+                // BARU: load config storage world & door id buat drop item hasil panen.
+                const resStorageDoor = await fetch(`${FIREBASE_URL}/config/storage_door_id.json`);
+                const storageDoorVal = await resStorageDoor.json();
+                const storageNameEl = document.getElementById("storage-world-name-input");
+                const storageDoorEl = document.getElementById("storage-door-id-input");
+                if (document.activeElement !== storageNameEl && document.activeElement !== storageDoorEl) {
+                    if (storageDoorVal && typeof storageDoorVal === "string" && storageDoorVal.includes(":")) {
+                        const [sName, sDoor] = storageDoorVal.split(/:(.+)/);
+                        storageNameEl.value = sName || "";
+                        storageDoorEl.value = sDoor || "";
+                        document.getElementById("storage-door-status").innerHTML = `Aktif: <strong>${sName}</strong> (door: ${sDoor})`;
+                    } else {
+                        document.getElementById("storage-door-status").innerHTML = `<em>Belum diatur.</em>`;
+                    }
                 }
 
                 // BARU: daftar world yang sedang antri utk ditambah manual lewat tombol web
@@ -1038,6 +1077,25 @@
                 body: JSON.stringify({ add_world_interval_sec: val })
             });
             alert(`Interval scan otomatis disimpan: ${val} detik. Bot akan memakai nilai ini mulai sinkronisasi config berikutnya.`);
+        }
+
+        // BARU: simpan world + door id storage buat drop item hasil panen
+        // (914/916/918/920/924). Disimpan sebagai "NAMAWORLD:DOORID" di
+        // /config/storage_door_id, dibaca bot tiap syncConfig().
+        async function saveStorageDoorId() {
+            const name = document.getElementById("storage-world-name-input").value.trim().toUpperCase();
+            const door = document.getElementById("storage-door-id-input").value.trim();
+            if (!name || !door) {
+                alert("Isi nama world & door id dulu.");
+                return;
+            }
+            const combined = `${name}:${door}`;
+            await fetch(`${FIREBASE_URL}/config.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ storage_door_id: combined })
+            });
+            document.getElementById("storage-door-status").innerHTML = `Aktif: <strong>${name}</strong> (door: ${door})`;
+            alert(`Storage drop disimpan: ${combined}`);
         }
 
         setInterval(fetchDashboardData, 3000);
