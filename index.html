@@ -356,6 +356,36 @@
             </div>
         </div>
 
+        <!-- KONTROL TAMBAH WORLD KE ANTRIAN (WEB-SIDE, PENGGANTI SCAN REAKTIF BOT YG NGEBUG) -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card hud p-3">
+                    <span class="panel-label">Queue Control</span>
+                    <h5>🧭 Kontrol Tambah World ke Antrian</h5>
+                    <p class="text-muted small mb-3">
+                        Scan reaktif otomatis di bot kadang <strong>ngebug</strong> pas nentuin world berikutnya.
+                        Matikan <strong>Mode Otomatis</strong> di bawah kalau mau tambah world <strong>manual</strong>
+                        lewat tombol <strong>▶️ Add ke Antrian</strong> di tabel World Pool, atau tetap pakai mode
+                        otomatis dengan interval scan yang kamu atur sendiri.
+                    </p>
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" id="auto-add-world-toggle" onchange="toggleAutoAddWorld(this.checked)">
+                            <label class="form-check-label fw-bold" for="auto-add-world-toggle">
+                                Mode Otomatis Tambah World (scan reaktif tiap slot kosong)
+                            </label>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <label class="form-check-label fw-bold mb-0 mono" for="add-world-interval-input" style="white-space:nowrap;">⏱️ Interval Scan (detik):</label>
+                            <input type="number" id="add-world-interval-input" class="form-control" style="width:100px;" min="2" max="600" value="5">
+                            <button class="btn btn-sm btn-info" onclick="saveAddWorldInterval()">💾 Simpan</button>
+                        </div>
+                    </div>
+                    <div id="manual-queue-status" class="mt-3 text-muted small"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- METRIK RINGKASAN -->
         <div class="row text-center mb-4">
             <div class="col-md-4">
@@ -390,11 +420,12 @@
                             <th>Door ID</th>
                             <th>Item ID</th>
                             <th>Status Cooldown</th>
+                            <th>Tambah ke Antrian</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="pool-table-body">
-                        <tr><td colspan="5" class="text-center">Memuat Data World Pool...</td></tr>
+                        <tr><td colspan="6" class="text-center">Memuat Data World Pool...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -488,6 +519,22 @@
                 const autoConnect = await resConfig.json();
                 document.getElementById("auto-connect-toggle").checked = (autoConnect !== false);
 
+                // BARU: kontrol mode tambah world (otomatis / manual dari web) + interval scannya
+                const resAutoAddWorld = await fetch(`${FIREBASE_URL}/config/auto_add_world.json`);
+                const autoAddWorld = await resAutoAddWorld.json();
+                document.getElementById("auto-add-world-toggle").checked = (autoAddWorld !== false);
+
+                const resAddInterval = await fetch(`${FIREBASE_URL}/config/add_world_interval_sec.json`);
+                const addIntervalVal = await resAddInterval.json();
+                const intervalInputEl = document.getElementById("add-world-interval-input");
+                if (document.activeElement !== intervalInputEl) {
+                    intervalInputEl.value = addIntervalVal || 5;
+                }
+
+                // BARU: daftar world yang sedang antri utk ditambah manual lewat tombol web
+                const resManualQueue = await fetch(`${FIREBASE_URL}/manual_add_requests.json`);
+                const manualQueueData = await resManualQueue.json() || {};
+
                 const resGSTargets = await fetch(`${FIREBASE_URL}/growscan_targets.json`);
                 const gsTargets = await resGSTargets.json() || {};
                 const gsNames = Object.keys(gsTargets);
@@ -528,18 +575,37 @@
 
                     if (isReady) readyCount++;
 
+                    // BARU: tombol/badge tambah manual ke antrian, menggantikan sistem
+                    // scan reaktif otomatis di bot yang suka ngebug.
+                    const isQueuedManual = !!manualQueueData[wName];
+                    let addActionHTML;
+                    if (isQueuedManual) {
+                        addActionHTML = `<span class="badge bg-warning text-dark">⏳ Menunggu Diambil Bot</span> <button class="btn btn-sm btn-outline-secondary ms-1" onclick="cancelManualAdd('${wName}')">Batal</button>`;
+                    } else if (isReady) {
+                        addActionHTML = `<button class="btn btn-sm btn-outline-success" onclick="addWorldToQueueManual('${wName}')">▶️ Add ke Antrian</button>`;
+                    } else {
+                        addActionHTML = `<span class="text-muted">-</span>`;
+                    }
+
                     poolRows += `
                         <tr>
                             <td class="fw-bold">${wName}</td>
                             <td>${wInfo.door_id || "-"}</td>
                             <td>${wInfo.item_id || "-"}</td>
                             <td>${statusHTML}</td>
+                            <td>${addActionHTML}</td>
                             <td><button class="btn btn-sm btn-outline-danger" onclick="removePoolWorld('${wName}')">Hapus dari Pool</button></td>
                         </tr>
                     `;
                 }
-                document.getElementById("pool-table-body").innerHTML = poolRows || '<tr><td colspan="5" class="text-center">World Pool masih kosong. Tambahkan lewat form di atas.</td></tr>';
+                document.getElementById("pool-table-body").innerHTML = poolRows || '<tr><td colspan="6" class="text-center">World Pool masih kosong. Tambahkan lewat form di atas.</td></tr>';
                 document.getElementById("total-ready").innerText = readyCount;
+
+                // BARU: ringkasan antrian manual yang masih pending diambil bot
+                const manualQueueNames = Object.keys(manualQueueData);
+                document.getElementById("manual-queue-status").innerHTML = manualQueueNames.length > 0
+                    ? `📥 <strong>${manualQueueNames.length}</strong> world menunggu diambil bot dari antrian manual: ${manualQueueNames.map(n => `<span class="badge bg-warning text-dark me-1">${n}</span>`).join("")}`
+                    : `<em>Tidak ada permintaan tambah manual yang pending.</em>`;
 
                 // --- TABEL WORLD LOG WITH PROGRESS PERCENTAGE ---
                 let totalSSSum = 0, worldCount = 0;
@@ -797,6 +863,45 @@
                 method: 'PATCH',
                 body: JSON.stringify({ auto_connect: enabled })
             });
+        }
+
+        // BARU: tambahkan world ke antrian panen secara MANUAL dari web.
+        // Ditulis ke /manual_add_requests -- bot akan cek path ini PALING PRIORITAS
+        // (terlepas dari mode Auto-Add & interval scan) begitu slotnya kosong,
+        // langsung klaim world ini dan hapus request-nya dari Firebase.
+        async function addWorldToQueueManual(wName) {
+            await fetch(`${FIREBASE_URL}/manual_add_requests/${wName}.json`, {
+                method: 'PUT',
+                body: JSON.stringify({ requested_at: Date.now() })
+            });
+            fetchDashboardData();
+        }
+
+        // Batalkan permintaan tambah manual yang belum sempat diambil bot.
+        async function cancelManualAdd(wName) {
+            await fetch(`${FIREBASE_URL}/manual_add_requests/${wName}.json`, { method: 'DELETE' });
+            fetchDashboardData();
+        }
+
+        // BARU: ON/OFF mode scan reaktif otomatis bot. Kalau di-OFF-kan, world
+        // HANYA bisa masuk antrian lewat tombol "▶️ Add ke Antrian" manual di atas
+        // -- berguna kalau sistem auto-scan lagi ngebug/salah ambil world.
+        async function toggleAutoAddWorld(enabled) {
+            await fetch(`${FIREBASE_URL}/config.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ auto_add_world: enabled })
+            });
+        }
+
+        // BARU: atur interval (detik) scan reaktif otomatis bot langsung dari web,
+        // menggantikan nilai EMPTY_SCAN_RETRY_SEC yang sebelumnya hardcode di script bot.
+        async function saveAddWorldInterval() {
+            const val = parseInt(document.getElementById("add-world-interval-input").value, 10) || 5;
+            await fetch(`${FIREBASE_URL}/config.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ add_world_interval_sec: val })
+            });
+            alert(`Interval scan otomatis disimpan: ${val} detik. Bot akan memakai nilai ini mulai sinkronisasi config berikutnya.`);
         }
 
         setInterval(fetchDashboardData, 3000);
