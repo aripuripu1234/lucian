@@ -569,6 +569,10 @@
                         }
                     }
 
+                    if (summary.needs_recheck === true) {
+                        sessionStatusHTML += `<br><span class="badge bg-warning text-dark mt-1">⏳ Perlu Recheck (progress tinggi)</span>`;
+                    }
+
                     let growscanHTML = "<span class='text-muted'>-</span>";
                     if (wData.growscan && wData.growscan.items) {
                         const items = wData.growscan.items;
@@ -633,6 +637,9 @@
                     const isOfflineManual = control === "OFFLINE";
                     const isAuto = !isOnlineManual && !isOfflineManual;
 
+                    // BARU: status Auto-Reconnect per bot (default ON kalau field belum pernah di-set)
+                    const isAutoReconnectOn = bData.auto_reconnect !== false;
+
                     botRows += `
                         <tr>
                             <td class="fw-bold">${bName}</td>
@@ -640,7 +647,7 @@
                             <td>${farmBadge}</td>
                             <td>${retryStatus}</td>
                             <td>
-                                <div class="btn-group" role="group">
+                                <div class="btn-group mb-1" role="group">
                                     <button class="btn btn-sm ${isAuto ? 'btn-success' : 'btn-outline-success'}" onclick="setBotControl('${bName}', 'AUTO')">
                                         🔄 Auto
                                     </button>
@@ -649,6 +656,14 @@
                                     </button>
                                     <button class="btn btn-sm ${isOfflineManual ? 'btn-danger' : 'btn-outline-danger'}" onclick="setBotControl('${bName}', 'OFFLINE')">
                                         🔴 Disconnect
+                                    </button>
+                                </div>
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-sm btn-warning" onclick="triggerReconnectNow('${bName}')" title="Paksa reconnect sekali saja, terlepas dari status Auto-Reconnect">
+                                        ⚡ Reconnect Sekarang
+                                    </button>
+                                    <button class="btn btn-sm ${isAutoReconnectOn ? 'btn-outline-success' : 'btn-outline-secondary'}" onclick="toggleBotAutoReconnect('${bName}', ${!isAutoReconnectOn})" title="Kalau OFF, bot tidak akan reconnect sendiri setelah putus -- harus manual">
+                                        ${isAutoReconnectOn ? '🔁 Auto-Reconnect: ON' : '⛔ Auto-Reconnect: OFF'}
                                     </button>
                                 </div>
                             </td>
@@ -737,6 +752,29 @@
             await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ control: value })
+            });
+            fetchDashboardData();
+        }
+
+        // BARU: paksa bot reconnect sekali (one-shot), terlepas dari status
+        // Auto-Reconnect maupun AUTO_CONNECT_MODE global. Flag ini otomatis
+        // dibersihkan sendiri oleh script bot setelah reconnect berhasil dijalankan.
+        async function triggerReconnectNow(botName) {
+            await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ control: 'RECONNECT_NOW' })
+            });
+            fetchDashboardData();
+        }
+
+        // BARU: toggle Auto-Reconnect per bot. Kalau di-OFF-kan, bot TIDAK akan
+        // mencoba connect ulang sendiri setelah terputus (idle timeout, gagal
+        // koneksi, dsb) -- harus di-reconnect manual lewat tombol "⚡ Reconnect Sekarang"
+        // atau diset ke "🟢 Connect" / "🔄 Auto".
+        async function toggleBotAutoReconnect(botName, enabled) {
+            await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ auto_reconnect: enabled })
             });
             fetchDashboardData();
         }
