@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signal Science & World Monitor Dashboard</title>
+    <title>Signal World Monitor Dashboard</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -19,6 +19,7 @@
             --alert: #f2a93b;    /* amber - growscan / caution */
             --danger: #e8536b;   /* red - stop / fail */
             --info: #5b8def;     /* blue - secondary info */
+            --gold: #e8c15b;     /* gold - pendapatan / uang */
         }
 
         * { box-sizing: border-box; }
@@ -202,12 +203,13 @@
         }
         .metric-card h2 {
             font-family: 'Space Grotesk', sans-serif;
-            font-size: 2.6rem;
+            font-size: 2.4rem;
             font-weight: 700;
         }
         .metric-card .h2.text-info { color: var(--signal) !important; }
         .metric-card .h2.text-primary { color: var(--info) !important; }
         .metric-card .h2.text-warning { color: var(--alert) !important; }
+        .metric-card .h2.text-gold { color: var(--gold) !important; }
 
         /* ---------- Tables ---------- */
         .table-dark {
@@ -246,23 +248,9 @@
         .badge.bg-warning { background-color: rgba(242,169,59,0.15) !important; color: var(--alert) !important; border:1px solid rgba(242,169,59,0.4); }
         .badge.bg-danger { background-color: rgba(232,83,107,0.15) !important; color: var(--danger) !important; border:1px solid rgba(232,83,107,0.4); }
         .badge.bg-primary { background-color: rgba(91,141,239,0.15) !important; color: var(--info) !important; border:1px solid rgba(91,141,239,0.4); }
+        .badge.bg-gold { background-color: rgba(232,193,91,0.15) !important; color: var(--gold) !important; border:1px solid rgba(232,193,91,0.4); }
         .badge { font-family:'IBM Plex Mono', monospace; font-weight: 500; padding: 5px 9px; }
         .badge.text-dark { color: inherit !important; }
-
-        /* Progress Bar UI Science */
-        .progress {
-            background-color: var(--panel-alt);
-            border: 1px solid var(--border);
-            height: 18px;
-            border-radius: 4px;
-        }
-        .progress-bar {
-            background-color: var(--signal);
-            color: #06231d;
-            font-weight: bold;
-            font-size: 0.72rem;
-            line-height: 18px;
-        }
 
         .growscan-box {
             background-color: var(--panel-alt);
@@ -271,12 +259,29 @@
             font-size: 0.78rem;
             border-radius: 4px;
             font-family: 'IBM Plex Mono', monospace;
+            min-width: 260px;
+        }
+        .growscan-box .gs-item-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 1px 0;
+        }
+        .growscan-box .gs-total {
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed var(--border);
+        }
+        .growscan-box .gs-income {
+            color: var(--gold);
+            font-weight: 600;
         }
 
         .text-warning { color: var(--alert) !important; }
         .text-info { color: var(--signal) !important; }
         .text-success { color: var(--signal) !important; }
         .text-primary { color: var(--info) !important; }
+        .text-gold { color: var(--gold) !important; }
         .text-muted { color: var(--muted) !important; }
 
         ::-webkit-scrollbar { height: 8px; width: 8px; }
@@ -291,7 +296,7 @@
         <div class="console-header">
             <h2 class="console-title">
                 <span class="tag">SIGNAL</span>
-                In-World Science &amp; Growscan Target Monitor
+                World Data &amp; Growscan Monitor
             </h2>
             <div class="live-pulse">
                 <span class="dot"></span>
@@ -301,25 +306,12 @@
 
         <!-- INPUT FORMS & PENGATURAN GLOBAL -->
         <div class="row mb-4">
-            <!-- WORLD POOL BULK ADD -->
-            <div class="col-md-7">
-                <div class="card hud p-3">
-                    <span class="panel-label">World Pool</span>
-                    <h5>🌍 Tambah World ke Pool (Bisa Banyak Sekaligus)</h5>
-                    <p class="text-muted small mb-2">Satu baris satu world. Format: <code>NAMA_WORLD:ID_DOOR:ID_ITEM</code></p>
-                    <form id="add-pool-form" onsubmit="handleAddWorldPool(event)">
-                        <textarea id="pool-bulk-input" class="form-control mb-2" rows="4"
-                            placeholder="SAKINATA05:KW33:928&#10;SAKINATA06:KW33:928&#10;COBATAKA02:KW33:928"></textarea>
-                        <button type="submit" class="btn btn-info">➕ Tambahkan Semua ke Pool</button>
-                    </form>
-                </div>
-            </div>
-
             <!-- TARGET GROWSCAN INPUT -->
-            <div class="col-md-5">
+            <div class="col-md-7">
                 <div class="card hud p-3">
                     <span class="panel-label">Target Lock</span>
                     <h5>🎯 Tambah World Target Growscan</h5>
+                    <p class="text-muted small mb-2">Bot akan otomatis growscan world ini kalau ada player lain (selain bot) terdeteksi di dalamnya.</p>
                     <form id="add-gs-form" onsubmit="handleAddGrowscanTarget(event)">
                         <div class="row g-2 mt-1">
                             <div class="col-md-8">
@@ -333,6 +325,25 @@
                     <div id="gs-target-list" class="mt-3 text-muted small">Target Aktif: Loading...</div>
                 </div>
             </div>
+
+            <!-- HARGA FUEL PACK -->
+            <div class="col-md-5">
+                <div class="card hud p-3">
+                    <span class="panel-label">Fuel Pack Pricing</span>
+                    <h5>💰 Harga Fuel Pack</h5>
+                    <p class="text-muted small mb-2">Resep: <strong>Mysterious Chem</strong> = 20 🟡 Kuning + 10 🔵 Biru + 5 🩷 Pink. <strong>Fuel Pack</strong> = 2 🔵 Biru + 10 🟢 Hijau + 1 Mysterious Chem.</p>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <label class="form-check-label fw-bold mb-0 mono" for="fuel-price-wl-input" style="width:150px;">Harga / Pack (WL):</label>
+                        <input type="number" id="fuel-price-wl-input" class="form-control" style="width:140px;" min="0" placeholder="cth: 200">
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <label class="form-check-label fw-bold mb-0 mono" for="wl-to-rp-input" style="width:150px;">Harga 1 WL (Rp):</label>
+                        <input type="number" id="wl-to-rp-input" class="form-control" style="width:140px;" min="0" placeholder="opsional">
+                        <button class="btn btn-sm btn-info" onclick="saveFuelPackPrice()">💾 Simpan</button>
+                    </div>
+                    <div id="fuel-price-status" class="mt-2 text-muted small"></div>
+                </div>
+            </div>
         </div>
 
         <div class="row mb-4">
@@ -341,137 +352,56 @@
                 <div class="card hud p-3">
                     <span class="panel-label">System Control</span>
                     <h5>⚙️ Pengaturan Global &amp; Reset Data</h5>
+                    <p class="text-muted small mb-2">Bot sekarang hanya melakukan <strong>login otomatis</strong> (connect/reconnect) dan <strong>pendataan world</strong> tempat dia berada -- tidak ada lagi auto-harvest atau antrian world.</p>
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3">
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="auto-connect-toggle" onchange="toggleAutoConnect(this.checked)">
                             <label class="form-check-label fw-bold" for="auto-connect-toggle">
-                                Auto-Connect / Disconnect Otomatis (ikut jumlah world ready 12 jam)
+                                Auto-Connect Global (bot login otomatis kalau nyala)
                             </label>
                         </div>
                         <button class="btn btn-danger btn-sm" onclick="deleteAllData()">
-                            🔥 Hapus Semua Data Panen &amp; World
+                            🔥 Hapus Semua Data World
                         </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- KONTROL TAMBAH WORLD KE ANTRIAN (WEB-SIDE, PENGGANTI SCAN REAKTIF BOT YG NGEBUG) -->
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card hud p-3">
-                    <span class="panel-label">Queue Control</span>
-                    <h5>🧭 Kontrol Tambah World ke Antrian</h5>
-                    <p class="text-muted small mb-3">
-                        Scan reaktif otomatis di bot kadang <strong>ngebug</strong> pas nentuin world berikutnya.
-                        Matikan <strong>Mode Otomatis</strong> di bawah kalau mau tambah world <strong>manual</strong>
-                        lewat tombol <strong>▶️ Add ke Antrian</strong> di tabel World Pool, atau tetap pakai mode
-                        otomatis dengan interval scan yang kamu atur sendiri.
-                    </p>
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-                        <div class="form-check form-switch mb-0">
-                            <input class="form-check-input" type="checkbox" id="auto-add-world-toggle" onchange="toggleAutoAddWorld(this.checked)">
-                            <label class="form-check-label fw-bold" for="auto-add-world-toggle">
-                                Mode Otomatis Tambah World (scan reaktif tiap slot kosong)
-                            </label>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <label class="form-check-label fw-bold mb-0 mono" for="add-world-interval-input" style="white-space:nowrap;">⏱️ Interval Scan (detik):</label>
-                            <input type="number" id="add-world-interval-input" class="form-control" style="width:100px;" min="2" max="600" value="5">
-                            <button class="btn btn-sm btn-info" onclick="saveAddWorldInterval()">💾 Simpan</button>
-                        </div>
-                    </div>
-                    <div id="manual-queue-status" class="mt-3 text-muted small"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- BARU: KONTROL STORAGE WORLD BUAT DROP ITEM HASIL PANEN (914/916/918/920/924) -->
-        <div class="row mb-4">
-            <div class="col-md-12">
-                <div class="card hud p-3">
-                    <span class="panel-label">Drop Control</span>
-                    <h5>📦 Storage World untuk Drop Item</h5>
-                    <p class="text-muted small mb-3">
-                        Kalau backpack bot sudah punya <strong>≥200</strong> salah satu item
-                        (914 / 916 / 918 / 920 / 924), bot otomatis masuk ke world ini buat drop,
-                        geser cari tempat kosong, lalu balik ke farm.
-                    </p>
-                    <div class="d-flex align-items-center flex-wrap gap-2">
-                        <label class="form-check-label fw-bold mb-0 mono" for="storage-world-name-input">🌍 Nama World:</label>
-                        <input type="text" id="storage-world-name-input" class="form-control text-uppercase" style="width:180px;" placeholder="cth: MYSTORAGE">
-                        <label class="form-check-label fw-bold mb-0 mono" for="storage-door-id-input">🚪 Door ID:</label>
-                        <input type="text" id="storage-door-id-input" class="form-control" style="width:140px;" placeholder="cth: 12345">
-                        <button class="btn btn-sm btn-info" onclick="saveStorageDoorId()">💾 Simpan</button>
-                    </div>
-                    <div id="storage-door-status" class="mt-2 text-muted small"></div>
-                </div>
-            </div>
-        </div>
-
         <!-- METRIK RINGKASAN -->
         <div class="row text-center mb-4">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card metric-card p-3">
                     <h5>World Dipantau (&gt;10 SS)</h5>
                     <h2 id="total-worlds" class="text-info">0</h2>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="card metric-card p-3">
-                    <h5>World Ready Dipanen (12 Jam)</h5>
-                    <h2 id="total-ready" class="text-warning">0</h2>
-                </div>
-            </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="card metric-card p-3">
                     <h5>Total Seluruh Science Station</h5>
                     <h2 id="total-ss" class="text-primary">0</h2>
                 </div>
             </div>
-        </div>
-
-        <!-- TABEL WORLD POOL (MASTER LIST) -->
-        <div class="card p-3 mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                <div>
-                    <span class="panel-label mb-0">World Pool</span>
-                    <h4 class="mb-0">🗺️ Master List World Pool</h4>
-                </div>
-                <div class="d-flex align-items-center gap-2 flex-wrap">
-                    <span id="pool-selected-count" class="text-muted small mono">0 dipilih</span>
-                    <button class="btn btn-sm btn-outline-info" onclick="selectAllReadyWorlds()">☑️ Pilih Semua Ready</button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="clearSelectedWorlds()">✖️ Kosongkan Pilihan</button>
-                    <button class="btn btn-sm btn-success" onclick="addSelectedWorldsToQueue()">▶️ Tambah yang Dipilih ke Antrian</button>
+            <div class="col-md-3">
+                <div class="card metric-card p-3">
+                    <h5>Total Fuel Pack Bisa Dibuat</h5>
+                    <h2 id="total-fuel-packs" class="text-warning">0</h2>
                 </div>
             </div>
-            <p class="text-muted small mb-2">Checklist beberapa world sekaligus (atau pakai "Pilih Semua Ready") lalu klik "Tambah yang Dipilih" -- semua world terpilih masuk antrian manual dalam satu kali kirim. Bot yang lagi nganggur akan otomatis ambil satu-satu dari antrian ini sesuai jumlah bot yang aktif.</p>
-            <div class="table-responsive">
-                <table class="table table-dark table-hover align-middle">
-                    <thead>
-                        <tr>
-                            <th style="width:36px;"><input type="checkbox" class="form-check-input" id="pool-select-all-checkbox" onchange="toggleSelectAllCheckbox(this.checked)" title="Pilih semua world yang sedang ready"></th>
-                            <th>Nama World</th>
-                            <th>Door ID</th>
-                            <th>Item ID</th>
-                            <th>Status Cooldown</th>
-                            <th>Tambah ke Antrian</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="pool-table-body">
-                        <tr><td colspan="7" class="text-center">Memuat Data World Pool...</td></tr>
-                    </tbody>
-                </table>
+            <div class="col-md-3">
+                <div class="card metric-card p-3">
+                    <h5>Estimasi Total Pendapatan</h5>
+                    <h2 id="total-income" class="text-gold mono" style="font-size:1.5rem;">0 WL</h2>
+                </div>
             </div>
         </div>
 
-        <!-- TABEL INFORMASI WORLD + FITUR SEARCH BAR & PROGRESS PERSEN -->
+        <!-- TABEL INFORMASI WORLD + FITUR SEARCH BAR -->
         <div class="card p-3 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div>
                     <span class="panel-label mb-0">World Log</span>
-                    <h4 class="mb-0">📋 Informator World Science &amp; Log Panen</h4>
+                    <h4 class="mb-0">📋 Pendataan World &amp; Hasil Growscan</h4>
                 </div>
                 <div style="width: 300px;">
                     <input type="text" id="world-search-input" class="form-control" placeholder="🔍 Cari Nama World..." onkeyup="filterWorldTable()">
@@ -483,17 +413,13 @@
                         <tr>
                             <th>Nama World</th>
                             <th>Total SS</th>
-                            <th>Progress Panen (%)</th>
-                            <th>Mulai Panen (Punch 1)</th>
-                            <th>Selesai Panen (SS Ujung)</th>
-                            <th>Status Sesi 12 Jam</th>
-                            <th>Bot Pemproses</th>
-                            <th>Growscan Info</th>
+                            <th>Terakhir Discan</th>
+                            <th>Growscan &amp; Estimasi Fuel Pack</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="world-table-body">
-                        <tr><td colspan="9" class="text-center">Memuat Data World...</td></tr>
+                        <tr><td colspan="5" class="text-center">Memuat Data World...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -502,15 +428,15 @@
         <!-- TABEL BOT & KONTROL MANUAL AUTO CONNECT -->
         <div class="card p-3">
             <span class="panel-label mb-0">Fleet Status</span>
-            <h4>🤖 Status Bot Monitoring</h4>
-            <p class="text-muted small mb-2">Mode <strong>Auto</strong> = bot ikut assignment World Manager (connect kalau kebagian world, disconnect kalau tidak). Connect/Disconnect manual akan meng-override mode Auto. Tombol <strong>Hapus Akun</strong> akan menghapus akun/bot ini secara permanen dari daftar.</p>
+            <h4>🤖 Status Bot &amp; Login</h4>
+            <p class="text-muted small mb-2">Mode <strong>Auto</strong> = bot ikut toggle Auto-Connect global. Connect/Disconnect manual akan meng-override mode Auto. Tombol <strong>Hapus Akun</strong> akan menghapus akun/bot ini secara permanen dari daftar.</p>
             <div class="table-responsive">
                 <table class="table table-dark table-striped mt-3 align-middle">
                     <thead>
                         <tr>
                             <th>Nama Bot</th>
                             <th>World Aktif Saat Ini</th>
-                            <th>Kebagian World?</th>
+                            <th>Status</th>
                             <th>Status Re-Connect / Retry</th>
                             <th>Aksi Koneksi Bot</th>
                             <th>Aksi Akun</th>
@@ -526,17 +452,68 @@
 
     <script>
         const FIREBASE_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
-        const SS_COOLDOWN_TIME = 43200; // Strictly 12 Jam Cooldown
 
-        // BARU: nama-nama world yang lagi dicentang utk tambah massal ke antrian.
-        // Disimpan terpisah dari DOM karena tabel di-render ulang tiap 3 detik
-        // (biar checklist tidak kereset pas auto-refresh).
-        const selectedWorldsForQueue = new Set();
+        // Warna tiap ID item chem hasil growscan.
+        const ITEM_INFO = {
+            914: { label: "Hijau",  key: "green",  emoji: "🟢" },
+            916: { label: "Merah",  key: "red",    emoji: "🔴" },
+            918: { label: "Pink",   key: "pink",   emoji: "🩷" },
+            920: { label: "Biru",   key: "blue",   emoji: "🔵" },
+            924: { label: "Kuning", key: "yellow", emoji: "🟡" },
+        };
+        const FUEL_ITEM_IDS = [914, 916, 918, 920, 924];
+
+        // RESEP:
+        //   1 Mysterious Chem = 20 Kuning + 10 Biru + 5 Pink
+        //   1 Fuel Pack       = 2 Biru + 10 Hijau + 1 Mysterious Chem
+        // Ditotal jadi kebutuhan RAW per 1 Fuel Pack:
+        //   Hijau 10, Biru (2 + 10) = 12, Kuning 20, Pink 5. Merah tidak dipakai resep ini.
+        const MYSTERIOUS_CHEM_RECIPE = { yellow: 20, blue: 10, pink: 5 };
+        const FUEL_PACK_DIRECT_RECIPE = { blue: 2, green: 10 };
+        const FUEL_PACK_RAW_COST = {
+            green: FUEL_PACK_DIRECT_RECIPE.green,
+            blue: FUEL_PACK_DIRECT_RECIPE.blue + MYSTERIOUS_CHEM_RECIPE.blue,
+            yellow: MYSTERIOUS_CHEM_RECIPE.yellow,
+            pink: MYSTERIOUS_CHEM_RECIPE.pink,
+        };
+
+        let fuelPackPriceWL = 0;
+        let wlToRupiah = 0;
+
+        // Hitung berapa Fuel Pack maksimal bisa dibuat dari hasil growscan
+        // 1 world, plus item mana yang jadi pembatas (bottleneck).
+        function calcMaxFuelPacks(items) {
+            if (!items) return { count: 0, bottleneck: null };
+            const counts = {};
+            for (const itemId of FUEL_ITEM_IDS) {
+                counts[ITEM_INFO[itemId].key] = Number(items[itemId]) || 0;
+            }
+
+            let maxCount = Infinity;
+            let bottleneck = null;
+            for (const [key, needed] of Object.entries(FUEL_PACK_RAW_COST)) {
+                const possible = Math.floor((counts[key] || 0) / needed);
+                if (possible < maxCount) {
+                    maxCount = possible;
+                    bottleneck = key;
+                }
+            }
+            if (!isFinite(maxCount)) maxCount = 0;
+            return { count: maxCount, bottleneck };
+        }
 
         function formatTime(timestamp) {
             if (!timestamp || timestamp === 0) return "-";
             const date = new Date(timestamp * 1000);
             return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " WIB";
+        }
+
+        function formatWL(value) {
+            return Math.round(value || 0).toLocaleString('id-ID') + " WL";
+        }
+
+        function formatRupiah(value) {
+            return "Rp " + Math.round(value || 0).toLocaleString('id-ID');
         }
 
         function filterWorldTable() {
@@ -553,51 +530,74 @@
             }
         }
 
+        // Bangun tampilan growscan lengkap: jumlah tiap warna chem, berapa
+        // Fuel Pack maksimal bisa dibuat (sesuai resep Mysterious Chem +
+        // Fuel Pack), item yang jadi pembatas, dan estimasi pendapatan
+        // (WL, plus Rp kalau kurs WL->Rp diisi).
+        function buildGrowscanHTML(growscan) {
+            if (!growscan || !growscan.items) {
+                return "<span class='text-muted'>Belum ada hasil growscan.</span>";
+            }
+
+            const items = growscan.items;
+            let itemRows = "";
+            for (const itemId of FUEL_ITEM_IDS) {
+                const info = ITEM_INFO[itemId];
+                const count = Number(items[itemId]) || 0;
+                itemRows += `<div class="gs-item-row"><span class="text-muted">${info.emoji} ${info.label}</span><span>${count.toLocaleString('id-ID')} pcs</span></div>`;
+            }
+
+            const { count: fuelPacks, bottleneck } = calcMaxFuelPacks(items);
+            const estWL = fuelPacks * fuelPackPriceWL;
+            const estRp = wlToRupiah > 0 ? estWL * wlToRupiah : null;
+            const bottleneckLabel = bottleneck ? Object.values(ITEM_INFO).find(i => i.key === bottleneck) : null;
+
+            return `
+                <div class="growscan-box">
+                    <strong>⚠️ ${growscan.triggered_by || 'Target Player Active'}</strong>
+                    ${itemRows}
+                    <div class="gs-total">
+                        <div class="gs-item-row"><span>Bisa Bikin Fuel Pack</span><span class="badge bg-warning text-dark">${fuelPacks} pack</span></div>
+                        ${bottleneckLabel && fuelPacks >= 0 ? `<div class="gs-item-row text-muted"><span>Item Pembatas</span><span>${bottleneckLabel.emoji} ${bottleneckLabel.label}</span></div>` : ""}
+                        <div class="gs-item-row gs-income"><span>Estimasi Pendapatan</span><span>${formatWL(estWL)}${estRp !== null ? " (" + formatRupiah(estRp) + ")" : ""}</span></div>
+                    </div>
+                    <small class="text-info d-block mt-1">Di-scan: ${formatTime(growscan.last_scan_time)}</small>
+                </div>
+            `;
+        }
+
+        function calcWorldFuelPacks(growscan) {
+            if (!growscan || !growscan.items) return 0;
+            return calcMaxFuelPacks(growscan.items).count;
+        }
+
         async function fetchDashboardData() {
             try {
                 const resConfig = await fetch(`${FIREBASE_URL}/config/auto_connect.json`);
                 const autoConnect = await resConfig.json();
                 document.getElementById("auto-connect-toggle").checked = (autoConnect !== false);
 
-                // BARU: kontrol mode tambah world (otomatis / manual dari web) + interval scannya
-                const resAutoAddWorld = await fetch(`${FIREBASE_URL}/config/auto_add_world.json`);
-                const autoAddWorld = await resAutoAddWorld.json();
-                document.getElementById("auto-add-world-toggle").checked = (autoAddWorld !== false);
+                const resFuelPriceWL = await fetch(`${FIREBASE_URL}/config/fuel_pack_price_wl.json`);
+                const fuelPriceWLVal = await resFuelPriceWL.json();
+                fuelPackPriceWL = Number(fuelPriceWLVal) || 0;
 
-                const resAddInterval = await fetch(`${FIREBASE_URL}/config/add_world_interval_sec.json`);
-                const addIntervalVal = await resAddInterval.json();
-                const intervalInputEl = document.getElementById("add-world-interval-input");
-                if (document.activeElement !== intervalInputEl) {
-                    intervalInputEl.value = addIntervalVal || 5;
-                }
+                const resWlToRp = await fetch(`${FIREBASE_URL}/config/wl_to_rupiah.json`);
+                const wlToRpVal = await resWlToRp.json();
+                wlToRupiah = Number(wlToRpVal) || 0;
 
-                // BARU: load config storage world & door id buat drop item hasil panen.
-                const resStorageDoor = await fetch(`${FIREBASE_URL}/config/storage_door_id.json`);
-                const storageDoorVal = await resStorageDoor.json();
-                const storageNameEl = document.getElementById("storage-world-name-input");
-                const storageDoorEl = document.getElementById("storage-door-id-input");
-                if (document.activeElement !== storageNameEl && document.activeElement !== storageDoorEl) {
-                    if (storageDoorVal && typeof storageDoorVal === "string" && storageDoorVal.includes(":")) {
-                        const [sName, sDoor] = storageDoorVal.split(/:(.+)/);
-                        storageNameEl.value = sName || "";
-                        storageDoorEl.value = sDoor || "";
-                        document.getElementById("storage-door-status").innerHTML = `Aktif: <strong>${sName}</strong> (door: ${sDoor})`;
-                    } else {
-                        document.getElementById("storage-door-status").innerHTML = `<em>Belum diatur.</em>`;
-                    }
-                }
+                const fuelPriceWLEl = document.getElementById("fuel-price-wl-input");
+                const wlToRpEl = document.getElementById("wl-to-rp-input");
+                if (document.activeElement !== fuelPriceWLEl) fuelPriceWLEl.value = fuelPackPriceWL || "";
+                if (document.activeElement !== wlToRpEl) wlToRpEl.value = wlToRupiah || "";
 
-                // BARU: daftar world yang sedang antri utk ditambah manual lewat tombol web
-                const resManualQueue = await fetch(`${FIREBASE_URL}/manual_add_requests.json`);
-                const manualQueueData = await resManualQueue.json() || {};
+                document.getElementById("fuel-price-status").innerHTML = fuelPackPriceWL > 0
+                    ? `Harga aktif: <strong>${formatWL(fuelPackPriceWL)}</strong> / pack${wlToRupiah > 0 ? ` (kurs ${formatRupiah(wlToRupiah)} / WL)` : ""}`
+                    : `<em>Belum diatur -- estimasi pendapatan akan menampilkan 0 WL.</em>`;
 
                 const resGSTargets = await fetch(`${FIREBASE_URL}/growscan_targets.json`);
                 const gsTargets = await resGSTargets.json() || {};
                 const gsNames = Object.keys(gsTargets);
                 document.getElementById("gs-target-list").innerHTML = `Target Aktif: ${gsNames.length > 0 ? gsNames.map(n => `<span class="badge bg-info text-dark me-1">${n} <a href="#" onclick="removeGSTarget('${n}')" class="text-danger fw-bold ms-1" style="text-decoration:none;">×</a></span>`).join("") : '<em>Tidak ada target Growscan set.</em>'}`;
-
-                const resPool = await fetch(`${FIREBASE_URL}/world_pool.json`);
-                const poolData = await resPool.json() || {};
 
                 const resWorlds = await fetch(`${FIREBASE_URL}/worlds.json`);
                 const worldsData = await resWorlds.json() || {};
@@ -605,115 +605,8 @@
                 const resBots = await fetch(`${FIREBASE_URL}/bots.json`);
                 const botsData = await resBots.json() || {};
 
-                const nowSec = Math.floor(Date.now() / 1000);
-
-                // --- TABEL WORLD POOL ---
-                let poolRows = "";
-                let readyCount = 0;
-                const currentlySelectableWorlds = new Set(); // world ready & belum diantrikan manual, boleh dicentang
-                for (const [wName, wInfo] of Object.entries(poolData)) {
-                    const summary = (worldsData[wName] && worldsData[wName].summary) || {};
-                    const finishTime = summary.finish_harvest_time || 0;
-
-                    let statusHTML = `<span class="badge bg-info">♻️ Belum Pernah Dipanen (Ready)</span>`;
-                    let isReady = true;
-
-                    if (finishTime > 0) {
-                        const remaining = SS_COOLDOWN_TIME - (nowSec - finishTime);
-                        if (remaining <= 0) {
-                            statusHTML = `<span class="badge bg-info">♻️ Ready (12 Jam Met)</span>`;
-                            isReady = true;
-                        } else {
-                            const mins = Math.ceil(remaining / 60);
-                            statusHTML = `<span class="badge bg-secondary">🕒 Cooldown (~${mins} menit lagi)</span>`;
-                            isReady = false;
-                        }
-                    }
-
-                    // [FIX] SEBELUMNYA: status "Ready" cuma dilihat dari finish_harvest_time,
-                    // tidak peduli apakah world SEDANG diklaim/dipanen bot lain saat ini juga
-                    // (claimed_by kosong atau tidak). Akibatnya, begitu sebuah world berhasil
-                    // diklaim lewat manual_add_requests (request-nya dihapus krn sudah diambil
-                    // bot), tapi finish_harvest_time-nya masih 0 (belum pernah selesai dipanen),
-                    // tombol "▶️ Add ke Antrian" muncul LAGI di sini seolah-olah world itu masih
-                    // nganggur -- padahal ada bot yang sedang aktif motongnya. Kalau diklik lagi,
-                    // bot LAIN yang nganggur bisa ikut ngerebut world yang sama (claimWorldSafely
-                    // di script cuma overwrite, tidak cek dulu apakah masih dipegang bot lain
-                    // yang masih aktif) -> 2 bot rebutan 1 world, world lain jadi ke-skip, dan
-                    // jumlah world yang benar2 nyantol di tabel app jadi kelihatan "random".
-                    //
-                    // Sekarang: kalau claimed_by terisi DAN last_scan masih fresh (<30 detik,
-                    // artinya memang lagi aktif dipantau bot itu), world dianggap SEDANG
-                    // DIPANEN -> tombol Add disembunyikan & tidak dihitung "ready" lagi.
-                    // Kalau claimed_by terisi tapi last_scan sudah basi/tidak ada (kemungkinan
-                    // claim nyangkut/orphan, misal bot crash sebelum sempat masuk world), world
-                    // tetap ditampilkan bisa direbut ulang supaya tidak permanen macet.
-                    const claimedBy = summary.claimed_by || "";
-                    const lastScan = summary.last_scan || 0;
-                    const claimIsLive = claimedBy !== "" && (nowSec - lastScan) < 30;
-
-                    if (claimIsLive) {
-                        statusHTML = `<span class="badge bg-primary">🤖 Sedang Dipanen (${claimedBy})</span>`;
-                        isReady = false;
-                    } else if (claimedBy !== "") {
-                        statusHTML += ` <span class="badge bg-warning text-dark" title="claimed_by masih terisi tapi tidak ada aktivitas terbaru">⚠️ Claim nyangkut, bisa direbut</span>`;
-                    }
-
-                    if (isReady) readyCount++;
-
-                    // BARU: tombol/badge tambah manual ke antrian, menggantikan sistem
-                    // scan reaktif otomatis di bot yang suka ngebug.
-                    const isQueuedManual = !!manualQueueData[wName];
-                    let addActionHTML;
-                    if (isQueuedManual) {
-                        addActionHTML = `<span class="badge bg-warning text-dark">⏳ Menunggu Diambil Bot</span> <button class="btn btn-sm btn-outline-secondary ms-1" onclick="cancelManualAdd('${wName}')">Batal</button>`;
-                    } else if (isReady) {
-                        addActionHTML = `<button class="btn btn-sm btn-outline-success" onclick="addWorldToQueueManual('${wName}')">▶️ Add ke Antrian</button>`;
-                    } else {
-                        addActionHTML = `<span class="text-muted">-</span>`;
-                    }
-
-                    // BARU: checkbox bulk-select -- cuma bisa dicentang kalau world ready
-                    // & belum ada di antrian manual. State-nya dijaga lewat selectedWorldsForQueue
-                    // supaya tidak kereset tiap auto-refresh 3 detik.
-                    const canSelect = isReady && !isQueuedManual;
-                    if (canSelect) currentlySelectableWorlds.add(wName);
-                    const isChecked = canSelect && selectedWorldsForQueue.has(wName);
-                    const checkboxHTML = `<input type="checkbox" class="form-check-input" ${canSelect ? "" : "disabled"} ${isChecked ? "checked" : ""} onchange="toggleWorldSelection('${wName}', this.checked)">`;
-
-                    poolRows += `
-                        <tr>
-                            <td>${checkboxHTML}</td>
-                            <td class="fw-bold">${wName}</td>
-                            <td>${wInfo.door_id || "-"}</td>
-                            <td>${wInfo.item_id || "-"}</td>
-                            <td>${statusHTML}</td>
-                            <td>${addActionHTML}</td>
-                            <td><button class="btn btn-sm btn-outline-danger" onclick="removePoolWorld('${wName}')">Hapus dari Pool</button></td>
-                        </tr>
-                    `;
-                }
-                document.getElementById("pool-table-body").innerHTML = poolRows || '<tr><td colspan="7" class="text-center">World Pool masih kosong. Tambahkan lewat form di atas.</td></tr>';
-                document.getElementById("total-ready").innerText = readyCount;
-
-                // BARU: buang dari Set world yang sudah tidak lagi bisa dipilih (misalnya
-                // sudah masuk antrian manual dari device lain, sudah cooldown lagi, atau
-                // sudah dihapus dari pool) supaya jumlah "dipilih" tetap akurat.
-                for (const wName of [...selectedWorldsForQueue]) {
-                    if (!currentlySelectableWorlds.has(wName)) selectedWorldsForQueue.delete(wName);
-                }
-                document.getElementById("pool-selected-count").innerText = `${selectedWorldsForQueue.size} dipilih`;
-                document.getElementById("pool-select-all-checkbox").checked =
-                    currentlySelectableWorlds.size > 0 && selectedWorldsForQueue.size === currentlySelectableWorlds.size;
-
-                // BARU: ringkasan antrian manual yang masih pending diambil bot
-                const manualQueueNames = Object.keys(manualQueueData);
-                document.getElementById("manual-queue-status").innerHTML = manualQueueNames.length > 0
-                    ? `📥 <strong>${manualQueueNames.length}</strong> world menunggu diambil bot dari antrian manual: ${manualQueueNames.map(n => `<span class="badge bg-warning text-dark me-1">${n}</span>`).join("")}`
-                    : `<em>Tidak ada permintaan tambah manual yang pending.</em>`;
-
-                // --- TABEL WORLD LOG WITH PROGRESS PERCENTAGE ---
-                let totalSSSum = 0, worldCount = 0;
+                // --- TABEL WORLD LOG ---
+                let totalSSSum = 0, worldCount = 0, totalFuelPacks = 0;
                 let worldRows = "";
 
                 for (const [rawWName, wData] of Object.entries(worldsData)) {
@@ -725,54 +618,15 @@
 
                     worldCount++;
                     totalSSSum += totalSS;
+                    totalFuelPacks += calcWorldFuelPacks(wData.growscan);
 
-                    const finishTime = summary.finish_harvest_time || 0;
-                    const progressPct = summary.harvest_progress || 0;
-                    const claimedBy = summary.claimed_by || summary.last_bot || "-";
-
-                    let sessionStatusHTML = `<span class="badge bg-warning text-dark">Sedang Berlangsung / Pending</span>`;
-
-                    if (finishTime > 0) {
-                        if (nowSec - finishTime >= SS_COOLDOWN_TIME) {
-                            sessionStatusHTML = `<span class="badge bg-info">♻️ Siap Sesi Panen Baru (12h)</span>`;
-                        } else {
-                            sessionStatusHTML = `<span class="badge bg-success">✅ Selesai (Cooldown Active)</span>`;
-                        }
-                    }
-
-                    if (summary.needs_recheck === true) {
-                        sessionStatusHTML += `<br><span class="badge bg-warning text-dark mt-1">⏳ Perlu Recheck (progress tinggi)</span>`;
-                    }
-
-                    let growscanHTML = "<span class='text-muted'>-</span>";
-                    if (wData.growscan && wData.growscan.items) {
-                        const items = wData.growscan.items;
-                        let itemDetails = [];
-                        for (const [itemId, count] of Object.entries(items)) {
-                            itemDetails.push(`ID ${itemId}: ${count}`);
-                        }
-                        growscanHTML = `
-                            <div class="growscan-box">
-                                <strong>⚠️ ${wData.growscan.triggered_by || 'Target Player Active'}</strong><br>
-                                <small>${itemDetails.slice(0, 4).join(" | ")}...</small><br>
-                                <small class="text-info">Di-scan: ${formatTime(wData.growscan.last_scan_time)}</small>
-                            </div>
-                        `;
-                    }
+                    const growscanHTML = buildGrowscanHTML(wData.growscan);
 
                     worldRows += `
                         <tr>
                             <td class="fw-bold text-warning">${wName}</td>
                             <td><span class="badge bg-secondary">${totalSS} SS</span></td>
-                            <td style="min-width: 150px;">
-                                <div class="progress">
-                                    <div class="progress-bar" role="progressbar" style="width: ${progressPct}%;">${progressPct}%</div>
-                                </div>
-                            </td>
-                            <td class="text-success">${formatTime(summary.start_harvest_time)}</td>
-                            <td class="text-info">${formatTime(summary.finish_harvest_time)}</td>
-                            <td>${sessionStatusHTML}</td>
-                            <td><span class="badge bg-primary">${claimedBy}</span></td>
+                            <td class="text-info">${formatTime(summary.last_scan)}</td>
                             <td>${growscanHTML}</td>
                             <td>
                                 <button class="btn btn-sm btn-outline-danger" onclick="deleteWorld('${wName}')">Hapus World</button>
@@ -783,18 +637,17 @@
 
                 document.getElementById("total-worlds").innerText = worldCount;
                 document.getElementById("total-ss").innerText = totalSSSum;
-                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="9" class="text-center">Belum ada world aktif (>10 SS). Masukkan bot ke world.</td></tr>';
+                document.getElementById("total-fuel-packs").innerText = totalFuelPacks;
+                const totalWLIncome = totalFuelPacks * fuelPackPriceWL;
+                document.getElementById("total-income").innerText = formatWL(totalWLIncome) +
+                    (wlToRupiah > 0 ? ` (${formatRupiah(totalWLIncome * wlToRupiah)})` : "");
+                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="5" class="text-center">Belum ada world tercatat (>10 SS). Login-kan bot ke world.</td></tr>';
 
                 filterWorldTable();
 
                 // --- TABEL BOT ---
                 let botRows = "";
                 for (const [bName, bData] of Object.entries(botsData)) {
-                    const hasFarm = !!bData.has_farm;
-                    const farmBadge = hasFarm
-                        ? `<span class="badge bg-success">✅ Kebagian World</span>`
-                        : `<span class="badge bg-secondary">⏸️ Tidak Kebagian</span>`;
-
                     const failCount = bData.fail_count || 0;
                     let retryStatus = `<span class="badge bg-success">Normal</span>`;
                     if (bData.control === "NEEDS_CONFIRM") {
@@ -808,14 +661,13 @@
                     const isOfflineManual = control === "OFFLINE";
                     const isAuto = !isOnlineManual && !isOfflineManual;
 
-                    // BARU: status Auto-Reconnect per bot (default ON kalau field belum pernah di-set)
                     const isAutoReconnectOn = bData.auto_reconnect !== false;
 
                     botRows += `
                         <tr>
                             <td class="fw-bold">${bName}</td>
                             <td><span class="badge bg-primary">${bData.current_world || "-"}</span></td>
-                            <td>${farmBadge}</td>
+                            <td>${bData.status || "-"}</td>
                             <td>${retryStatus}</td>
                             <td>
                                 <div class="btn-group mb-1" role="group">
@@ -851,38 +703,6 @@
             }
         }
 
-        // TAMBAH WORLD MASSAL KE POOL
-        async function handleAddWorldPool(e) {
-            e.preventDefault();
-            const raw = document.getElementById("pool-bulk-input").value;
-            const lines = raw.split("\n").map(l => l.trim()).filter(l => l.length > 0);
-
-            for (const line of lines) {
-                const parts = line.split(":");
-                if (parts.length < 3) continue;
-
-                const wName = parts[0].replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-                const doorId = parts[1].trim();
-                const itemId = parseInt(parts[2].trim(), 10) || 0;
-                if (!wName) continue;
-
-                await fetch(`${FIREBASE_URL}/world_pool/${wName}.json`, {
-                    method: 'PUT',
-                    body: JSON.stringify({ door_id: doorId, item_id: itemId, added_time: Date.now() })
-                });
-            }
-
-            document.getElementById("pool-bulk-input").value = "";
-            fetchDashboardData();
-        }
-
-        async function removePoolWorld(wName) {
-            if (confirm(`Hapus ${wName} dari World Pool? (Log panen di World Log tidak ikut terhapus)`)) {
-                await fetch(`${FIREBASE_URL}/world_pool/${wName}.json`, { method: 'DELETE' });
-                fetchDashboardData();
-            }
-        }
-
         async function handleAddGrowscanTarget(e) {
             e.preventDefault();
             const rawInput = document.getElementById("gs-world-name").value;
@@ -903,6 +723,21 @@
             fetchDashboardData();
         }
 
+        async function saveFuelPackPrice() {
+            const wlVal = parseInt(document.getElementById("fuel-price-wl-input").value, 10) || 0;
+            const rpVal = parseInt(document.getElementById("wl-to-rp-input").value, 10) || 0;
+            await fetch(`${FIREBASE_URL}/config.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ fuel_pack_price_wl: wlVal, wl_to_rupiah: rpVal })
+            });
+            fuelPackPriceWL = wlVal;
+            wlToRupiah = rpVal;
+            document.getElementById("fuel-price-status").innerHTML = wlVal > 0
+                ? `Harga aktif: <strong>${formatWL(wlVal)}</strong> / pack${rpVal > 0 ? ` (kurs ${formatRupiah(rpVal)} / WL)` : ""}`
+                : `<em>Belum diatur -- estimasi pendapatan akan menampilkan 0 WL.</em>`;
+            fetchDashboardData();
+        }
+
         async function deleteWorld(worldName) {
             if (confirm(`Hapus log world ${worldName}?`)) {
                 await fetch(`${FIREBASE_URL}/worlds/${worldName}.json`, { method: 'DELETE' });
@@ -911,9 +746,9 @@
         }
 
         async function deleteAllData() {
-            if (confirm("⚠️ Apakah Anda yakin ingin MENGHAPUS SEMUA DATA WAKTU DAN LOG SCIENCE WORLD?\n\nTindakan ini akan mengosongkan seluruh histori panen!")) {
+            if (confirm("⚠️ Apakah Anda yakin ingin MENGHAPUS SEMUA DATA WORLD?\n\nTindakan ini akan mengosongkan seluruh histori pendataan world & growscan!")) {
                 await fetch(`${FIREBASE_URL}/worlds.json`, { method: 'DELETE' });
-                alert("Berhasil menghapus seluruh data panen world!");
+                alert("Berhasil menghapus seluruh data world!");
                 fetchDashboardData();
             }
         }
@@ -927,9 +762,6 @@
             fetchDashboardData();
         }
 
-        // BARU: paksa bot reconnect sekali (one-shot), terlepas dari status
-        // Auto-Reconnect maupun AUTO_CONNECT_MODE global. Flag ini otomatis
-        // dibersihkan sendiri oleh script bot setelah reconnect berhasil dijalankan.
         async function triggerReconnectNow(botName) {
             await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
                 method: 'PATCH',
@@ -938,10 +770,6 @@
             fetchDashboardData();
         }
 
-        // BARU: toggle Auto-Reconnect per bot. Kalau di-OFF-kan, bot TIDAK akan
-        // mencoba connect ulang sendiri setelah terputus (idle timeout, gagal
-        // koneksi, dsb) -- harus di-reconnect manual lewat tombol "⚡ Reconnect Sekarang"
-        // atau diset ke "🟢 Connect" / "🔄 Auto".
         async function toggleBotAutoReconnect(botName, enabled) {
             await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
                 method: 'PATCH',
@@ -950,9 +778,8 @@
             fetchDashboardData();
         }
 
-        // HAPUS AKUN / BOT SECARA PERMANEN
         async function deleteBotAccount(botName) {
-            if (confirm(`⚠️ Hapus akun/bot "${botName}" secara PERMANEN dari daftar?\n\nAkun ini akan hilang dari monitoring dan tidak akan otomatis di-assign world lagi.`)) {
+            if (confirm(`⚠️ Hapus akun/bot "${botName}" secara PERMANEN dari daftar?\n\nAkun ini akan hilang dari monitoring.`)) {
                 try {
                     await fetch(`${FIREBASE_URL}/bots/${botName}.json`, { method: 'DELETE' });
                     fetchDashboardData();
@@ -968,134 +795,6 @@
                 method: 'PATCH',
                 body: JSON.stringify({ auto_connect: enabled })
             });
-        }
-
-        // BARU: tambahkan world ke antrian panen secara MANUAL dari web.
-        // Ditulis ke /manual_add_requests -- bot akan cek path ini PALING PRIORITAS
-        // (terlepas dari mode Auto-Add & interval scan) begitu slotnya kosong,
-        // langsung klaim world ini dan hapus request-nya dari Firebase.
-        async function addWorldToQueueManual(wName) {
-            await fetch(`${FIREBASE_URL}/manual_add_requests/${wName}.json`, {
-                method: 'PUT',
-                body: JSON.stringify({ requested_at: Date.now() })
-            });
-            fetchDashboardData();
-        }
-
-        // Batalkan permintaan tambah manual yang belum sempat diambil bot.
-        async function cancelManualAdd(wName) {
-            await fetch(`${FIREBASE_URL}/manual_add_requests/${wName}.json`, { method: 'DELETE' });
-            fetchDashboardData();
-        }
-
-        // BARU: toggle centang satu world di tabel World Pool (dipakai buat tambah massal).
-        function toggleWorldSelection(wName, checked) {
-            if (checked) {
-                selectedWorldsForQueue.add(wName);
-            } else {
-                selectedWorldsForQueue.delete(wName);
-            }
-            document.getElementById("pool-selected-count").innerText = `${selectedWorldsForQueue.size} dipilih`;
-        }
-
-        // BARU: centang/un-centang semua checkbox lewat checkbox di header tabel.
-        function toggleSelectAllCheckbox(checked) {
-            if (checked) {
-                selectAllReadyWorlds();
-            } else {
-                clearSelectedWorlds();
-            }
-        }
-
-        // BARU: pilih semua world yang statusnya lagi READY & belum di antrian manual.
-        function selectAllReadyWorlds() {
-            document.querySelectorAll('#pool-table-body input[type="checkbox"]:not(:disabled)').forEach(cb => {
-                cb.checked = true;
-            });
-            document.querySelectorAll('#pool-table-body tr').forEach(tr => {
-                const cb = tr.querySelector('input[type="checkbox"]');
-                const nameCell = tr.querySelectorAll('td')[1];
-                if (cb && !cb.disabled && nameCell) {
-                    selectedWorldsForQueue.add(nameCell.textContent.trim());
-                }
-            });
-            document.getElementById("pool-selected-count").innerText = `${selectedWorldsForQueue.size} dipilih`;
-            document.getElementById("pool-select-all-checkbox").checked = selectedWorldsForQueue.size > 0;
-        }
-
-        // BARU: kosongkan semua pilihan checkbox.
-        function clearSelectedWorlds() {
-            selectedWorldsForQueue.clear();
-            document.querySelectorAll('#pool-table-body input[type="checkbox"]').forEach(cb => { cb.checked = false; });
-            document.getElementById("pool-selected-count").innerText = "0 dipilih";
-            document.getElementById("pool-select-all-checkbox").checked = false;
-        }
-
-        // BARU: kirim SEMUA world yang dicentang ke antrian manual sekaligus, dalam
-        // SATU request pakai Firebase multi-location update (PATCH ke root ".json"
-        // dengan banyak path sebagai key) -- jadi bukan tambah satu-satu lagi.
-        // Bot-bot yang lagi nganggur akan otomatis ambil satu per satu dari antrian
-        // ini sesuai jumlah bot yang aktif saat itu.
-        async function addSelectedWorldsToQueue() {
-            const selected = [...selectedWorldsForQueue];
-            if (selected.length === 0) {
-                alert("Belum ada world yang dicentang. Centang dulu world yang mau ditambahkan, atau pakai \"Pilih Semua Ready\".");
-                return;
-            }
-
-            const updates = {};
-            const requestedAt = Date.now();
-            for (const wName of selected) {
-                updates[`manual_add_requests/${wName}`] = { requested_at: requestedAt };
-            }
-
-            await fetch(`${FIREBASE_URL}/.json`, {
-                method: 'PATCH',
-                body: JSON.stringify(updates)
-            });
-
-            selectedWorldsForQueue.clear();
-            fetchDashboardData();
-        }
-
-        // BARU: ON/OFF mode scan reaktif otomatis bot. Kalau di-OFF-kan, world
-        // HANYA bisa masuk antrian lewat tombol "▶️ Add ke Antrian" manual di atas
-        // -- berguna kalau sistem auto-scan lagi ngebug/salah ambil world.
-        async function toggleAutoAddWorld(enabled) {
-            await fetch(`${FIREBASE_URL}/config.json`, {
-                method: 'PATCH',
-                body: JSON.stringify({ auto_add_world: enabled })
-            });
-        }
-
-        // BARU: atur interval (detik) scan reaktif otomatis bot langsung dari web,
-        // menggantikan nilai EMPTY_SCAN_RETRY_SEC yang sebelumnya hardcode di script bot.
-        async function saveAddWorldInterval() {
-            const val = parseInt(document.getElementById("add-world-interval-input").value, 10) || 5;
-            await fetch(`${FIREBASE_URL}/config.json`, {
-                method: 'PATCH',
-                body: JSON.stringify({ add_world_interval_sec: val })
-            });
-            alert(`Interval scan otomatis disimpan: ${val} detik. Bot akan memakai nilai ini mulai sinkronisasi config berikutnya.`);
-        }
-
-        // BARU: simpan world + door id storage buat drop item hasil panen
-        // (914/916/918/920/924). Disimpan sebagai "NAMAWORLD:DOORID" di
-        // /config/storage_door_id, dibaca bot tiap syncConfig().
-        async function saveStorageDoorId() {
-            const name = document.getElementById("storage-world-name-input").value.trim().toUpperCase();
-            const door = document.getElementById("storage-door-id-input").value.trim();
-            if (!name || !door) {
-                alert("Isi nama world & door id dulu.");
-                return;
-            }
-            const combined = `${name}:${door}`;
-            await fetch(`${FIREBASE_URL}/config.json`, {
-                method: 'PATCH',
-                body: JSON.stringify({ storage_door_id: combined })
-            });
-            document.getElementById("storage-door-status").innerHTML = `Aktif: <strong>${name}</strong> (door: ${door})`;
-            alert(`Storage drop disimpan: ${combined}`);
         }
 
         setInterval(fetchDashboardData, 3000);
