@@ -326,22 +326,26 @@
                 </div>
             </div>
 
-            <!-- HARGA FUEL PACK -->
+            <!-- TAMBAH AKUN (GMAIL/UBI-CONNECT) -->
             <div class="col-md-5">
                 <div class="card hud p-3">
-                    <span class="panel-label">Fuel Pack Pricing</span>
-                    <h5>💰 Harga Fuel Pack</h5>
-                    <p class="text-muted small mb-2">Resep: <strong>Mysterious Chem</strong> = 20 🟡 Kuning + 10 🔵 Biru + 5 🩷 Pink. <strong>Fuel Pack</strong> = 2 🔵 Biru + 10 🟢 Hijau + 1 Mysterious Chem.</p>
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <label class="form-check-label fw-bold mb-0 mono" for="fuel-price-wl-input" style="width:150px;">Harga / Pack (WL):</label>
-                        <input type="number" id="fuel-price-wl-input" class="form-control" style="width:140px;" min="0" placeholder="cth: 200">
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <label class="form-check-label fw-bold mb-0 mono" for="wl-to-rp-input" style="width:150px;">Harga 1 WL (Rp):</label>
-                        <input type="number" id="wl-to-rp-input" class="form-control" style="width:140px;" min="0" placeholder="opsional">
-                        <button class="btn btn-sm btn-info" onclick="saveFuelPackPrice()">💾 Simpan</button>
-                    </div>
-                    <div id="fuel-price-status" class="mt-2 text-muted small"></div>
+                    <span class="panel-label">Account Manager</span>
+                    <h5>👤 Tambah Akun (Gmail/Ubi-Connect)</h5>
+                    <p class="text-muted small mb-2">Antrian akun disini akan diproses otomatis oleh bot (pakai <code>addUbiBot</code>) lalu langsung dijalankan dengan automasi yang sama. Pastikan minimal ada 1 bot yang sedang online untuk memproses antrian.</p>
+                    <form id="add-account-form" onsubmit="handleAddAccount(event)">
+                        <div class="row g-2">
+                            <div class="col-md-5">
+                                <input type="email" id="acc-email-input" class="form-control" placeholder="Email Gmail" required>
+                            </div>
+                            <div class="col-md-4">
+                                <input type="password" id="acc-password-input" class="form-control" placeholder="Password" required>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-info w-100">Tambah</button>
+                            </div>
+                        </div>
+                    </form>
+                    <div id="account-queue-list" class="mt-3 text-muted small">Antrian Akun: Loading...</div>
                 </div>
             </div>
         </div>
@@ -352,7 +356,7 @@
                 <div class="card hud p-3">
                     <span class="panel-label">System Control</span>
                     <h5>⚙️ Pengaturan Global &amp; Reset Data</h5>
-                    <p class="text-muted small mb-2">Bot sekarang hanya melakukan <strong>login otomatis</strong> (connect/reconnect) dan <strong>pendataan world</strong> tempat dia berada -- tidak ada lagi auto-harvest atau antrian world.</p>
+                    <p class="text-muted small mb-2">Bot melakukan <strong>login otomatis</strong> (connect/reconnect), <strong>pendataan world</strong> (SS &amp; sesi panen) tempat dia berada, <strong>growscan</strong> di world target, dan memproses <strong>antrian tambah akun</strong> -- panen tile tetap dilakukan manual oleh player.</p>
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3">
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="auto-connect-toggle" onchange="toggleAutoConnect(this.checked)">
@@ -384,24 +388,24 @@
             </div>
             <div class="col-md-3">
                 <div class="card metric-card p-3">
-                    <h5>Total Fuel Pack Bisa Dibuat</h5>
-                    <h2 id="total-fuel-packs" class="text-warning">0</h2>
+                    <h5>World Target Growscan</h5>
+                    <h2 id="total-gs-worlds" class="text-warning">0</h2>
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="card metric-card p-3">
-                    <h5>Estimasi Total Pendapatan</h5>
-                    <h2 id="total-income" class="text-gold mono" style="font-size:1.5rem;">0 WL</h2>
+                    <h5>Sesi Panen Sedang Aktif</h5>
+                    <h2 id="total-harvest-active" class="text-gold">0</h2>
                 </div>
             </div>
         </div>
 
-        <!-- TABEL INFORMASI WORLD + FITUR SEARCH BAR -->
+        <!-- TABEL WORLD YANG PUNYA SS (Science Station) -->
         <div class="card p-3 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div>
                     <span class="panel-label mb-0">World Log</span>
-                    <h4 class="mb-0">📋 Pendataan World &amp; Hasil Growscan</h4>
+                    <h4 class="mb-0">🏭 World dengan Science Station (&gt;10 SS)</h4>
                 </div>
                 <div style="width: 300px;">
                     <input type="text" id="world-search-input" class="form-control" placeholder="🔍 Cari Nama World..." onkeyup="filterWorldTable()">
@@ -414,12 +418,64 @@
                             <th>Nama World</th>
                             <th>Total SS</th>
                             <th>Terakhir Discan</th>
-                            <th>Growscan &amp; Estimasi Fuel Pack</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="world-table-body">
-                        <tr><td colspan="5" class="text-center">Memuat Data World...</td></tr>
+                        <tr><td colspan="4" class="text-center">Memuat Data World...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TABEL HASIL GROWSCAN (TERPISAH DARI WORLD SS) -->
+        <div class="card p-3 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div>
+                    <span class="panel-label mb-0">Growscan Log</span>
+                    <h4 class="mb-0">🧪 Hasil Growscan (Item Chem)</h4>
+                </div>
+                <div style="width: 300px;">
+                    <input type="text" id="gs-search-input" class="form-control" placeholder="🔍 Cari Nama World..." onkeyup="filterGrowscanTable()">
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle" id="growscan-table">
+                    <thead>
+                        <tr>
+                            <th>Nama World</th>
+                            <th>Hasil Growscan</th>
+                            <th>Terakhir Discan</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="growscan-table-body">
+                        <tr><td colspan="4" class="text-center">Memuat Data Growscan...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- TABEL SESI PANEN SS (WAKTU MULAI/SELESAI PANEN) -->
+        <div class="card p-3 mb-4">
+            <span class="panel-label mb-0">Harvest Log</span>
+            <h4>⏱️ Sesi Panen Science Station</h4>
+            <p class="text-muted small mb-2">Pendataan pasif jam mulai &amp; selesai panen SS per world (bot cuma mengamati, panen dilakukan manual oleh player).</p>
+            <div class="table-responsive">
+                <table class="table table-dark table-hover align-middle" id="harvest-table">
+                    <thead>
+                        <tr>
+                            <th>Nama World</th>
+                            <th>Status</th>
+                            <th>Jam Mulai</th>
+                            <th>Jam Selesai</th>
+                            <th>Puncak SS</th>
+                            <th>SS Sekarang</th>
+                            <th>Total Dipanen</th>
+                        </tr>
+                    </thead>
+                    <tbody id="harvest-table-body">
+                        <tr><td colspan="7" class="text-center">Memuat Data Sesi Panen...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -453,7 +509,8 @@
     <script>
         const FIREBASE_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
 
-        // Warna tiap ID item chem hasil growscan.
+        // Warna tiap ID item chem hasil growscan. Cuma dipakai buat label
+        // tampilan -- TIDAK ada lagi kalkulasi resep/Fuel Pack/estimasi WL.
         const ITEM_INFO = {
             914: { label: "Hijau",  key: "green",  emoji: "🟢" },
             916: { label: "Merah",  key: "red",    emoji: "🔴" },
@@ -463,57 +520,10 @@
         };
         const FUEL_ITEM_IDS = [914, 916, 918, 920, 924];
 
-        // RESEP:
-        //   1 Mysterious Chem = 20 Kuning + 10 Biru + 5 Pink
-        //   1 Fuel Pack       = 2 Biru + 10 Hijau + 1 Mysterious Chem
-        // Ditotal jadi kebutuhan RAW per 1 Fuel Pack:
-        //   Hijau 10, Biru (2 + 10) = 12, Kuning 20, Pink 5. Merah tidak dipakai resep ini.
-        const MYSTERIOUS_CHEM_RECIPE = { yellow: 20, blue: 10, pink: 5 };
-        const FUEL_PACK_DIRECT_RECIPE = { blue: 2, green: 10 };
-        const FUEL_PACK_RAW_COST = {
-            green: FUEL_PACK_DIRECT_RECIPE.green,
-            blue: FUEL_PACK_DIRECT_RECIPE.blue + MYSTERIOUS_CHEM_RECIPE.blue,
-            yellow: MYSTERIOUS_CHEM_RECIPE.yellow,
-            pink: MYSTERIOUS_CHEM_RECIPE.pink,
-        };
-
-        let fuelPackPriceWL = 0;
-        let wlToRupiah = 0;
-
-        // Hitung berapa Fuel Pack maksimal bisa dibuat dari hasil growscan
-        // 1 world, plus item mana yang jadi pembatas (bottleneck).
-        function calcMaxFuelPacks(items) {
-            if (!items) return { count: 0, bottleneck: null };
-            const counts = {};
-            for (const itemId of FUEL_ITEM_IDS) {
-                counts[ITEM_INFO[itemId].key] = Number(items[itemId]) || 0;
-            }
-
-            let maxCount = Infinity;
-            let bottleneck = null;
-            for (const [key, needed] of Object.entries(FUEL_PACK_RAW_COST)) {
-                const possible = Math.floor((counts[key] || 0) / needed);
-                if (possible < maxCount) {
-                    maxCount = possible;
-                    bottleneck = key;
-                }
-            }
-            if (!isFinite(maxCount)) maxCount = 0;
-            return { count: maxCount, bottleneck };
-        }
-
         function formatTime(timestamp) {
             if (!timestamp || timestamp === 0) return "-";
             const date = new Date(timestamp * 1000);
             return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " WIB";
-        }
-
-        function formatWL(value) {
-            return Math.round(value || 0).toLocaleString('id-ID') + " WL";
-        }
-
-        function formatRupiah(value) {
-            return "Rp " + Math.round(value || 0).toLocaleString('id-ID');
         }
 
         function filterWorldTable() {
@@ -530,10 +540,23 @@
             }
         }
 
-        // Bangun tampilan growscan lengkap: jumlah tiap warna chem, berapa
-        // Fuel Pack maksimal bisa dibuat (sesuai resep Mysterious Chem +
-        // Fuel Pack), item yang jadi pembatas, dan estimasi pendapatan
-        // (WL, plus Rp kalau kurs WL->Rp diisi).
+        function filterGrowscanTable() {
+            const query = document.getElementById("gs-search-input").value.toUpperCase();
+            const table = document.getElementById("growscan-table");
+            const trs = table.getElementsByTagName("tr");
+
+            for (let i = 1; i < trs.length; i++) {
+                const tdName = trs[i].getElementsByTagName("td")[0];
+                if (tdName) {
+                    const txtValue = tdName.textContent || tdName.innerText;
+                    trs[i].style.display = (txtValue.toUpperCase().indexOf(query) > -1) ? "" : "none";
+                }
+            }
+        }
+
+        // Bangun tampilan growscan: CUMA jumlah mentah tiap item chem hasil
+        // scan (914/916/918/920/924) + total pcs. Tidak ada lagi kalkulasi
+        // Mysterious Chem/Fuel Pack ataupun estimasi pendapatan WL/Rupiah.
         function buildGrowscanHTML(growscan) {
             if (!growscan || !growscan.items) {
                 return "<span class='text-muted'>Belum ada hasil growscan.</span>";
@@ -547,28 +570,18 @@
                 itemRows += `<div class="gs-item-row"><span class="text-muted">${info.emoji} ${info.label}</span><span>${count.toLocaleString('id-ID')} pcs</span></div>`;
             }
 
-            const { count: fuelPacks, bottleneck } = calcMaxFuelPacks(items);
-            const estWL = fuelPacks * fuelPackPriceWL;
-            const estRp = wlToRupiah > 0 ? estWL * wlToRupiah : null;
-            const bottleneckLabel = bottleneck ? Object.values(ITEM_INFO).find(i => i.key === bottleneck) : null;
+            const totalItems = Number(growscan.total_items) || 0;
 
             return `
                 <div class="growscan-box">
-                    <strong>⚠️ ${growscan.triggered_by || 'Target Player Active'}</strong>
+                    <strong>⚠️ ${growscan.triggered_by || 'Growscan Target World'}</strong>
                     ${itemRows}
                     <div class="gs-total">
-                        <div class="gs-item-row"><span>Bisa Bikin Fuel Pack</span><span class="badge bg-warning text-dark">${fuelPacks} pack</span></div>
-                        ${bottleneckLabel && fuelPacks >= 0 ? `<div class="gs-item-row text-muted"><span>Item Pembatas</span><span>${bottleneckLabel.emoji} ${bottleneckLabel.label}</span></div>` : ""}
-                        <div class="gs-item-row gs-income"><span>Estimasi Pendapatan</span><span>${formatWL(estWL)}${estRp !== null ? " (" + formatRupiah(estRp) + ")" : ""}</span></div>
+                        <div class="gs-item-row"><span>Total Item</span><span class="badge bg-warning text-dark">${totalItems.toLocaleString('id-ID')} pcs</span></div>
                     </div>
                     <small class="text-info d-block mt-1">Di-scan: ${formatTime(growscan.last_scan_time)}</small>
                 </div>
             `;
-        }
-
-        function calcWorldFuelPacks(growscan) {
-            if (!growscan || !growscan.items) return 0;
-            return calcMaxFuelPacks(growscan.items).count;
         }
 
         async function fetchDashboardData() {
@@ -576,23 +589,6 @@
                 const resConfig = await fetch(`${FIREBASE_URL}/config/auto_connect.json`);
                 const autoConnect = await resConfig.json();
                 document.getElementById("auto-connect-toggle").checked = (autoConnect !== false);
-
-                const resFuelPriceWL = await fetch(`${FIREBASE_URL}/config/fuel_pack_price_wl.json`);
-                const fuelPriceWLVal = await resFuelPriceWL.json();
-                fuelPackPriceWL = Number(fuelPriceWLVal) || 0;
-
-                const resWlToRp = await fetch(`${FIREBASE_URL}/config/wl_to_rupiah.json`);
-                const wlToRpVal = await resWlToRp.json();
-                wlToRupiah = Number(wlToRpVal) || 0;
-
-                const fuelPriceWLEl = document.getElementById("fuel-price-wl-input");
-                const wlToRpEl = document.getElementById("wl-to-rp-input");
-                if (document.activeElement !== fuelPriceWLEl) fuelPriceWLEl.value = fuelPackPriceWL || "";
-                if (document.activeElement !== wlToRpEl) wlToRpEl.value = wlToRupiah || "";
-
-                document.getElementById("fuel-price-status").innerHTML = fuelPackPriceWL > 0
-                    ? `Harga aktif: <strong>${formatWL(fuelPackPriceWL)}</strong> / pack${wlToRupiah > 0 ? ` (kurs ${formatRupiah(wlToRupiah)} / WL)` : ""}`
-                    : `<em>Belum diatur -- estimasi pendapatan akan menampilkan 0 WL.</em>`;
 
                 const resGSTargets = await fetch(`${FIREBASE_URL}/growscan_targets.json`);
                 const gsTargets = await resGSTargets.json() || {};
@@ -605,9 +601,13 @@
                 const resBots = await fetch(`${FIREBASE_URL}/bots.json`);
                 const botsData = await resBots.json() || {};
 
-                // --- TABEL WORLD LOG ---
-                let totalSSSum = 0, worldCount = 0, totalFuelPacks = 0;
+                // --- TABEL WORLD DENGAN SS (>10) ---
+                let totalSSSum = 0, worldCount = 0;
                 let worldRows = "";
+
+                // --- TABEL HASIL GROWSCAN (TERPISAH) ---
+                let growscanRows = "";
+                let gsWorldCount = 0;
 
                 for (const [rawWName, wData] of Object.entries(worldsData)) {
                     const wName = rawWName.trim().toUpperCase();
@@ -615,45 +615,76 @@
                     const totalSS = summary.total_ss || 0;
                     const hasGrowscanData = !!wData.growscan;
 
-                    // World cuma di-skip kalau SS-nya <=10 DAN dia juga gak punya data
-                    // growscan sama sekali. World target growscan (biasanya chem/fuel world,
-                    // bukan world SS) tetap harus tampil walau SS-nya 0/rendah.
-                    if (totalSS <= 10 && !hasGrowscanData) continue;
-
-                    // "World Dipantau (>10 SS)" & Total SS cuma dihitung dari world yang
-                    // memang world SS beneran (>10 SS), biar statistiknya tetap akurat --
-                    // world growscan-only (SS rendah/0) tetap tampil di tabel tapi gak
-                    // ikut nambah kedua angka ini.
+                    // Tabel World SS: cuma world yang beneran punya SS (>10).
                     if (totalSS > 10) {
                         worldCount++;
                         totalSSSum += totalSS;
+                        worldRows += `
+                            <tr>
+                                <td class="fw-bold text-warning">${wName}</td>
+                                <td><span class="badge bg-secondary">${totalSS} SS</span></td>
+                                <td class="text-info">${formatTime(summary.last_scan)}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteWorld('${wName}')">Hapus World</button>
+                                </td>
+                            </tr>
+                        `;
                     }
-                    totalFuelPacks += calcWorldFuelPacks(wData.growscan);
 
-                    const growscanHTML = buildGrowscanHTML(wData.growscan);
-
-                    worldRows += `
-                        <tr>
-                            <td class="fw-bold text-warning">${wName}</td>
-                            <td><span class="badge bg-secondary">${totalSS} SS</span></td>
-                            <td class="text-info">${formatTime(summary.last_scan)}</td>
-                            <td>${growscanHTML}</td>
-                            <td>
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteWorld('${wName}')">Hapus World</button>
-                            </td>
-                        </tr>
-                    `;
+                    // Tabel Growscan: cuma world yang punya data growscan (world target,
+                    // gak peduli jumlah SS-nya berapa).
+                    if (hasGrowscanData) {
+                        gsWorldCount++;
+                        growscanRows += `
+                            <tr>
+                                <td class="fw-bold text-warning">${wName}</td>
+                                <td>${buildGrowscanHTML(wData.growscan)}</td>
+                                <td class="text-info">${formatTime(wData.growscan.last_scan_time)}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteWorld('${wName}')">Hapus World</button>
+                                </td>
+                            </tr>
+                        `;
+                    }
                 }
 
                 document.getElementById("total-worlds").innerText = worldCount;
                 document.getElementById("total-ss").innerText = totalSSSum;
-                document.getElementById("total-fuel-packs").innerText = totalFuelPacks;
-                const totalWLIncome = totalFuelPacks * fuelPackPriceWL;
-                document.getElementById("total-income").innerText = formatWL(totalWLIncome) +
-                    (wlToRupiah > 0 ? ` (${formatRupiah(totalWLIncome * wlToRupiah)})` : "");
-                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="5" class="text-center">Belum ada world tercatat (>10 SS, atau punya data growscan). Login-kan bot ke world.</td></tr>';
+                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="4" class="text-center">Belum ada world dengan >10 SS tercatat. Login-kan bot ke world.</td></tr>';
+                document.getElementById("growscan-table-body").innerHTML = growscanRows || '<tr><td colspan="4" class="text-center">Belum ada hasil growscan. Tambahkan world target growscan diatas.</td></tr>';
 
                 filterWorldTable();
+                filterGrowscanTable();
+
+                // --- TABEL SESI PANEN SS (waktu mulai/selesai panen) ---
+                let harvestRows = "";
+                let harvestActiveCount = 0;
+                for (const [rawWName, wData] of Object.entries(worldsData)) {
+                    const wName = rawWName.trim().toUpperCase();
+                    const h = wData.harvest;
+                    if (!h) continue;
+
+                    if (h.active) harvestActiveCount++;
+
+                    const statusBadge = h.active
+                        ? `<span class="badge bg-warning text-dark">🔥 Sedang Dipanen</span>`
+                        : `<span class="badge bg-success">✅ Selesai</span>`;
+
+                    harvestRows += `
+                        <tr>
+                            <td class="fw-bold text-warning">${wName}</td>
+                            <td>${statusBadge}</td>
+                            <td class="text-info">${formatTime(h.start_time)}</td>
+                            <td class="text-info">${h.active ? '-' : formatTime(h.end_time)}</td>
+                            <td><span class="badge bg-secondary">${h.peak_ss ?? 0} SS</span></td>
+                            <td><span class="badge bg-secondary">${h.current_ss ?? 0} SS</span></td>
+                            <td><span class="badge bg-info">${h.harvested_count ?? 0} SS</span></td>
+                        </tr>
+                    `;
+                }
+                document.getElementById("total-gs-worlds").innerText = gsWorldCount;
+                document.getElementById("total-harvest-active").innerText = harvestActiveCount;
+                document.getElementById("harvest-table-body").innerHTML = harvestRows || '<tr><td colspan="7" class="text-center">Belum ada sesi panen tercatat.</td></tr>';
 
                 // --- TABEL BOT ---
                 let botRows = "";
@@ -708,6 +739,28 @@
                 }
                 document.getElementById("bot-table-body").innerHTML = botRows || '<tr><td colspan="6" class="text-center">Belum ada bot aktif.</td></tr>';
 
+                // --- ANTRIAN TAMBAH AKUN ---
+                const resPending = await fetch(`${FIREBASE_URL}/pending_accounts.json`);
+                const pendingData = await resPending.json() || {};
+                const pendingEntries = Object.entries(pendingData);
+
+                if (pendingEntries.length === 0) {
+                    document.getElementById("account-queue-list").innerHTML = "<em>Belum ada akun di antrian.</em>";
+                } else {
+                    const statusBadge = (status) => {
+                        if (status === "added") return `<span class="badge bg-success">Ditambahkan</span>`;
+                        if (status === "processing") return `<span class="badge bg-warning text-dark">Diproses...</span>`;
+                        if (status === "failed") return `<span class="badge bg-danger">Gagal</span>`;
+                        return `<span class="badge bg-secondary">Menunggu</span>`;
+                    };
+                    document.getElementById("account-queue-list").innerHTML = pendingEntries.map(([key, acc]) => `
+                        <div class="d-flex justify-content-between align-items-center py-1" style="border-bottom:1px dashed var(--border);">
+                            <span class="mono">${acc.email || key} ${statusBadge(acc.status)}${acc.error ? ` <span class="text-danger">(${acc.error})</span>` : ""}</span>
+                            <a href="#" onclick="removePendingAccount('${key}'); return false;" class="text-danger fw-bold ms-2" style="text-decoration:none;">×</a>
+                        </div>
+                    `).join("");
+                }
+
             } catch (err) {
                 console.error("Gagal mengambil data dari Firebase:", err);
             }
@@ -733,18 +786,30 @@
             fetchDashboardData();
         }
 
-        async function saveFuelPackPrice() {
-            const wlVal = parseInt(document.getElementById("fuel-price-wl-input").value, 10) || 0;
-            const rpVal = parseInt(document.getElementById("wl-to-rp-input").value, 10) || 0;
-            await fetch(`${FIREBASE_URL}/config.json`, {
-                method: 'PATCH',
-                body: JSON.stringify({ fuel_pack_price_wl: wlVal, wl_to_rupiah: rpVal })
+        // Menambahkan akun (gmail + password) ke antrian /pending_accounts.
+        // Bot yang sedang online akan otomatis melihat antrian ini lalu
+        // memanggil addUbiBot(email, password), setelah itu langsung
+        // menjalankan automasi yang sama untuk akun baru tersebut.
+        async function handleAddAccount(e) {
+            e.preventDefault();
+            const email = document.getElementById("acc-email-input").value.trim();
+            const password = document.getElementById("acc-password-input").value;
+            if (!email || !password) return;
+
+            const key = btoa(email).replace(/[^a-zA-Z0-9]/g, "");
+
+            await fetch(`${FIREBASE_URL}/pending_accounts/${key}.json`, {
+                method: 'PUT',
+                body: JSON.stringify({ email: email, password: password, status: "pending", added_at: Date.now() })
             });
-            fuelPackPriceWL = wlVal;
-            wlToRupiah = rpVal;
-            document.getElementById("fuel-price-status").innerHTML = wlVal > 0
-                ? `Harga aktif: <strong>${formatWL(wlVal)}</strong> / pack${rpVal > 0 ? ` (kurs ${formatRupiah(rpVal)} / WL)` : ""}`
-                : `<em>Belum diatur -- estimasi pendapatan akan menampilkan 0 WL.</em>`;
+
+            document.getElementById("acc-email-input").value = "";
+            document.getElementById("acc-password-input").value = "";
+            fetchDashboardData();
+        }
+
+        async function removePendingAccount(key) {
+            await fetch(`${FIREBASE_URL}/pending_accounts/${key}.json`, { method: 'DELETE' });
             fetchDashboardData();
         }
 
