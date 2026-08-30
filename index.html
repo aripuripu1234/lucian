@@ -368,6 +368,16 @@
                             🔥 Hapus Semua Data World
                         </button>
                     </div>
+                    <hr class="my-3">
+                    <div class="d-flex align-items-center flex-wrap gap-2">
+                        <label class="fw-bold small mb-0" for="manager-bot-select">👑 Manager Bot (proses antrian akun & Stop/Jalankan Script):</label>
+                        <select id="manager-bot-select" class="form-select form-select-sm" style="width:auto; min-width:220px;">
+                            <option value="">— Tidak ada (nonaktif) —</option>
+                        </select>
+                        <button class="btn btn-sm btn-outline-warning" onclick="setManagerBot()">Simpan Manager</button>
+                        <span id="manager-bot-current" class="text-muted small"></span>
+                    </div>
+                    <p class="text-muted small mb-0 mt-1">Diatur dari sini aja, tidak perlu diisi manual di script Lua (<code>MANAGER_BOT_NAME</code> di script otomatis mengikuti nilai ini). Semua instance script akan sinkron baca dari sini tiap loop.</p>
                 </div>
             </div>
         </div>
@@ -602,6 +612,24 @@
                 const resBots = await fetch(`${FIREBASE_URL}/bots.json`);
                 const botsData = await resBots.json() || {};
 
+                const resManager = await fetch(`${FIREBASE_URL}/config/manager_bot_name.json`);
+                const managerBotName = (await resManager.json()) || "";
+                window.__currentManagerBotName = managerBotName;
+
+                const managerSelect = document.getElementById("manager-bot-select");
+                const botNames = Object.keys(botsData);
+                const prevSelectValue = managerSelect.value;
+                managerSelect.innerHTML = '<option value="">— Tidak ada (nonaktif) —</option>' +
+                    botNames.map(n => `<option value="${n}">${n}</option>`).join("");
+                // Jangan override pilihan user kalau dia lagi milih di dropdown (belum diklik Simpan);
+                // kalau belum diutak-atik, selalu ikutin nilai manager yang tersimpan di Firebase.
+                managerSelect.value = botNames.includes(prevSelectValue) && prevSelectValue !== managerBotName
+                    ? prevSelectValue
+                    : (botNames.includes(managerBotName) ? managerBotName : "");
+                document.getElementById("manager-bot-current").innerText = managerBotName
+                    ? `Manager aktif: ${managerBotName}`
+                    : "Belum ada manager diset — fitur Stop/Jalankan Script & antrian tambah akun (kalau >1 instance) tidak akan diproses.";
+
                 // --- TABEL WORLD DENGAN SS (>10) ---
                 let totalSSSum = 0, worldCount = 0;
                 let worldRows = "";
@@ -724,7 +752,7 @@
 
                     botRows += `
                         <tr>
-                            <td class="fw-bold">${bName}</td>
+                            <td class="fw-bold">${bName}${bName === managerBotName ? ' <span class="badge bg-warning text-dark" title="Bot ini yang memproses antrian tambah akun & flag Stop/Jalankan Script">👑 Manager</span>' : ''}</td>
                             <td><span class="badge bg-primary">${bData.current_world || "-"}</span></td>
                             <td>${bData.status || "-"}</td>
                             <td>${retryStatus}</td>
@@ -912,6 +940,19 @@
                 method: 'PATCH',
                 body: JSON.stringify({ auto_connect: enabled })
             });
+        }
+
+        // Simpan pilihan Manager Bot ke /config/manager_bot_name -- semua
+        // instance script (lewat syncConfig() tiap loop) baca nilai ini,
+        // jadi tidak perlu lagi isi MANAGER_BOT_NAME manual di script Lua.
+        // Pilih "— Tidak ada (nonaktif) —" buat mematikan fitur ini.
+        async function setManagerBot() {
+            const selected = document.getElementById("manager-bot-select").value;
+            await fetch(`${FIREBASE_URL}/config.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ manager_bot_name: selected })
+            });
+            fetchDashboardData();
         }
 
         setInterval(fetchDashboardData, 3000);
