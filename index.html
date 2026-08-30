@@ -410,29 +410,36 @@
             </div>
         </div>
 
-        <!-- TABEL WORLD YANG PUNYA SS (Science Station) -->
+        <!-- TABEL WORLD SS + SESI PANEN (DIGABUNG) -->
         <div class="card p-3 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
                 <div>
                     <span class="panel-label mb-0">World Log</span>
-                    <h4 class="mb-0">🏭 World dengan Science Station (&gt;10 SS)</h4>
+                    <h4 class="mb-0">🏭 World dengan Science Station (&gt;10 SS) &amp; Sesi Panen</h4>
                 </div>
                 <div style="width: 300px;">
                     <input type="text" id="world-search-input" class="form-control" placeholder="🔍 Cari Nama World..." onkeyup="filterWorldTable()">
                 </div>
             </div>
+            <p class="text-muted small mb-2">Pendataan pasif jumlah SS + jam mulai &amp; selesai panen per world (bot cuma mengamati, panen dilakukan manual oleh player).</p>
             <div class="table-responsive">
                 <table class="table table-dark table-hover align-middle" id="world-table">
                     <thead>
                         <tr>
                             <th>Nama World</th>
                             <th>Total SS</th>
+                            <th>Status Panen</th>
+                            <th>Jam Mulai</th>
+                            <th>Jam Selesai</th>
+                            <th>Puncak SS</th>
+                            <th>SS Sekarang</th>
+                            <th>Total Dipanen</th>
                             <th>Terakhir Discan</th>
                             <th>Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="world-table-body">
-                        <tr><td colspan="4" class="text-center">Memuat Data World...</td></tr>
+                        <tr><td colspan="10" class="text-center">Memuat Data World...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -461,31 +468,6 @@
                     </thead>
                     <tbody id="growscan-table-body">
                         <tr><td colspan="4" class="text-center">Memuat Data Growscan...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- TABEL SESI PANEN SS (WAKTU MULAI/SELESAI PANEN) -->
-        <div class="card p-3 mb-4">
-            <span class="panel-label mb-0">Harvest Log</span>
-            <h4>⏱️ Sesi Panen Science Station</h4>
-            <p class="text-muted small mb-2">Pendataan pasif jam mulai &amp; selesai panen SS per world (bot cuma mengamati, panen dilakukan manual oleh player).</p>
-            <div class="table-responsive">
-                <table class="table table-dark table-hover align-middle" id="harvest-table">
-                    <thead>
-                        <tr>
-                            <th>Nama World</th>
-                            <th>Status</th>
-                            <th>Jam Mulai</th>
-                            <th>Jam Selesai</th>
-                            <th>Puncak SS</th>
-                            <th>SS Sekarang</th>
-                            <th>Total Dipanen</th>
-                        </tr>
-                    </thead>
-                    <tbody id="harvest-table-body">
-                        <tr><td colspan="7" class="text-center">Memuat Data Sesi Panen...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -638,20 +620,40 @@
                 let growscanRows = "";
                 let gsWorldCount = 0;
 
+                // --- TABEL WORLD SS + SESI PANEN (DIGABUNG) ---
+                let harvestActiveCount = 0;
+
                 for (const [rawWName, wData] of Object.entries(worldsData)) {
                     const wName = rawWName.trim().toUpperCase();
                     const summary = wData.summary || {};
                     const totalSS = summary.total_ss || 0;
                     const hasGrowscanData = !!wData.growscan;
+                    const h = wData.harvest; // Bisa null/undefined kalau belum ada sesi panen tercatat.
 
-                    // Tabel World SS: cuma world yang beneran punya SS (>10).
+                    // Tabel World SS + Sesi Panen: cuma world yang beneran punya SS (>10),
+                    // sama seperti sebelumnya -- kolom sesi panen diisi "-" kalau belum
+                    // ada data harvest buat world itu.
                     if (totalSS > 10) {
                         worldCount++;
                         totalSSSum += totalSS;
+                        if (h && h.active) harvestActiveCount++;
+
+                        const statusBadge = !h
+                            ? `<span class="badge bg-secondary">— Belum ada data panen</span>`
+                            : (h.active
+                                ? `<span class="badge bg-warning text-dark">🔥 Sedang Dipanen</span>`
+                                : `<span class="badge bg-success">✅ Selesai</span>`);
+
                         worldRows += `
                             <tr>
                                 <td class="fw-bold text-warning">${wName}</td>
                                 <td><span class="badge bg-secondary">${totalSS} SS</span></td>
+                                <td>${statusBadge}</td>
+                                <td class="text-info">${h ? formatTime(h.start_time) : "-"}</td>
+                                <td class="text-info">${h && !h.active ? formatTime(h.end_time) : "-"}</td>
+                                <td><span class="badge bg-secondary">${h ? (h.peak_ss ?? 0) : "-"} SS</span></td>
+                                <td><span class="badge bg-secondary">${h ? (h.current_ss ?? 0) : "-"} SS</span></td>
+                                <td><span class="badge bg-info">${h ? (h.harvested_count ?? 0) : "-"} SS</span></td>
                                 <td class="text-info">${formatTime(summary.last_scan)}</td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-danger" onclick="deleteWorld('${wName}')">Hapus World</button>
@@ -679,41 +681,13 @@
 
                 document.getElementById("total-worlds").innerText = worldCount;
                 document.getElementById("total-ss").innerText = totalSSSum;
-                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="4" class="text-center">Belum ada world dengan >10 SS tercatat. Login-kan bot ke world.</td></tr>';
+                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="10" class="text-center">Belum ada world dengan >10 SS tercatat. Login-kan bot ke world.</td></tr>';
                 document.getElementById("growscan-table-body").innerHTML = growscanRows || '<tr><td colspan="4" class="text-center">Belum ada hasil growscan. Tambahkan world target growscan diatas.</td></tr>';
+                document.getElementById("total-gs-worlds").innerText = gsWorldCount;
+                document.getElementById("total-harvest-active").innerText = harvestActiveCount;
 
                 filterWorldTable();
                 filterGrowscanTable();
-
-                // --- TABEL SESI PANEN SS (waktu mulai/selesai panen) ---
-                let harvestRows = "";
-                let harvestActiveCount = 0;
-                for (const [rawWName, wData] of Object.entries(worldsData)) {
-                    const wName = rawWName.trim().toUpperCase();
-                    const h = wData.harvest;
-                    if (!h) continue;
-
-                    if (h.active) harvestActiveCount++;
-
-                    const statusBadge = h.active
-                        ? `<span class="badge bg-warning text-dark">🔥 Sedang Dipanen</span>`
-                        : `<span class="badge bg-success">✅ Selesai</span>`;
-
-                    harvestRows += `
-                        <tr>
-                            <td class="fw-bold text-warning">${wName}</td>
-                            <td>${statusBadge}</td>
-                            <td class="text-info">${formatTime(h.start_time)}</td>
-                            <td class="text-info">${h.active ? '-' : formatTime(h.end_time)}</td>
-                            <td><span class="badge bg-secondary">${h.peak_ss ?? 0} SS</span></td>
-                            <td><span class="badge bg-secondary">${h.current_ss ?? 0} SS</span></td>
-                            <td><span class="badge bg-info">${h.harvested_count ?? 0} SS</span></td>
-                        </tr>
-                    `;
-                }
-                document.getElementById("total-gs-worlds").innerText = gsWorldCount;
-                document.getElementById("total-harvest-active").innerText = harvestActiveCount;
-                document.getElementById("harvest-table-body").innerHTML = harvestRows || '<tr><td colspan="7" class="text-center">Belum ada sesi panen tercatat.</td></tr>';
 
                 // --- TABEL BOT ---
                 let botRows = "";
