@@ -613,11 +613,21 @@
                     const wName = rawWName.trim().toUpperCase();
                     const summary = wData.summary || {};
                     const totalSS = summary.total_ss || 0;
+                    const hasGrowscanData = !!wData.growscan;
 
-                    if (totalSS <= 10) continue;
+                    // World cuma di-skip kalau SS-nya <=10 DAN dia juga gak punya data
+                    // growscan sama sekali. World target growscan (biasanya chem/fuel world,
+                    // bukan world SS) tetap harus tampil walau SS-nya 0/rendah.
+                    if (totalSS <= 10 && !hasGrowscanData) continue;
 
-                    worldCount++;
-                    totalSSSum += totalSS;
+                    // "World Dipantau (>10 SS)" & Total SS cuma dihitung dari world yang
+                    // memang world SS beneran (>10 SS), biar statistiknya tetap akurat --
+                    // world growscan-only (SS rendah/0) tetap tampil di tabel tapi gak
+                    // ikut nambah kedua angka ini.
+                    if (totalSS > 10) {
+                        worldCount++;
+                        totalSSSum += totalSS;
+                    }
                     totalFuelPacks += calcWorldFuelPacks(wData.growscan);
 
                     const growscanHTML = buildGrowscanHTML(wData.growscan);
@@ -641,7 +651,7 @@
                 const totalWLIncome = totalFuelPacks * fuelPackPriceWL;
                 document.getElementById("total-income").innerText = formatWL(totalWLIncome) +
                     (wlToRupiah > 0 ? ` (${formatRupiah(totalWLIncome * wlToRupiah)})` : "");
-                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="5" class="text-center">Belum ada world tercatat (>10 SS). Login-kan bot ke world.</td></tr>';
+                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="5" class="text-center">Belum ada world tercatat (>10 SS, atau punya data growscan). Login-kan bot ke world.</td></tr>';
 
                 filterWorldTable();
 
