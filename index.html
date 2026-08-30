@@ -485,7 +485,7 @@
         <div class="card p-3">
             <span class="panel-label mb-0">Fleet Status</span>
             <h4>🤖 Status Bot &amp; Login</h4>
-            <p class="text-muted small mb-2">Mode <strong>Auto</strong> = bot ikut toggle Auto-Connect global. Connect/Disconnect manual akan meng-override mode Auto. Tombol <strong>Hapus Akun</strong> akan menghapus akun/bot ini secara permanen dari daftar.</p>
+            <p class="text-muted small mb-2">Mode <strong>Auto</strong> = bot ikut toggle Auto-Connect global. Connect/Disconnect manual akan meng-override mode Auto. <strong>Stop/Jalankan Script</strong> = mematikan/menyalakan ulang instance script bot itu sepenuhnya (bukan cuma logout) -- diproses oleh 1 bot "manager" yang harus tetap online. Tombol <strong>Hapus Akun</strong> akan menghapus akun/bot ini secara permanen dari daftar.</p>
             <div class="table-responsive">
                 <table class="table table-dark table-striped mt-3 align-middle">
                     <thead>
@@ -495,11 +495,12 @@
                             <th>Status</th>
                             <th>Status Re-Connect / Retry</th>
                             <th>Aksi Koneksi Bot</th>
+                            <th>Kontrol Script</th>
                             <th>Aksi Akun</th>
                         </tr>
                     </thead>
                     <tbody id="bot-table-body">
-                        <tr><td colspan="6" class="text-center">Memuat Data Bot...</td></tr>
+                        <tr><td colspan="7" class="text-center">Memuat Data Bot...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -704,6 +705,23 @@
 
                     const isAutoReconnectOn = bData.auto_reconnect !== false;
 
+                    const scriptControl = bData.script_control || "";
+                    const scriptStatus = bData.script_status || "unknown";
+                    let scriptStatusBadge;
+                    if (scriptControl === "STOP" || scriptControl === "RUN") {
+                        scriptStatusBadge = `<span class="badge bg-warning text-dark">⏳ Menunggu Manager...</span>`;
+                    } else if (scriptStatus === "running") {
+                        scriptStatusBadge = `<span class="badge bg-success">▶ Running</span>`;
+                    } else if (scriptStatus === "stopped") {
+                        scriptStatusBadge = `<span class="badge bg-danger">⏹ Stopped</span>`;
+                    } else if (scriptStatus === "failed") {
+                        scriptStatusBadge = `<span class="badge bg-danger">⚠️ Gagal${bData.script_error ? ": " + bData.script_error : ""}</span>`;
+                    } else if (scriptStatus === "not_found") {
+                        scriptStatusBadge = `<span class="badge bg-secondary">Bot tidak ditemukan manager</span>`;
+                    } else {
+                        scriptStatusBadge = `<span class="badge bg-secondary">Tidak diketahui</span>`;
+                    }
+
                     botRows += `
                         <tr>
                             <td class="fw-bold">${bName}</td>
@@ -732,12 +750,23 @@
                                 </div>
                             </td>
                             <td>
+                                <div class="mb-1">${scriptStatusBadge}</div>
+                                <div class="btn-group" role="group">
+                                    <button class="btn btn-sm btn-outline-danger" onclick="setScriptControl('${bName}', 'STOP')" title="Mematikan instance script bot ini sepenuhnya (bukan cuma disconnect) -- diproses oleh bot manager">
+                                        ⏹ Stop Script
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success" onclick="setScriptControl('${bName}', 'RUN')" title="Menyalakan ulang instance script bot ini -- diproses oleh bot manager">
+                                        ▶ Jalankan
+                                    </button>
+                                </div>
+                            </td>
+                            <td>
                                 <button class="btn btn-sm btn-danger" onclick="deleteBotAccount('${bName}')">🗑️ Hapus Akun</button>
                             </td>
                         </tr>
                     `;
                 }
-                document.getElementById("bot-table-body").innerHTML = botRows || '<tr><td colspan="6" class="text-center">Belum ada bot aktif.</td></tr>';
+                document.getElementById("bot-table-body").innerHTML = botRows || '<tr><td colspan="7" class="text-center">Belum ada bot aktif.</td></tr>';
 
                 // --- ANTRIAN TAMBAH AKUN ---
                 const resPending = await fetch(`${FIREBASE_URL}/pending_accounts.json`);
@@ -841,6 +870,19 @@
             await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
                 method: 'PATCH',
                 body: JSON.stringify({ control: 'RECONNECT_NOW' })
+            });
+            fetchDashboardData();
+        }
+
+        // Minta bot "manager" mematikan (STOP) atau menyalakan ulang (RUN)
+        // instance script bot tertentu lewat bot:stopScript()/runScript().
+        // Ini BUKAN cuma disconnect -- script-nya beneran berhenti total
+        // sampai di-"Jalankan" lagi dari sini. Butuh 1 bot manager yang
+        // tetap online buat memprosesnya (lihat MANAGER_BOT_NAME di script Lua).
+        async function setScriptControl(botName, action) {
+            await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
+                method: 'PATCH',
+                body: JSON.stringify({ script_control: action })
             });
             fetchDashboardData();
         }
