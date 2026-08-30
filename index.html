@@ -775,6 +775,11 @@
                                     <button class="btn btn-sm ${isAutoReconnectOn ? 'btn-outline-success' : 'btn-outline-secondary'}" onclick="toggleBotAutoReconnect('${bName}', ${!isAutoReconnectOn})" title="Kalau OFF, bot tidak akan reconnect sendiri setelah putus -- harus manual">
                                         ${isAutoReconnectOn ? '🔁 Auto-Reconnect: ON' : '⛔ Auto-Reconnect: OFF'}
                                     </button>
+                                    ${bData.native_reconnect_disabled === false
+                                        ? `<span class="badge bg-warning text-dark ms-1" title="Script gagal mematikan fitur Auto-Reconnect bawaan app -- uncheck manual di Preferences > Auto Reconnect biar gak konflik sama toggle di atas">⚠️ App masih kontrol sendiri</span>`
+                                        : (bData.native_reconnect_disabled === true
+                                            ? `<span class="badge bg-success ms-1" title="Fitur Auto-Reconnect bawaan app berhasil dimatikan script, toggle di atas sekarang satu-satunya kontrol">✓ App synced</span>`
+                                            : '')}
                                 </div>
                             </td>
                             <td>
@@ -789,7 +794,9 @@
                                 </div>
                             </td>
                             <td>
-                                <button class="btn btn-sm btn-danger" onclick="deleteBotAccount('${bName}')">🗑️ Hapus Akun</button>
+                                ${bData.account_control === "REMOVE"
+                                    ? `<span class="badge bg-danger">🗑️ Menghapus akun... (diproses manager)</span>`
+                                    : `<button class="btn btn-sm btn-danger" onclick="deleteBotAccount('${bName}')">🗑️ Hapus Akun</button>`}
                             </td>
                         </tr>
                     `;
@@ -923,10 +930,33 @@
             fetchDashboardData();
         }
 
+        // Sebelumnya tombol ini cuma DELETE node /bots/{nama} di Firebase --
+        // tapi instance SCRIPT bot itu tetap jalan di background, jadi begitu
+        // loop berikutnya kirim heartbeat lagi, node itu MUNCUL LAGI sendiri
+        // (kelihatan kayak gagal dihapus).
+        //
+        // FIX: kalau sudah ada Manager Bot diset (lihat panel "Manager Bot"),
+        // tombol ini cuma pasang flag account_control="REMOVE" -- manager
+        // yang beneran memproses: stopScript() dulu (biar gak ada lagi yang
+        // resurrect node-nya) baru menghapus record-nya permanen dari
+        // Firebase. Kalau belum ada manager diset, fallback ke hapus
+        // langsung seperti sebelumnya (dengan peringatan tambahan).
         async function deleteBotAccount(botName) {
-            if (confirm(`⚠️ Hapus akun/bot "${botName}" secara PERMANEN dari daftar?\n\nAkun ini akan hilang dari monitoring.`)) {
+            const hasManager = !!window.__currentManagerBotName;
+            const confirmMsg = hasManager
+                ? `⚠️ Hapus akun/bot "${botName}" secara PERMANEN?\n\nScript-nya akan dihentikan dulu oleh Manager Bot, baru datanya dihapus dari dashboard.`
+                : `⚠️ Hapus akun/bot "${botName}" secara PERMANEN dari daftar?\n\nBELUM ADA Manager Bot diset -- kalau script bot ini masih jalan, entrinya bisa muncul lagi otomatis. Sebaiknya set Manager Bot dulu di panel System Control, atau Stop Script akun ini secara manual sebelum menghapus.`;
+
+            if (confirm(confirmMsg)) {
                 try {
-                    await fetch(`${FIREBASE_URL}/bots/${botName}.json`, { method: 'DELETE' });
+                    if (hasManager) {
+                        await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
+                            method: 'PATCH',
+                            body: JSON.stringify({ account_control: 'REMOVE' })
+                        });
+                    } else {
+                        await fetch(`${FIREBASE_URL}/bots/${botName}.json`, { method: 'DELETE' });
+                    }
                     fetchDashboardData();
                 } catch (err) {
                     alert("Gagal menghapus akun. Coba lagi.");
