@@ -287,6 +287,61 @@
         ::-webkit-scrollbar { height: 8px; width: 8px; }
         ::-webkit-scrollbar-track { background: var(--panel); }
         ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+        /* ---------- Device Switcher ---------- */
+        .device-switcher {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            z-index: 1;
+        }
+        .device-switcher .device-label {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+        .device-pill {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: var(--panel-alt);
+            color: var(--muted);
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.15s ease;
+        }
+        .device-pill:hover { color: var(--text); border-color: var(--signal); }
+        .device-pill.active {
+            background: rgba(70,225,196,0.15);
+            border-color: var(--signal);
+            color: var(--signal);
+        }
+        .device-add-form {
+            display: flex;
+            gap: 4px;
+        }
+        .device-add-form input {
+            width: 110px;
+            padding: 4px 8px;
+            font-size: 0.78rem;
+        }
+        .device-banner {
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.72rem;
+            color: var(--muted);
+            background: var(--panel-alt);
+            border: 1px dashed var(--border);
+            border-radius: 6px;
+            padding: 6px 12px;
+            margin-bottom: 18px;
+        }
+        .device-banner strong { color: var(--signal); }
     </style>
 </head>
 <body class="p-4">
@@ -298,10 +353,29 @@
                 <span class="tag">SIGNAL</span>
                 World Data &amp; Growscan Monitor
             </h2>
+
+            <!-- DEVICE SWITCHER: pilih device mana yang lagi dilihat/dikontrol.
+                 Ganti device = ganti URL (?device=XXX) lalu reload penuh, supaya
+                 semua data & interval fetch konsisten merujuk ke satu device. -->
+            <div class="device-switcher" id="device-switcher">
+                <span class="device-label">Device:</span>
+                <div id="device-pill-list"></div>
+                <form class="device-add-form" onsubmit="handleAddDevice(event)">
+                    <input type="text" id="new-device-id" class="form-control" placeholder="+ Device baru" maxlength="20">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">Tambah</button>
+                </form>
+            </div>
+
             <div class="live-pulse">
                 <span class="dot"></span>
                 LIVE · REFRESH 3s
             </div>
+        </div>
+
+        <div class="device-banner">
+            📟 Kamu sedang melihat &amp; mengontrol <strong id="device-banner-name">-</strong>.
+            Semua bot, world, growscan target, dan antrian akun di halaman ini HANYA milik device ini.
+            Buka tab/browser lain dengan device berbeda buat mengelola device lainnya secara bersamaan.
         </div>
 
         <!-- INPUT FORMS & PENGATURAN GLOBAL -->
@@ -502,6 +576,72 @@
     <script>
         const FIREBASE_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
 
+        // ==========================================
+        // MULTI-DEVICE SUPPORT
+        // ==========================================
+        // Device aktif ditentukan dari query string ?device=XXX di URL.
+        // Kalau tidak ada, default "A". Semua fetch di dashboard ini
+        // otomatis di-scope ke /devices/{DEVICE_ID}/... lewat fbUrl(),
+        // supaya persis sinkron dengan cara script Lua nyimpen datanya
+        // (lihat dp() di script Lua).
+        const urlParams = new URLSearchParams(window.location.search);
+        const DEVICE_ID = urlParams.get("device") || "A";
+
+        // fbUrl("/bots.json") -> "<FIREBASE_URL>/devices/A/bots.json"
+        function fbUrl(path) {
+            return `${FIREBASE_URL}/devices/${encodeURIComponent(DEVICE_ID)}${path}`;
+        }
+
+        // Daftar device yang pernah dibuka di browser ini, disimpan lokal
+        // (localStorage) supaya muncul sebagai pill di device switcher.
+        // Ini CUMA daftar shortcut UI -- bukan sumber data. Data device
+        // yang sebenarnya tetap murni ditentukan oleh path Firebase.
+        function getKnownDevices() {
+            try {
+                const raw = localStorage.getItem("known_device_ids");
+                const list = raw ? JSON.parse(raw) : [];
+                if (!list.includes(DEVICE_ID)) list.push(DEVICE_ID);
+                return [...new Set(list)];
+            } catch (e) {
+                return [DEVICE_ID];
+            }
+        }
+
+        function saveKnownDevices(list) {
+            try { localStorage.setItem("known_device_ids", JSON.stringify(list)); }
+            catch (e) { /* localStorage tidak tersedia, abaikan */ }
+        }
+
+        function renderDeviceSwitcher() {
+            const known = getKnownDevices();
+            saveKnownDevices(known);
+
+            document.getElementById("device-pill-list").innerHTML = known.map(id => {
+                const isActive = id === DEVICE_ID;
+                return `<a href="?device=${encodeURIComponent(id)}" class="device-pill ${isActive ? "active" : ""}">${id}</a>`;
+            }).join(" ");
+
+            document.getElementById("device-banner-name").innerText = `Device ${DEVICE_ID}`;
+            document.title = `[${DEVICE_ID}] Signal World Monitor Dashboard`;
+        }
+
+        function handleAddDevice(e) {
+            e.preventDefault();
+            const input = document.getElementById("new-device-id");
+            const raw = input.value.trim().toUpperCase().replace(/[^A-Z0-9_\-]/g, "");
+            if (!raw) return;
+
+            const known = getKnownDevices();
+            if (!known.includes(raw)) known.push(raw);
+            saveKnownDevices(known);
+
+            // Pindah langsung ke device baru itu (reload penuh, supaya semua
+            // fetch & interval konsisten pakai DEVICE_ID yang baru).
+            window.location.href = `?device=${encodeURIComponent(raw)}`;
+        }
+
+        renderDeviceSwitcher();
+
         // Warna tiap ID item chem hasil growscan. Cuma dipakai buat label
         // tampilan -- TIDAK ada lagi kalkulasi resep/Fuel Pack/estimasi WL.
         const ITEM_INFO = {
@@ -579,22 +719,22 @@
 
         async function fetchDashboardData() {
             try {
-                const resConfig = await fetch(`${FIREBASE_URL}/config/auto_connect.json`);
+                const resConfig = await fetch(fbUrl(`/config/auto_connect.json`));
                 const autoConnect = await resConfig.json();
                 document.getElementById("auto-connect-toggle").checked = (autoConnect !== false);
 
-                const resGSTargets = await fetch(`${FIREBASE_URL}/growscan_targets.json`);
+                const resGSTargets = await fetch(fbUrl(`/growscan_targets.json`));
                 const gsTargets = await resGSTargets.json() || {};
                 const gsNames = Object.keys(gsTargets);
                 document.getElementById("gs-target-list").innerHTML = `Target Aktif: ${gsNames.length > 0 ? gsNames.map(n => `<span class="badge bg-info text-dark me-1">${n} <a href="#" onclick="removeGSTarget('${n}')" class="text-danger fw-bold ms-1" style="text-decoration:none;">×</a></span>`).join("") : '<em>Tidak ada target Growscan set.</em>'}`;
 
-                const resWorlds = await fetch(`${FIREBASE_URL}/worlds.json`);
+                const resWorlds = await fetch(fbUrl(`/worlds.json`));
                 const worldsData = await resWorlds.json() || {};
 
-                const resBots = await fetch(`${FIREBASE_URL}/bots.json`);
+                const resBots = await fetch(fbUrl(`/bots.json`));
                 const botsData = await resBots.json() || {};
 
-                const resManager = await fetch(`${FIREBASE_URL}/config/manager_bot_name.json`);
+                const resManager = await fetch(fbUrl(`/config/manager_bot_name.json`));
                 const managerBotName = (await resManager.json()) || "";
                 window.__currentManagerBotName = managerBotName;
 
@@ -778,7 +918,7 @@
                 document.getElementById("bot-table-body").innerHTML = botRows || '<tr><td colspan="7" class="text-center">Belum ada bot aktif.</td></tr>';
 
                 // --- ANTRIAN TAMBAH AKUN ---
-                const resPending = await fetch(`${FIREBASE_URL}/pending_accounts.json`);
+                const resPending = await fetch(fbUrl(`/pending_accounts.json`));
                 const pendingData = await resPending.json() || {};
                 const pendingEntries = Object.entries(pendingData);
 
@@ -810,7 +950,7 @@
             const wName = rawInput.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
             if (!wName) return;
 
-            await fetch(`${FIREBASE_URL}/growscan_targets/${wName}.json`, {
+            await fetch(fbUrl(`/growscan_targets/${wName}.json`), {
                 method: 'PUT',
                 body: JSON.stringify({ active: true, added_at: Date.now() })
             });
@@ -820,7 +960,7 @@
         }
 
         async function removeGSTarget(wName) {
-            await fetch(`${FIREBASE_URL}/growscan_targets/${wName}.json`, { method: 'DELETE' });
+            await fetch(fbUrl(`/growscan_targets/${wName}.json`), { method: 'DELETE' });
             fetchDashboardData();
         }
 
@@ -836,7 +976,7 @@
 
             const key = btoa(email).replace(/[^a-zA-Z0-9]/g, "");
 
-            await fetch(`${FIREBASE_URL}/pending_accounts/${key}.json`, {
+            await fetch(fbUrl(`/pending_accounts/${key}.json`), {
                 method: 'PUT',
                 body: JSON.stringify({ email: email, password: password, status: "pending", added_at: Date.now() })
             });
@@ -847,20 +987,20 @@
         }
 
         async function removePendingAccount(key) {
-            await fetch(`${FIREBASE_URL}/pending_accounts/${key}.json`, { method: 'DELETE' });
+            await fetch(fbUrl(`/pending_accounts/${key}.json`), { method: 'DELETE' });
             fetchDashboardData();
         }
 
         async function deleteWorld(worldName) {
             if (confirm(`Hapus log world ${worldName}?`)) {
-                await fetch(`${FIREBASE_URL}/worlds/${worldName}.json`, { method: 'DELETE' });
+                await fetch(fbUrl(`/worlds/${worldName}.json`), { method: 'DELETE' });
                 fetchDashboardData();
             }
         }
 
         async function deleteAllData() {
             if (confirm("⚠️ Apakah Anda yakin ingin MENGHAPUS SEMUA DATA WORLD?\n\nTindakan ini akan mengosongkan seluruh histori pendataan world & growscan!")) {
-                await fetch(`${FIREBASE_URL}/worlds.json`, { method: 'DELETE' });
+                await fetch(fbUrl(`/worlds.json`), { method: 'DELETE' });
                 alert("Berhasil menghapus seluruh data world!");
                 fetchDashboardData();
             }
@@ -868,7 +1008,7 @@
 
         async function setBotControl(botName, status) {
             const value = (status === 'AUTO') ? null : status;
-            await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
+            await fetch(fbUrl(`/bots/${botName}.json`), {
                 method: 'PATCH',
                 body: JSON.stringify({ control: value })
             });
@@ -876,7 +1016,7 @@
         }
 
         async function triggerReconnectNow(botName) {
-            await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
+            await fetch(fbUrl(`/bots/${botName}.json`), {
                 method: 'PATCH',
                 body: JSON.stringify({ control: 'RECONNECT_NOW' })
             });
@@ -889,7 +1029,7 @@
         // sampai di-"Jalankan" lagi dari sini. Butuh 1 bot manager yang
         // tetap online buat memprosesnya (lihat MANAGER_BOT_NAME di script Lua).
         async function setScriptControl(botName, action) {
-            await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
+            await fetch(fbUrl(`/bots/${botName}.json`), {
                 method: 'PATCH',
                 body: JSON.stringify({ script_control: action })
             });
@@ -897,7 +1037,7 @@
         }
 
         async function toggleBotAutoReconnect(botName, enabled) {
-            await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
+            await fetch(fbUrl(`/bots/${botName}.json`), {
                 method: 'PATCH',
                 body: JSON.stringify({ auto_reconnect: enabled })
             });
@@ -924,12 +1064,12 @@
             if (confirm(confirmMsg)) {
                 try {
                     if (hasManager) {
-                        await fetch(`${FIREBASE_URL}/bots/${botName}.json`, {
+                        await fetch(fbUrl(`/bots/${botName}.json`), {
                             method: 'PATCH',
                             body: JSON.stringify({ account_control: 'REMOVE' })
                         });
                     } else {
-                        await fetch(`${FIREBASE_URL}/bots/${botName}.json`, { method: 'DELETE' });
+                        await fetch(fbUrl(`/bots/${botName}.json`), { method: 'DELETE' });
                     }
                     fetchDashboardData();
                 } catch (err) {
@@ -940,7 +1080,7 @@
         }
 
         async function toggleAutoConnect(enabled) {
-            await fetch(`${FIREBASE_URL}/config.json`, {
+            await fetch(fbUrl(`/config.json`), {
                 method: 'PATCH',
                 body: JSON.stringify({ auto_connect: enabled })
             });
@@ -952,7 +1092,7 @@
         // Pilih "— Tidak ada (nonaktif) —" buat mematikan fitur ini.
         async function setManagerBot() {
             const selected = document.getElementById("manager-bot-select").value;
-            await fetch(`${FIREBASE_URL}/config.json`, {
+            await fetch(fbUrl(`/config.json`), {
                 method: 'PATCH',
                 body: JSON.stringify({ manager_bot_name: selected })
             });
