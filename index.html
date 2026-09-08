@@ -1,1106 +1,619 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Signal World Monitor Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-        :root{
-            --bg: #0a0d12;
-            --panel: #10141c;
-            --panel-alt: #141a24;
-            --border: #232938;
-            --text: #e6e9ef;
-            --muted: #7a8296;
-            --signal: #46e1c4;   /* cyan - live / normal */
-            --alert: #f2a93b;    /* amber - growscan / caution */
-            --danger: #e8536b;   /* red - stop / fail */
-            --info: #5b8def;     /* blue - secondary info */
-            --gold: #e8c15b;     /* gold - pendapatan / uang */
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LUCIFER // CONTROL</title>
+<style>
+  :root{
+    --bg: #060907;
+    --panel: #0e130e;
+    --panel-2: #131a12;
+    --line: #223122;
+    --green: #9FEF00;
+    --green-dim: #5c8a12;
+    --amber: #FF9F1C;
+    --red: #FF4136;
+    --text: #E9F2E1;
+    --muted: #7C8B74;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "Courier New", monospace;
+    --sans: -apple-system, "Segoe UI", system-ui, sans-serif;
+  }
 
-        * { box-sizing: border-box; }
+  * { box-sizing: border-box; }
 
-        body {
-            background:
-                radial-gradient(circle at 15% 0%, rgba(70,225,196,0.06), transparent 40%),
-                radial-gradient(circle at 85% 20%, rgba(91,141,239,0.05), transparent 45%),
-                var(--bg);
-            color: var(--text);
-            font-family: 'IBM Plex Sans', sans-serif;
-            min-height: 100vh;
-        }
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 15% 0%, rgba(159,239,0,0.05), transparent 40%),
+      radial-gradient(circle at 85% 100%, rgba(255,65,54,0.04), transparent 45%),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+  }
 
-        h2, h4, h5 {
-            font-family: 'Space Grotesk', sans-serif;
-            letter-spacing: 0.02em;
-        }
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--line);
+    background: linear-gradient(180deg, rgba(159,239,0,0.03), transparent);
+  }
 
-        .mono { font-family: 'IBM Plex Mono', monospace; }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
 
-        /* ---------- Top status bar ---------- */
-        .console-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-            padding: 18px 22px;
-            margin-bottom: 24px;
-            background: linear-gradient(180deg, var(--panel-alt), var(--panel));
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            position: relative;
-            overflow: hidden;
-        }
-        .console-header::before{
-            content:"";
-            position:absolute; inset:0;
-            background: repeating-linear-gradient(
-                90deg, rgba(70,225,196,0.035) 0px, rgba(70,225,196,0.035) 1px,
-                transparent 1px, transparent 26px
-            );
-            pointer-events:none;
-        }
-        .console-title {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: var(--text);
-            margin: 0;
-            display:flex;
-            align-items:center;
-            gap: 10px;
-            z-index:1;
-        }
-        .console-title .tag {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.65rem;
-            font-weight: 600;
-            letter-spacing: 0.12em;
-            color: var(--bg);
-            background: var(--signal);
-            padding: 3px 8px;
-            border-radius: 4px;
-        }
-        .live-pulse {
-            display:flex;
-            align-items:center;
-            gap:8px;
-            font-family:'IBM Plex Mono', monospace;
-            font-size:0.75rem;
-            color: var(--muted);
-            z-index:1;
-        }
-        .live-pulse .dot {
-            width: 9px; height: 9px;
-            border-radius: 50%;
-            background: var(--signal);
-            box-shadow: 0 0 0 0 rgba(70,225,196,0.6);
-            animation: pulse-ring 3s ease-out infinite;
-        }
-        @keyframes pulse-ring {
-            0%   { box-shadow: 0 0 0 0 rgba(70,225,196,0.55); }
-            70%  { box-shadow: 0 0 0 9px rgba(70,225,196,0); }
-            100% { box-shadow: 0 0 0 0 rgba(70,225,196,0); }
-        }
+  .brand-mark{
+    width:34px; height:34px;
+    border-radius:50%;
+    border: 2px solid var(--green);
+    display:flex; align-items:center; justify-content:center;
+    position:relative;
+    flex-shrink:0;
+  }
+  .brand-mark::before{
+    content:"";
+    position:absolute;
+    inset:6px;
+    border-radius:50%;
+    background: var(--green);
+    box-shadow: 0 0 12px 2px rgba(159,239,0,0.6);
+    animation: pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{ opacity:1; transform: scale(1); }
+    50%{ opacity:.55; transform: scale(0.82); }
+  }
 
-        /* ---------- Panels ---------- */
-        .card {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            color: var(--text);
-            border-radius: 10px;
-            margin-bottom: 20px;
-            position: relative;
-        }
-        .card.hud::before, .card.hud::after {
-            content:"";
-            position:absolute;
-            width:14px; height:14px;
-            border: 2px solid var(--signal);
-            opacity:0.7;
-        }
-        .card.hud::before{ top:-1px; left:-1px; border-right:none; border-bottom:none; border-top-left-radius:8px; }
-        .card.hud::after{ bottom:-1px; right:-1px; border-left:none; border-top:none; border-bottom-right-radius:8px; }
+  .brand h1{
+    margin:0;
+    font-size: 17px;
+    letter-spacing: 0.14em;
+    font-weight: 700;
+  }
+  .brand p{
+    margin:2px 0 0;
+    font-size: 11.5px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
 
-        .panel-label {
-            font-family:'IBM Plex Mono', monospace;
-            font-size: 0.7rem;
-            letter-spacing: 0.14em;
-            color: var(--muted);
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            display:block;
-        }
+  .fb-status{
+    display:flex; align-items:center; gap:8px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--muted);
+    padding: 7px 14px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--panel);
+  }
+  .dot{
+    width:8px; height:8px; border-radius:50%;
+    background: var(--muted);
+    flex-shrink:0;
+  }
+  .dot.live{ background: var(--green); box-shadow: 0 0 8px 1px rgba(159,239,0,.7); }
+  .dot.down{ background: var(--red); box-shadow: 0 0 8px 1px rgba(255,65,54,.7); }
 
-        .card h5 {
-            font-size: 1rem;
-            margin-bottom: 4px;
-        }
+  /* ---------- Main ---------- */
+  main{
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
 
-        /* ---------- Form controls ---------- */
-        .form-control, textarea.form-control {
-            background: var(--panel-alt) !important;
-            border: 1px solid var(--border) !important;
-            color: var(--text) !important;
-            font-family: 'IBM Plex Mono', monospace;
-        }
-        .form-control:focus {
-            background: var(--panel-alt) !important;
-            color: var(--text) !important;
-            border-color: var(--signal) !important;
-            box-shadow: 0 0 0 3px rgba(70,225,196,0.15) !important;
-        }
-        .form-control::placeholder { color: var(--muted); opacity: 0.8; }
+  .section-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom: 18px;
+  }
+  .section-head h2{
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    font-weight: 600;
+    margin:0;
+  }
+  .count-pill{
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--green);
+  }
 
-        .btn-info {
-            background: var(--signal);
-            border-color: var(--signal);
-            color: #06231d;
-            font-weight: 600;
-        }
-        .btn-info:hover { background:#37c9ae; border-color:#37c9ae; color:#06231d; }
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
 
-        .btn-danger {
-            background: var(--danger);
-            border-color: var(--danger);
-        }
-        .btn-danger:hover { background:#d13d55; border-color:#d13d55; }
+  .empty{
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+    padding: 48px 24px;
+    text-align:center;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+  }
 
-        .btn-outline-danger {
-            color: var(--danger);
-            border-color: var(--danger);
-        }
-        .btn-outline-danger:hover { background: var(--danger); border-color: var(--danger); }
+  .card{
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px;
+    display:flex;
+    flex-direction:column;
+    gap: 14px;
+    position: relative;
+    overflow:hidden;
+  }
+  .card::before{
+    content:"";
+    position:absolute;
+    top:0; left:0; right:0; height:2px;
+    background: var(--muted);
+  }
+  .card.online::before{ background: var(--green); }
+  .card.offline::before{ background: var(--red); }
 
-        .btn-success { background: var(--signal); border-color: var(--signal); color:#06231d; }
-        .btn-outline-success { color: var(--signal); border-color: var(--signal); }
-        .btn-outline-success:hover { background: var(--signal); color:#06231d; }
+  .card-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .bot-name{
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.01em;
+  }
+  .status-tag{
+    display:flex; align-items:center; gap:6px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+  .status-tag.online{ color: var(--green); }
+  .status-tag.offline{ color: var(--red); }
 
-        .btn-outline-secondary { color: var(--muted); border-color: var(--border); }
-        .btn-outline-secondary:hover { background: var(--border); color: var(--text); }
+  .readout{
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--muted);
+    display:flex;
+    flex-direction:column;
+    gap: 5px;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .readout .row{ display:flex; justify-content:space-between; gap:10px; }
+  .readout .row span:first-child{ color: #566152; }
+  .readout .row span:last-child{ color: var(--text); text-align:right; }
+  .readout .row.hunting span:last-child{ color: var(--amber); }
 
-        .form-check-input {
-            background-color: var(--panel-alt);
-            border-color: var(--border);
-        }
-        .form-check-input:checked {
-            background-color: var(--signal);
-            border-color: var(--signal);
-        }
-        .form-check-label { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; }
+  .toggle-row{
+    display:flex; align-items:center; justify-content:space-between;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .switch{
+    position:relative;
+    width: 38px; height: 20px;
+    border-radius: 999px;
+    background: #1c261a;
+    border: 1px solid var(--line);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+  .switch::after{
+    content:"";
+    position:absolute;
+    top:2px; left:2px;
+    width:14px; height:14px;
+    border-radius:50%;
+    background: var(--muted);
+    transition: transform .15s ease, background .15s ease;
+  }
+  .switch.on{ border-color: var(--green-dim); background: rgba(159,239,0,0.12); }
+  .switch.on::after{ background: var(--green); transform: translateX(18px); }
 
-        /* ---------- Metrics ---------- */
-        .metric-card h5 {
-            color: var(--muted);
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.75rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-        .metric-card h2 {
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 2.4rem;
-            font-weight: 700;
-        }
-        .metric-card .h2.text-info { color: var(--signal) !important; }
-        .metric-card .h2.text-primary { color: var(--info) !important; }
-        .metric-card .h2.text-warning { color: var(--alert) !important; }
-        .metric-card .h2.text-gold { color: var(--gold) !important; }
+  .btn-row{
+    display:flex;
+    gap: 8px;
+  }
+  button{
+    font-family: var(--sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--text);
+    padding: 9px 10px;
+    cursor:pointer;
+    transition: filter .12s ease, transform .05s ease;
+    flex:1;
+  }
+  button:hover{ filter: brightness(1.25); }
+  button:active{ transform: scale(0.98); }
 
-        /* ---------- Tables ---------- */
-        .table-dark {
-            background-color: var(--panel) !important;
-            color: var(--text) !important;
-        }
-        .table {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.85rem;
-        }
-        .table > :not(caption) > * > * {
-            background-color: var(--panel) !important;
-            border-bottom-color: var(--border) !important;
-            color: var(--text);
-        }
-        .table thead th {
-            font-family: 'IBM Plex Sans', sans-serif;
-            font-size: 0.7rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--muted);
-            border-bottom: 1px solid var(--border) !important;
-            font-weight: 600;
-        }
-        .table-hover > tbody > tr:hover > * {
-            background-color: var(--panel-alt) !important;
-        }
-        .table-striped > tbody > tr:nth-of-type(odd) > * {
-            background-color: rgba(255,255,255,0.02) !important;
-        }
+  .btn-connect{ border-color: var(--green-dim); color: var(--green); }
+  .btn-disconnect{ border-color: rgba(255,65,54,0.4); color: var(--red); }
+  .btn-geiger{
+    flex: none;
+    width: 42px;
+    display:flex; align-items:center; justify-content:center;
+    border-color: var(--amber);
+    color: var(--amber);
+    font-size: 17px;
+    padding: 0;
+  }
+  .btn-geiger.active{
+    background: rgba(255,159,28,0.15);
+    box-shadow: 0 0 10px rgba(255,159,28,0.35);
+  }
 
-        /* Badge recolor to match palette */
-        .badge.bg-secondary { background-color: #2a3142 !important; color: var(--text) !important; }
-        .badge.bg-info { background-color: rgba(70,225,196,0.15) !important; color: var(--signal) !important; border:1px solid rgba(70,225,196,0.4); }
-        .badge.bg-success { background-color: rgba(70,225,196,0.15) !important; color: var(--signal) !important; border:1px solid rgba(70,225,196,0.4); }
-        .badge.bg-warning { background-color: rgba(242,169,59,0.15) !important; color: var(--alert) !important; border:1px solid rgba(242,169,59,0.4); }
-        .badge.bg-danger { background-color: rgba(232,83,107,0.15) !important; color: var(--danger) !important; border:1px solid rgba(232,83,107,0.4); }
-        .badge.bg-primary { background-color: rgba(91,141,239,0.15) !important; color: var(--info) !important; border:1px solid rgba(91,141,239,0.4); }
-        .badge.bg-gold { background-color: rgba(232,193,91,0.15) !important; color: var(--gold) !important; border:1px solid rgba(232,193,91,0.4); }
-        .badge { font-family:'IBM Plex Mono', monospace; font-weight: 500; padding: 5px 9px; }
-        .badge.text-dark { color: inherit !important; }
+  /* ---------- Modal ---------- */
+  .overlay{
+    position: fixed; inset:0;
+    background: rgba(2,4,2,0.72);
+    backdrop-filter: blur(3px);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index: 50;
+    padding: 20px;
+  }
+  .overlay.show{ display:flex; }
 
-        .growscan-box {
-            background-color: var(--panel-alt);
-            border-left: 3px solid var(--alert);
-            padding: 10px 12px;
-            font-size: 0.78rem;
-            border-radius: 4px;
-            font-family: 'IBM Plex Mono', monospace;
-            min-width: 260px;
-        }
-        .growscan-box .gs-item-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            padding: 1px 0;
-        }
-        .growscan-box .gs-total {
-            margin-top: 6px;
-            padding-top: 6px;
-            border-top: 1px dashed var(--border);
-        }
-        .growscan-box .gs-income {
-            color: var(--gold);
-            font-weight: 600;
-        }
+  .modal{
+    width: 100%;
+    max-width: 380px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+  }
+  .modal h3{
+    margin:0 0 4px;
+    font-size: 15px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .modal p.sub{
+    margin: 0 0 18px;
+    font-size: 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+  .field{ margin-bottom: 14px; }
+  .field label{
+    display:block;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 6px;
+    font-family: var(--mono);
+  }
+  .field input{
+    width:100%;
+    background: #0b100a;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 11px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+  }
+  .field input:focus{
+    outline:none;
+    border-color: var(--green-dim);
+  }
+  .modal-actions{
+    display:flex;
+    gap:8px;
+    margin-top: 6px;
+  }
+  .btn-cancel{ color: var(--muted); }
+  .btn-start{
+    border-color: var(--green-dim);
+    color: var(--green);
+  }
 
-        .text-warning { color: var(--alert) !important; }
-        .text-info { color: var(--signal) !important; }
-        .text-success { color: var(--signal) !important; }
-        .text-primary { color: var(--info) !important; }
-        .text-gold { color: var(--gold) !important; }
-        .text-muted { color: var(--muted) !important; }
-
-        ::-webkit-scrollbar { height: 8px; width: 8px; }
-        ::-webkit-scrollbar-track { background: var(--panel); }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-        /* ---------- Device Switcher ---------- */
-        .device-switcher {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-            z-index: 1;
-        }
-        .device-switcher .device-label {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.7rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--muted);
-        }
-        .device-pill {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.78rem;
-            font-weight: 600;
-            padding: 5px 12px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
-            background: var(--panel-alt);
-            color: var(--muted);
-            text-decoration: none;
-            display: inline-block;
-            transition: all 0.15s ease;
-        }
-        .device-pill:hover { color: var(--text); border-color: var(--signal); }
-        .device-pill.active {
-            background: rgba(70,225,196,0.15);
-            border-color: var(--signal);
-            color: var(--signal);
-        }
-        .device-add-form {
-            display: flex;
-            gap: 4px;
-        }
-        .device-add-form input {
-            width: 110px;
-            padding: 4px 8px;
-            font-size: 0.78rem;
-        }
-        .device-banner {
-            font-family: 'IBM Plex Mono', monospace;
-            font-size: 0.72rem;
-            color: var(--muted);
-            background: var(--panel-alt);
-            border: 1px dashed var(--border);
-            border-radius: 6px;
-            padding: 6px 12px;
-            margin-bottom: 18px;
-        }
-        .device-banner strong { color: var(--signal); }
-    </style>
+  .toast{
+    position: fixed;
+    bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    opacity:0;
+    transition: opacity .2s ease, transform .2s ease;
+    pointer-events:none;
+    z-index: 60;
+  }
+  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+</style>
 </head>
-<body class="p-4">
-    <div class="container-fluid">
+<body>
 
-        <!-- CONSOLE HEADER -->
-        <div class="console-header">
-            <h2 class="console-title">
-                <span class="tag">SIGNAL</span>
-                World Data &amp; Growscan Monitor
-            </h2>
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark"></div>
+    <div>
+      <h1>LUCIFER CONTROL</h1>
+      <p>multibot dashboard</p>
+    </div>
+  </div>
+  <div class="fb-status" id="fbStatus">
+    <span class="dot" id="fbDot"></span>
+    <span id="fbLabel">connecting…</span>
+  </div>
+</div>
 
-            <!-- DEVICE SWITCHER: pilih device mana yang lagi dilihat/dikontrol.
-                 Ganti device = ganti URL (?device=XXX) lalu reload penuh, supaya
-                 semua data & interval fetch konsisten merujuk ke satu device. -->
-            <div class="device-switcher" id="device-switcher">
-                <span class="device-label">Device:</span>
-                <div id="device-pill-list"></div>
-                <form class="device-add-form" onsubmit="handleAddDevice(event)">
-                    <input type="text" id="new-device-id" class="form-control" placeholder="+ Device baru" maxlength="20">
-                    <button type="submit" class="btn btn-sm btn-outline-secondary">Tambah</button>
-                </form>
-            </div>
+<main>
+  <div class="section-head">
+    <h2>AKUN TERHUBUNG</h2>
+    <span class="count-pill" id="countPill">0 bot</span>
+  </div>
 
-            <div class="live-pulse">
-                <span class="dot"></span>
-                LIVE · REFRESH 3s
-            </div>
-        </div>
+  <div id="botGrid" class="grid"></div>
+  <div id="emptyState" class="empty">
+    Belum ada akun yang terhubung.<br>
+    Jalankan script Lua di Lucifer supaya bot muncul di sini secara otomatis.
+  </div>
+</main>
 
-        <div class="device-banner">
-            📟 Kamu sedang melihat &amp; mengontrol <strong id="device-banner-name">-</strong>.
-            Semua bot, world, growscan target, dan antrian akun di halaman ini HANYA milik device ini.
-            Buka tab/browser lain dengan device berbeda buat mengelola device lainnya secara bersamaan.
-        </div>
+<!-- Modal Geiger -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3>☢ Mulai Geiger Hunt</h3>
+    <p class="sub" id="modalTarget">bot: -</p>
 
-        <!-- INPUT FORMS & PENGATURAN GLOBAL -->
-        <div class="row mb-4">
-            <!-- TARGET GROWSCAN INPUT -->
-            <div class="col-md-7">
-                <div class="card hud p-3">
-                    <span class="panel-label">Target Lock</span>
-                    <h5>🎯 Tambah World Target Growscan</h5>
-                    <p class="text-muted small mb-2">Bot akan otomatis growscan world ini kalau ada player lain (selain bot) terdeteksi di dalamnya.</p>
-                    <form id="add-gs-form" onsubmit="handleAddGrowscanTarget(event)">
-                        <div class="row g-2 mt-1">
-                            <div class="col-md-8">
-                                <input type="text" id="gs-world-name" class="form-control" placeholder="Nama World Target" required>
-                            </div>
-                            <div class="col-md-4">
-                                <button type="submit" class="btn btn-info w-100">Set Target</button>
-                            </div>
-                        </div>
-                    </form>
-                    <div id="gs-target-list" class="mt-3 text-muted small">Target Aktif: Loading...</div>
-                </div>
-            </div>
-
-            <!-- TAMBAH AKUN (GMAIL/UBI-CONNECT) -->
-            <div class="col-md-5">
-                <div class="card hud p-3">
-                    <span class="panel-label">Account Manager</span>
-                    <h5>👤 Tambah Akun (Gmail/Ubi-Connect)</h5>
-                    <p class="text-muted small mb-2">Antrian akun disini akan diproses otomatis oleh bot (pakai <code>addUbiBot</code>) lalu langsung dijalankan dengan automasi yang sama. Pastikan minimal ada 1 bot yang sedang online untuk memproses antrian.</p>
-                    <form id="add-account-form" onsubmit="handleAddAccount(event)">
-                        <div class="row g-2">
-                            <div class="col-md-5">
-                                <input type="email" id="acc-email-input" class="form-control" placeholder="Email Gmail" required>
-                            </div>
-                            <div class="col-md-4">
-                                <input type="password" id="acc-password-input" class="form-control" placeholder="Password" required>
-                            </div>
-                            <div class="col-md-3">
-                                <button type="submit" class="btn btn-info w-100">Tambah</button>
-                            </div>
-                        </div>
-                    </form>
-                    <div id="account-queue-list" class="mt-3 text-muted small">Antrian Akun: Loading...</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row mb-4">
-            <!-- KONTROL AUTO CONNECT GLOBAL & RESET DATA MASSAL -->
-            <div class="col-md-12">
-                <div class="card hud p-3">
-                    <span class="panel-label">System Control</span>
-                    <h5>⚙️ Pengaturan Global &amp; Reset Data</h5>
-                    <p class="text-muted small mb-2">Bot melakukan <strong>login otomatis</strong> (connect/reconnect), <strong>pendataan world</strong> (SS &amp; sesi panen) tempat dia berada, <strong>growscan</strong> di world target, dan memproses <strong>antrian tambah akun</strong> -- panen tile tetap dilakukan manual oleh player.</p>
-                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="auto-connect-toggle" onchange="toggleAutoConnect(this.checked)">
-                            <label class="form-check-label fw-bold" for="auto-connect-toggle">
-                                Auto-Connect Global (bot login otomatis kalau nyala)
-                            </label>
-                        </div>
-                        <button class="btn btn-danger btn-sm" onclick="deleteAllData()">
-                            🔥 Hapus Semua Data World
-                        </button>
-                    </div>
-                    <hr class="my-3">
-                    <div class="d-flex align-items-center flex-wrap gap-2">
-                        <label class="fw-bold small mb-0" for="manager-bot-select">👑 Manager Bot (proses antrian akun & Stop/Jalankan Script):</label>
-                        <select id="manager-bot-select" class="form-select form-select-sm" style="width:auto; min-width:220px;">
-                            <option value="">— Tidak ada (nonaktif) —</option>
-                        </select>
-                        <button class="btn btn-sm btn-outline-warning" onclick="setManagerBot()">Simpan Manager</button>
-                        <span id="manager-bot-current" class="text-muted small"></span>
-                    </div>
-                    <p class="text-muted small mb-0 mt-1">Diatur dari sini aja, tidak perlu diisi manual di script Lua (<code>MANAGER_BOT_NAME</code> di script otomatis mengikuti nilai ini). Semua instance script akan sinkron baca dari sini tiap loop.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- METRIK RINGKASAN -->
-        <div class="row text-center mb-4">
-            <div class="col-md-3">
-                <div class="card metric-card p-3">
-                    <h5>World Dipantau (&gt;10 SS)</h5>
-                    <h2 id="total-worlds" class="text-info">0</h2>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card metric-card p-3">
-                    <h5>Total Seluruh Science Station</h5>
-                    <h2 id="total-ss" class="text-primary">0</h2>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card metric-card p-3">
-                    <h5>World Target Growscan</h5>
-                    <h2 id="total-gs-worlds" class="text-warning">0</h2>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card metric-card p-3">
-                    <h5>Sesi Panen Sedang Aktif</h5>
-                    <h2 id="total-harvest-active" class="text-gold">0</h2>
-                </div>
-            </div>
-        </div>
-
-        <!-- TABEL WORLD SS + SESI PANEN (DIGABUNG) -->
-        <div class="card p-3 mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <div>
-                    <span class="panel-label mb-0">World Log</span>
-                    <h4 class="mb-0">🏭 World dengan Science Station (&gt;10 SS) &amp; Sesi Panen</h4>
-                </div>
-                <div style="width: 300px;">
-                    <input type="text" id="world-search-input" class="form-control" placeholder="🔍 Cari Nama World..." onkeyup="filterWorldTable()">
-                </div>
-            </div>
-            <p class="text-muted small mb-2">Pendataan pasif jumlah SS + jam mulai &amp; selesai panen per world (bot cuma mengamati, panen dilakukan manual oleh player).</p>
-            <div class="table-responsive">
-                <table class="table table-dark table-hover align-middle" id="world-table">
-                    <thead>
-                        <tr>
-                            <th>Nama World</th>
-                            <th>Total SS</th>
-                            <th>Status Panen</th>
-                            <th>Jam Mulai</th>
-                            <th>Jam Selesai</th>
-                            <th>Puncak SS</th>
-                            <th>SS Sekarang</th>
-                            <th>Total Dipanen</th>
-                            <th>Terakhir Discan</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="world-table-body">
-                        <tr><td colspan="10" class="text-center">Memuat Data World...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- TABEL HASIL GROWSCAN (TERPISAH DARI WORLD SS) -->
-        <div class="card p-3 mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <div>
-                    <span class="panel-label mb-0">Growscan Log</span>
-                    <h4 class="mb-0">🧪 Hasil Growscan (Item Chem)</h4>
-                </div>
-                <div style="width: 300px;">
-                    <input type="text" id="gs-search-input" class="form-control" placeholder="🔍 Cari Nama World..." onkeyup="filterGrowscanTable()">
-                </div>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-dark table-hover align-middle" id="growscan-table">
-                    <thead>
-                        <tr>
-                            <th>Nama World</th>
-                            <th>Hasil Growscan</th>
-                            <th>Terakhir Discan</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody id="growscan-table-body">
-                        <tr><td colspan="4" class="text-center">Memuat Data Growscan...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- TABEL BOT & KONTROL MANUAL AUTO CONNECT -->
-        <div class="card p-3">
-            <span class="panel-label mb-0">Fleet Status</span>
-            <h4>🤖 Status Bot &amp; Login</h4>
-            <p class="text-muted small mb-2">Mode <strong>Auto</strong> = bot ikut toggle Auto-Connect global. Connect/Disconnect manual akan meng-override mode Auto. <strong>Stop/Jalankan Script</strong> = mematikan/menyalakan ulang instance script bot itu sepenuhnya (bukan cuma logout) -- diproses oleh 1 bot "manager" yang harus tetap online. Tombol <strong>Hapus Akun</strong> akan menghapus akun/bot ini secara permanen dari daftar.</p>
-            <div class="table-responsive">
-                <table class="table table-dark table-striped mt-3 align-middle">
-                    <thead>
-                        <tr>
-                            <th>Nama Bot</th>
-                            <th>World Aktif Saat Ini</th>
-                            <th>Status</th>
-                            <th>Status Re-Connect / Retry</th>
-                            <th>Aksi Koneksi Bot</th>
-                            <th>Kontrol Script</th>
-                            <th>Aksi Akun</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bot-table-body">
-                        <tr><td colspan="7" class="text-center">Memuat Data Bot...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="field">
+      <label>World Geiger (ambil geiger)</label>
+      <input type="text" id="inputWorldGeiger" placeholder="worldgeiger" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>World Hunt (cari sinyal)</label>
+      <input type="text" id="inputWorldHunt" placeholder="worldg" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>World Storage (drop hasil)</label>
+      <input type="text" id="inputWorldStorage" placeholder="worldstorage" autocomplete="off">
     </div>
 
-    <script>
-        const FIREBASE_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btnCancel">Batal</button>
+      <button class="btn-start" id="btnStart">Mulai Berburu</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const DB_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
+const BOTS_PATH = "/bots";
+
+let bots = {};       // local mirror of /bots
+let activeKey = null; // bot targeted by the geiger modal
+
+const grid = document.getElementById('botGrid');
+const emptyState = document.getElementById('emptyState');
+const countPill = document.getElementById('countPill');
+const fbDot = document.getElementById('fbDot');
+const fbLabel = document.getElementById('fbLabel');
+const overlay = document.getElementById('overlay');
+const modalTarget = document.getElementById('modalTarget');
+const toast = document.getElementById('toast');
+
+function showToast(msg){
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(showToast._t);
+  showToast._t = setTimeout(()=> toast.classList.remove('show'), 2400);
+}
+
+function setDeep(obj, path, value){
+  // path like "/botkey/field" or "/" or "/botkey"
+  const parts = path.split('/').filter(Boolean);
+  if(parts.length === 0){
+    return value === null ? {} : value;
+  }
+  let cursor = obj;
+  for(let i=0;i<parts.length-1;i++){
+    const p = parts[i];
+    if(typeof cursor[p] !== 'object' || cursor[p] === null) cursor[p] = {};
+    cursor = cursor[p];
+  }
+  const last = parts[parts.length-1];
+  if(value === null){
+    delete cursor[last];
+  } else {
+    cursor[last] = value;
+  }
+  return obj;
+}
+
+function connectStream(){
+  fbLabel.textContent = 'connecting…';
+  fbDot.className = 'dot';
+
+  const es = new EventSource(`${DB_URL}${BOTS_PATH}.json`);
+
+  es.addEventListener('put', (e) => {
+    const { path, data } = JSON.parse(e.data);
+    bots = setDeep(bots, path, data === null ? null : data) || {};
+    if(path === '/') bots = data || {};
+    render();
+    fbDot.className = 'dot live';
+    fbLabel.textContent = 'terhubung';
+  });
+
+  es.addEventListener('patch', (e) => {
+    const { path, data } = JSON.parse(e.data);
+    if(path === '/'){
+      Object.assign(bots, data);
+    } else {
+      setDeep(bots, path, data);
+    }
+    render();
+  });
+
+  es.onerror = () => {
+    fbDot.className = 'dot down';
+    fbLabel.textContent = 'terputus, reconnecting…';
+  };
+}
+
+function isOnline(bot){
+  return (bot && bot.status === 'online');
+}
+
+function render(){
+  const keys = Object.keys(bots || {});
+  countPill.textContent = `${keys.length} bot`;
+  emptyState.style.display = keys.length === 0 ? 'block' : 'none';
+  grid.style.display = keys.length === 0 ? 'none' : 'grid';
+
+  grid.innerHTML = '';
+  keys.sort().forEach(key => {
+    grid.appendChild(renderCard(key, bots[key] || {}));
+  });
+}
+
+function renderCard(key, bot){
+  const online = isOnline(bot);
+  const autoCollect = !!bot.auto_collect;
+  const geigerActive = !!bot.geiger_active;
+  const world = bot.world || '-';
+  const x = (bot.x !== undefined) ? bot.x : '-';
+  const y = (bot.y !== undefined) ? bot.y : '-';
+
+  const card = document.createElement('div');
+  card.className = `card ${online ? 'online' : 'offline'}`;
+
+  card.innerHTML = `
+    <div class="card-head">
+      <div class="bot-name">${escapeHtml(key)}</div>
+      <div class="status-tag ${online ? 'online' : 'offline'}">
+        <span class="dot ${online ? 'live' : 'down'}"></span>
+        ${online ? 'ONLINE' : 'OFFLINE'}
+      </div>
+    </div>
+
+    <div class="readout">
+      <div class="row"><span>world</span><span>${escapeHtml(world)}</span></div>
+      <div class="row"><span>posisi</span><span>${x} , ${y}</span></div>
+      <div class="row ${geigerActive ? 'hunting' : ''}"><span>geiger</span><span>${geigerActive ? 'BERBURU…' : 'idle'}</span></div>
+    </div>
+
+    <div class="toggle-row">
+      <span>Auto Collect</span>
+      <div class="switch ${autoCollect ? 'on' : ''}" data-action="toggle_autocollect" data-key="${key}"></div>
+    </div>
+
+    <div class="btn-row">
+      ${online
+        ? `<button class="btn-disconnect" data-action="disconnect" data-key="${key}">Disconnect</button>`
+        : `<button class="btn-connect" data-action="connect" data-key="${key}">Connect</button>`
+      }
+      <button class="btn-geiger ${geigerActive ? 'active' : ''}" data-action="open_geiger" data-key="${key}" title="Geiger Hunt">☢</button>
+    </div>
+  `;
+  return card;
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function sendCommand(key, payload){
+  try{
+    await fetch(`${DB_URL}${BOTS_PATH}/${encodeURIComponent(key)}/command.json`, {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  }catch(err){
+    showToast('Gagal mengirim perintah ke Firebase');
+  }
+}
+
+grid.addEventListener('click', (e) => {
+  const el = e.target.closest('[data-action]');
+  if(!el) return;
+  const action = el.dataset.action;
+  const key = el.dataset.key;
+
+  if(action === 'connect'){
+    sendCommand(key, { action: 'connect' });
+    showToast(`Mengirim perintah connect ke ${key}`);
+  }
+  else if(action === 'disconnect'){
+    sendCommand(key, { action: 'disconnect' });
+    showToast(`Mengirim perintah disconnect ke ${key}`);
+  }
+  else if(action === 'toggle_autocollect'){
+    const current = !!(bots[key] && bots[key].auto_collect);
+    el.classList.toggle('on', !current); // optimistic UI
+    sendCommand(key, { action: current ? 'disable_auto_collect' : 'enable_auto_collect' });
+  }
+  else if(action === 'open_geiger'){
+    openGeigerModal(key);
+  }
+});
+
+function openGeigerModal(key){
+  activeKey = key;
+  modalTarget.textContent = `bot: ${key}`;
+  const bot = bots[key] || {};
+  document.getElementById('inputWorldGeiger').value = bot.last_world_geiger || '';
+  document.getElementById('inputWorldHunt').value = bot.last_world_hunt || '';
+  document.getElementById('inputWorldStorage').value = bot.last_world_storage || '';
+  overlay.classList.add('show');
+}
+
+document.getElementById('btnCancel').addEventListener('click', () => {
+  overlay.classList.remove('show');
+});
+overlay.addEventListener('click', (e) => {
+  if(e.target === overlay) overlay.classList.remove('show');
+});
+
+document.getElementById('btnStart').addEventListener('click', () => {
+  const world_geiger = document.getElementById('inputWorldGeiger').value.trim();
+  const world_hunt = document.getElementById('inputWorldHunt').value.trim();
+  const world_storage = document.getElementById('inputWorldStorage').value.trim();
+
+  if(!world_geiger || !world_hunt || !world_storage){
+    showToast('Semua field world wajib diisi');
+    return;
+  }
+  if(!activeKey) return;
+
+  sendCommand(activeKey, {
+    action: 'start_geiger',
+    world_geiger, world_hunt, world_storage
+  });
+  showToast(`Perintah geiger hunt dikirim ke ${activeKey}`);
+  overlay.classList.remove('show');
+});
+
+connectStream();
+</script>
 
-        // ==========================================
-        // MULTI-DEVICE SUPPORT
-        // ==========================================
-        // Device aktif ditentukan dari query string ?device=XXX di URL.
-        // Kalau tidak ada, default "A". Semua fetch di dashboard ini
-        // otomatis di-scope ke /devices/{DEVICE_ID}/... lewat fbUrl(),
-        // supaya persis sinkron dengan cara script Lua nyimpen datanya
-        // (lihat dp() di script Lua).
-        const urlParams = new URLSearchParams(window.location.search);
-        const DEVICE_ID = urlParams.get("device") || "A";
-
-        // fbUrl("/bots.json") -> "<FIREBASE_URL>/devices/A/bots.json"
-        function fbUrl(path) {
-            return `${FIREBASE_URL}/devices/${encodeURIComponent(DEVICE_ID)}${path}`;
-        }
-
-        // Daftar device yang pernah dibuka di browser ini, disimpan lokal
-        // (localStorage) supaya muncul sebagai pill di device switcher.
-        // Ini CUMA daftar shortcut UI -- bukan sumber data. Data device
-        // yang sebenarnya tetap murni ditentukan oleh path Firebase.
-        function getKnownDevices() {
-            try {
-                const raw = localStorage.getItem("known_device_ids");
-                const list = raw ? JSON.parse(raw) : [];
-                if (!list.includes(DEVICE_ID)) list.push(DEVICE_ID);
-                return [...new Set(list)];
-            } catch (e) {
-                return [DEVICE_ID];
-            }
-        }
-
-        function saveKnownDevices(list) {
-            try { localStorage.setItem("known_device_ids", JSON.stringify(list)); }
-            catch (e) { /* localStorage tidak tersedia, abaikan */ }
-        }
-
-        function renderDeviceSwitcher() {
-            const known = getKnownDevices();
-            saveKnownDevices(known);
-
-            document.getElementById("device-pill-list").innerHTML = known.map(id => {
-                const isActive = id === DEVICE_ID;
-                return `<a href="?device=${encodeURIComponent(id)}" class="device-pill ${isActive ? "active" : ""}">${id}</a>`;
-            }).join(" ");
-
-            document.getElementById("device-banner-name").innerText = `Device ${DEVICE_ID}`;
-            document.title = `[${DEVICE_ID}] Signal World Monitor Dashboard`;
-        }
-
-        function handleAddDevice(e) {
-            e.preventDefault();
-            const input = document.getElementById("new-device-id");
-            const raw = input.value.trim().toUpperCase().replace(/[^A-Z0-9_\-]/g, "");
-            if (!raw) return;
-
-            const known = getKnownDevices();
-            if (!known.includes(raw)) known.push(raw);
-            saveKnownDevices(known);
-
-            // Pindah langsung ke device baru itu (reload penuh, supaya semua
-            // fetch & interval konsisten pakai DEVICE_ID yang baru).
-            window.location.href = `?device=${encodeURIComponent(raw)}`;
-        }
-
-        renderDeviceSwitcher();
-
-        // Warna tiap ID item chem hasil growscan. Cuma dipakai buat label
-        // tampilan -- TIDAK ada lagi kalkulasi resep/Fuel Pack/estimasi WL.
-        const ITEM_INFO = {
-            914: { label: "Hijau",  key: "green",  emoji: "🟢" },
-            916: { label: "Merah",  key: "red",    emoji: "🔴" },
-            918: { label: "Pink",   key: "pink",   emoji: "🩷" },
-            920: { label: "Biru",   key: "blue",   emoji: "🔵" },
-            924: { label: "Kuning", key: "yellow", emoji: "🟡" },
-        };
-        const FUEL_ITEM_IDS = [914, 916, 918, 920, 924];
-
-        function formatTime(timestamp) {
-            if (!timestamp || timestamp === 0) return "-";
-            const date = new Date(timestamp * 1000);
-            return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + " WIB";
-        }
-
-        function filterWorldTable() {
-            const query = document.getElementById("world-search-input").value.toUpperCase();
-            const table = document.getElementById("world-table");
-            const trs = table.getElementsByTagName("tr");
-
-            for (let i = 1; i < trs.length; i++) {
-                const tdName = trs[i].getElementsByTagName("td")[0];
-                if (tdName) {
-                    const txtValue = tdName.textContent || tdName.innerText;
-                    trs[i].style.display = (txtValue.toUpperCase().indexOf(query) > -1) ? "" : "none";
-                }
-            }
-        }
-
-        function filterGrowscanTable() {
-            const query = document.getElementById("gs-search-input").value.toUpperCase();
-            const table = document.getElementById("growscan-table");
-            const trs = table.getElementsByTagName("tr");
-
-            for (let i = 1; i < trs.length; i++) {
-                const tdName = trs[i].getElementsByTagName("td")[0];
-                if (tdName) {
-                    const txtValue = tdName.textContent || tdName.innerText;
-                    trs[i].style.display = (txtValue.toUpperCase().indexOf(query) > -1) ? "" : "none";
-                }
-            }
-        }
-
-        // Bangun tampilan growscan: CUMA jumlah mentah tiap item chem hasil
-        // scan (914/916/918/920/924) + total pcs. Tidak ada lagi kalkulasi
-        // Mysterious Chem/Fuel Pack ataupun estimasi pendapatan WL/Rupiah.
-        function buildGrowscanHTML(growscan) {
-            if (!growscan || !growscan.items) {
-                return "<span class='text-muted'>Belum ada hasil growscan.</span>";
-            }
-
-            const items = growscan.items;
-            let itemRows = "";
-            for (const itemId of FUEL_ITEM_IDS) {
-                const info = ITEM_INFO[itemId];
-                const count = Number(items[itemId]) || 0;
-                itemRows += `<div class="gs-item-row"><span class="text-muted">${info.emoji} ${info.label}</span><span>${count.toLocaleString('id-ID')} pcs</span></div>`;
-            }
-
-            const totalItems = Number(growscan.total_items) || 0;
-
-            return `
-                <div class="growscan-box">
-                    <strong>⚠️ ${growscan.triggered_by || 'Growscan Target World'}</strong>
-                    ${itemRows}
-                    <div class="gs-total">
-                        <div class="gs-item-row"><span>Total Item</span><span class="badge bg-warning text-dark">${totalItems.toLocaleString('id-ID')} pcs</span></div>
-                    </div>
-                    <small class="text-info d-block mt-1">Di-scan: ${formatTime(growscan.last_scan_time)}</small>
-                </div>
-            `;
-        }
-
-        async function fetchDashboardData() {
-            try {
-                const resConfig = await fetch(fbUrl(`/config/auto_connect.json`));
-                const autoConnect = await resConfig.json();
-                document.getElementById("auto-connect-toggle").checked = (autoConnect !== false);
-
-                const resGSTargets = await fetch(fbUrl(`/growscan_targets.json`));
-                const gsTargets = await resGSTargets.json() || {};
-                const gsNames = Object.keys(gsTargets);
-                document.getElementById("gs-target-list").innerHTML = `Target Aktif: ${gsNames.length > 0 ? gsNames.map(n => `<span class="badge bg-info text-dark me-1">${n} <a href="#" onclick="removeGSTarget('${n}')" class="text-danger fw-bold ms-1" style="text-decoration:none;">×</a></span>`).join("") : '<em>Tidak ada target Growscan set.</em>'}`;
-
-                const resWorlds = await fetch(fbUrl(`/worlds.json`));
-                const worldsData = await resWorlds.json() || {};
-
-                const resBots = await fetch(fbUrl(`/bots.json`));
-                const botsData = await resBots.json() || {};
-
-                const resManager = await fetch(fbUrl(`/config/manager_bot_name.json`));
-                const managerBotName = (await resManager.json()) || "";
-                window.__currentManagerBotName = managerBotName;
-
-                const managerSelect = document.getElementById("manager-bot-select");
-                const botNames = Object.keys(botsData);
-                const prevSelectValue = managerSelect.value;
-                managerSelect.innerHTML = '<option value="">— Tidak ada (nonaktif) —</option>' +
-                    botNames.map(n => `<option value="${n}">${n}</option>`).join("");
-                // Jangan override pilihan user kalau dia lagi milih di dropdown (belum diklik Simpan);
-                // kalau belum diutak-atik, selalu ikutin nilai manager yang tersimpan di Firebase.
-                managerSelect.value = botNames.includes(prevSelectValue) && prevSelectValue !== managerBotName
-                    ? prevSelectValue
-                    : (botNames.includes(managerBotName) ? managerBotName : "");
-                document.getElementById("manager-bot-current").innerText = managerBotName
-                    ? `Manager aktif: ${managerBotName}`
-                    : "Belum ada manager diset — fitur Stop/Jalankan Script & antrian tambah akun (kalau >1 instance) tidak akan diproses.";
-
-                // --- TABEL WORLD DENGAN SS (>10) ---
-                let totalSSSum = 0, worldCount = 0;
-                let worldRows = "";
-
-                // --- TABEL HASIL GROWSCAN (TERPISAH) ---
-                let growscanRows = "";
-                let gsWorldCount = 0;
-
-                // --- TABEL WORLD SS + SESI PANEN (DIGABUNG) ---
-                let harvestActiveCount = 0;
-
-                for (const [rawWName, wData] of Object.entries(worldsData)) {
-                    const wName = rawWName.trim().toUpperCase();
-                    const summary = wData.summary || {};
-                    const totalSS = summary.total_ss || 0;
-                    const hasGrowscanData = !!wData.growscan;
-                    const h = wData.harvest; // Bisa null/undefined kalau belum ada sesi panen tercatat.
-
-                    // Tabel World SS + Sesi Panen: cuma world yang beneran punya SS (>10),
-                    // sama seperti sebelumnya -- kolom sesi panen diisi "-" kalau belum
-                    // ada data harvest buat world itu.
-                    if (totalSS > 10) {
-                        worldCount++;
-                        totalSSSum += totalSS;
-                        if (h && h.active) harvestActiveCount++;
-
-                        const statusBadge = !h
-                            ? `<span class="badge bg-secondary">— Belum ada data panen</span>`
-                            : (h.active
-                                ? `<span class="badge bg-warning text-dark">🔥 Sedang Dipanen</span>`
-                                : `<span class="badge bg-success">✅ Selesai</span>`);
-
-                        worldRows += `
-                            <tr>
-                                <td class="fw-bold text-warning">${wName}</td>
-                                <td><span class="badge bg-secondary">${totalSS} SS</span></td>
-                                <td>${statusBadge}</td>
-                                <td class="text-info">${h ? formatTime(h.start_time) : "-"}</td>
-                                <td class="text-info">${h && !h.active ? formatTime(h.end_time) : "-"}</td>
-                                <td><span class="badge bg-secondary">${h ? (h.peak_ss ?? 0) : "-"} SS</span></td>
-                                <td><span class="badge bg-secondary">${h ? (h.current_ss ?? 0) : "-"} SS</span></td>
-                                <td><span class="badge bg-info">${h ? (h.harvested_count ?? 0) : "-"} SS</span></td>
-                                <td class="text-info">${formatTime(summary.last_scan)}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteWorld('${wName}')">Hapus World</button>
-                                </td>
-                            </tr>
-                        `;
-                    }
-
-                    // Tabel Growscan: cuma world yang punya data growscan (world target,
-                    // gak peduli jumlah SS-nya berapa).
-                    if (hasGrowscanData) {
-                        gsWorldCount++;
-                        growscanRows += `
-                            <tr>
-                                <td class="fw-bold text-warning">${wName}</td>
-                                <td>${buildGrowscanHTML(wData.growscan)}</td>
-                                <td class="text-info">${formatTime(wData.growscan.last_scan_time)}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteWorld('${wName}')">Hapus World</button>
-                                </td>
-                            </tr>
-                        `;
-                    }
-                }
-
-                document.getElementById("total-worlds").innerText = worldCount;
-                document.getElementById("total-ss").innerText = totalSSSum;
-                document.getElementById("world-table-body").innerHTML = worldRows || '<tr><td colspan="10" class="text-center">Belum ada world dengan >10 SS tercatat. Login-kan bot ke world.</td></tr>';
-                document.getElementById("growscan-table-body").innerHTML = growscanRows || '<tr><td colspan="4" class="text-center">Belum ada hasil growscan. Tambahkan world target growscan diatas.</td></tr>';
-                document.getElementById("total-gs-worlds").innerText = gsWorldCount;
-                document.getElementById("total-harvest-active").innerText = harvestActiveCount;
-
-                filterWorldTable();
-                filterGrowscanTable();
-
-                // --- TABEL BOT ---
-                let botRows = "";
-                for (const [bName, bData] of Object.entries(botsData)) {
-                    const failCount = bData.fail_count || 0;
-                    let retryStatus = `<span class="badge bg-success">Normal</span>`;
-                    if (bData.control === "NEEDS_CONFIRM") {
-                        retryStatus = `<span class="badge bg-danger">⚠️ Gagal Connect 3x (Need Confirm)</span>`;
-                    } else if (failCount > 0) {
-                        retryStatus = `<span class="badge bg-warning text-dark">Retry Gagal: ${failCount}/3</span>`;
-                    }
-
-                    const control = bData.control || null;
-                    const isOnlineManual = control === "ONLINE";
-                    const isOfflineManual = control === "OFFLINE";
-                    const isAuto = !isOnlineManual && !isOfflineManual;
-
-                    const isAutoReconnectOn = bData.auto_reconnect !== false;
-
-                    const scriptControl = bData.script_control || "";
-                    const scriptStatus = bData.script_status || "unknown";
-                    let scriptStatusBadge;
-                    if (scriptControl === "STOP" || scriptControl === "RUN") {
-                        scriptStatusBadge = `<span class="badge bg-warning text-dark">⏳ Menunggu Manager...</span>`;
-                    } else if (scriptStatus === "running") {
-                        scriptStatusBadge = `<span class="badge bg-success">▶ Running</span>`;
-                    } else if (scriptStatus === "stopped") {
-                        scriptStatusBadge = `<span class="badge bg-danger">⏹ Stopped</span>`;
-                    } else if (scriptStatus === "failed") {
-                        scriptStatusBadge = `<span class="badge bg-danger">⚠️ Gagal${bData.script_error ? ": " + bData.script_error : ""}</span>`;
-                    } else if (scriptStatus === "not_found") {
-                        scriptStatusBadge = `<span class="badge bg-secondary">Bot tidak ditemukan manager</span>`;
-                    } else {
-                        scriptStatusBadge = `<span class="badge bg-secondary">Tidak diketahui</span>`;
-                    }
-
-                    botRows += `
-                        <tr>
-                            <td class="fw-bold">${bName}${bName === managerBotName ? ' <span class="badge bg-warning text-dark" title="Bot ini yang memproses antrian tambah akun & flag Stop/Jalankan Script">👑 Manager</span>' : ''}</td>
-                            <td><span class="badge bg-primary">${bData.current_world || "-"}</span></td>
-                            <td>${bData.status || "-"}</td>
-                            <td>${retryStatus}</td>
-                            <td>
-                                <div class="btn-group mb-1" role="group">
-                                    <button class="btn btn-sm ${isAuto ? 'btn-success' : 'btn-outline-success'}" onclick="setBotControl('${bName}', 'AUTO')">
-                                        🔄 Auto
-                                    </button>
-                                    <button class="btn btn-sm ${isOnlineManual ? 'btn-info' : 'btn-outline-secondary'}" onclick="setBotControl('${bName}', 'ONLINE')">
-                                        🟢 Connect
-                                    </button>
-                                    <button class="btn btn-sm ${isOfflineManual ? 'btn-danger' : 'btn-outline-danger'}" onclick="setBotControl('${bName}', 'OFFLINE')">
-                                        🔴 Disconnect
-                                    </button>
-                                </div>
-                                <div class="btn-group" role="group">
-                                    <button class="btn btn-sm btn-warning" onclick="triggerReconnectNow('${bName}')" title="Paksa reconnect sekali saja, terlepas dari status Auto-Reconnect">
-                                        ⚡ Reconnect Sekarang
-                                    </button>
-                                    <button class="btn btn-sm ${isAutoReconnectOn ? 'btn-outline-success' : 'btn-outline-secondary'}" onclick="toggleBotAutoReconnect('${bName}', ${!isAutoReconnectOn})" title="Kalau OFF, bot tidak akan reconnect sendiri setelah putus -- harus manual">
-                                        ${isAutoReconnectOn ? '🔁 Auto-Reconnect: ON' : '⛔ Auto-Reconnect: OFF'}
-                                    </button>
-                                    ${bData.native_reconnect_disabled === false
-                                        ? `<span class="badge bg-warning text-dark ms-1" title="Script gagal mematikan fitur Auto-Reconnect bawaan app -- uncheck manual di Preferences > Auto Reconnect biar gak konflik sama toggle di atas">⚠️ App masih kontrol sendiri</span>`
-                                        : (bData.native_reconnect_disabled === true
-                                            ? `<span class="badge bg-success ms-1" title="Fitur Auto-Reconnect bawaan app berhasil dimatikan script, toggle di atas sekarang satu-satunya kontrol">✓ App synced</span>`
-                                            : '')}
-                                </div>
-                            </td>
-                            <td>
-                                <div class="mb-1">${scriptStatusBadge}</div>
-                                <div class="btn-group" role="group">
-                                    <button class="btn btn-sm btn-outline-danger" onclick="setScriptControl('${bName}', 'STOP')" title="Mematikan instance script bot ini sepenuhnya (bukan cuma disconnect) -- diproses oleh bot manager">
-                                        ⏹ Stop Script
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-success" onclick="setScriptControl('${bName}', 'RUN')" title="Menyalakan ulang instance script bot ini -- diproses oleh bot manager">
-                                        ▶ Jalankan
-                                    </button>
-                                </div>
-                            </td>
-                            <td>
-                                ${bData.account_control === "REMOVE"
-                                    ? `<span class="badge bg-danger">🗑️ Menghapus akun... (diproses manager)</span>`
-                                    : `<button class="btn btn-sm btn-danger" onclick="deleteBotAccount('${bName}')">🗑️ Hapus Akun</button>`}
-                            </td>
-                        </tr>
-                    `;
-                }
-                document.getElementById("bot-table-body").innerHTML = botRows || '<tr><td colspan="7" class="text-center">Belum ada bot aktif.</td></tr>';
-
-                // --- ANTRIAN TAMBAH AKUN ---
-                const resPending = await fetch(fbUrl(`/pending_accounts.json`));
-                const pendingData = await resPending.json() || {};
-                const pendingEntries = Object.entries(pendingData);
-
-                if (pendingEntries.length === 0) {
-                    document.getElementById("account-queue-list").innerHTML = "<em>Belum ada akun di antrian.</em>";
-                } else {
-                    const statusBadge = (status) => {
-                        if (status === "added") return `<span class="badge bg-success">Ditambahkan</span>`;
-                        if (status === "processing") return `<span class="badge bg-warning text-dark">Diproses...</span>`;
-                        if (status === "failed") return `<span class="badge bg-danger">Gagal</span>`;
-                        return `<span class="badge bg-secondary">Menunggu</span>`;
-                    };
-                    document.getElementById("account-queue-list").innerHTML = pendingEntries.map(([key, acc]) => `
-                        <div class="d-flex justify-content-between align-items-center py-1" style="border-bottom:1px dashed var(--border);">
-                            <span class="mono">${acc.email || key} ${statusBadge(acc.status)}${acc.error ? ` <span class="text-danger">(${acc.error})</span>` : ""}</span>
-                            <a href="#" onclick="removePendingAccount('${key}'); return false;" class="text-danger fw-bold ms-2" style="text-decoration:none;">×</a>
-                        </div>
-                    `).join("");
-                }
-
-            } catch (err) {
-                console.error("Gagal mengambil data dari Firebase:", err);
-            }
-        }
-
-        async function handleAddGrowscanTarget(e) {
-            e.preventDefault();
-            const rawInput = document.getElementById("gs-world-name").value;
-            const wName = rawInput.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-            if (!wName) return;
-
-            await fetch(fbUrl(`/growscan_targets/${wName}.json`), {
-                method: 'PUT',
-                body: JSON.stringify({ active: true, added_at: Date.now() })
-            });
-
-            document.getElementById("gs-world-name").value = "";
-            fetchDashboardData();
-        }
-
-        async function removeGSTarget(wName) {
-            await fetch(fbUrl(`/growscan_targets/${wName}.json`), { method: 'DELETE' });
-            fetchDashboardData();
-        }
-
-        // Menambahkan akun (gmail + password) ke antrian /pending_accounts.
-        // Bot yang sedang online akan otomatis melihat antrian ini lalu
-        // memanggil addUbiBot(email, password), setelah itu langsung
-        // menjalankan automasi yang sama untuk akun baru tersebut.
-        async function handleAddAccount(e) {
-            e.preventDefault();
-            const email = document.getElementById("acc-email-input").value.trim();
-            const password = document.getElementById("acc-password-input").value;
-            if (!email || !password) return;
-
-            const key = btoa(email).replace(/[^a-zA-Z0-9]/g, "");
-
-            await fetch(fbUrl(`/pending_accounts/${key}.json`), {
-                method: 'PUT',
-                body: JSON.stringify({ email: email, password: password, status: "pending", added_at: Date.now() })
-            });
-
-            document.getElementById("acc-email-input").value = "";
-            document.getElementById("acc-password-input").value = "";
-            fetchDashboardData();
-        }
-
-        async function removePendingAccount(key) {
-            await fetch(fbUrl(`/pending_accounts/${key}.json`), { method: 'DELETE' });
-            fetchDashboardData();
-        }
-
-        async function deleteWorld(worldName) {
-            if (confirm(`Hapus log world ${worldName}?`)) {
-                await fetch(fbUrl(`/worlds/${worldName}.json`), { method: 'DELETE' });
-                fetchDashboardData();
-            }
-        }
-
-        async function deleteAllData() {
-            if (confirm("⚠️ Apakah Anda yakin ingin MENGHAPUS SEMUA DATA WORLD?\n\nTindakan ini akan mengosongkan seluruh histori pendataan world & growscan!")) {
-                await fetch(fbUrl(`/worlds.json`), { method: 'DELETE' });
-                alert("Berhasil menghapus seluruh data world!");
-                fetchDashboardData();
-            }
-        }
-
-        async function setBotControl(botName, status) {
-            const value = (status === 'AUTO') ? null : status;
-            await fetch(fbUrl(`/bots/${botName}.json`), {
-                method: 'PATCH',
-                body: JSON.stringify({ control: value })
-            });
-            fetchDashboardData();
-        }
-
-        async function triggerReconnectNow(botName) {
-            await fetch(fbUrl(`/bots/${botName}.json`), {
-                method: 'PATCH',
-                body: JSON.stringify({ control: 'RECONNECT_NOW' })
-            });
-            fetchDashboardData();
-        }
-
-        // Minta bot "manager" mematikan (STOP) atau menyalakan ulang (RUN)
-        // instance script bot tertentu lewat bot:stopScript()/runScript().
-        // Ini BUKAN cuma disconnect -- script-nya beneran berhenti total
-        // sampai di-"Jalankan" lagi dari sini. Butuh 1 bot manager yang
-        // tetap online buat memprosesnya (lihat MANAGER_BOT_NAME di script Lua).
-        async function setScriptControl(botName, action) {
-            await fetch(fbUrl(`/bots/${botName}.json`), {
-                method: 'PATCH',
-                body: JSON.stringify({ script_control: action })
-            });
-            fetchDashboardData();
-        }
-
-        async function toggleBotAutoReconnect(botName, enabled) {
-            await fetch(fbUrl(`/bots/${botName}.json`), {
-                method: 'PATCH',
-                body: JSON.stringify({ auto_reconnect: enabled })
-            });
-            fetchDashboardData();
-        }
-
-        // Sebelumnya tombol ini cuma DELETE node /bots/{nama} di Firebase --
-        // tapi instance SCRIPT bot itu tetap jalan di background, jadi begitu
-        // loop berikutnya kirim heartbeat lagi, node itu MUNCUL LAGI sendiri
-        // (kelihatan kayak gagal dihapus).
-        //
-        // FIX: kalau sudah ada Manager Bot diset (lihat panel "Manager Bot"),
-        // tombol ini cuma pasang flag account_control="REMOVE" -- manager
-        // yang beneran memproses: stopScript() dulu (biar gak ada lagi yang
-        // resurrect node-nya) baru menghapus record-nya permanen dari
-        // Firebase. Kalau belum ada manager diset, fallback ke hapus
-        // langsung seperti sebelumnya (dengan peringatan tambahan).
-        async function deleteBotAccount(botName) {
-            const hasManager = !!window.__currentManagerBotName;
-            const confirmMsg = hasManager
-                ? `⚠️ Hapus akun/bot "${botName}" secara PERMANEN?\n\nScript-nya akan dihentikan dulu oleh Manager Bot, baru datanya dihapus dari dashboard.`
-                : `⚠️ Hapus akun/bot "${botName}" secara PERMANEN dari daftar?\n\nBELUM ADA Manager Bot diset -- kalau script bot ini masih jalan, entrinya bisa muncul lagi otomatis. Sebaiknya set Manager Bot dulu di panel System Control, atau Stop Script akun ini secara manual sebelum menghapus.`;
-
-            if (confirm(confirmMsg)) {
-                try {
-                    if (hasManager) {
-                        await fetch(fbUrl(`/bots/${botName}.json`), {
-                            method: 'PATCH',
-                            body: JSON.stringify({ account_control: 'REMOVE' })
-                        });
-                    } else {
-                        await fetch(fbUrl(`/bots/${botName}.json`), { method: 'DELETE' });
-                    }
-                    fetchDashboardData();
-                } catch (err) {
-                    alert("Gagal menghapus akun. Coba lagi.");
-                    console.error(err);
-                }
-            }
-        }
-
-        async function toggleAutoConnect(enabled) {
-            await fetch(fbUrl(`/config.json`), {
-                method: 'PATCH',
-                body: JSON.stringify({ auto_connect: enabled })
-            });
-        }
-
-        // Simpan pilihan Manager Bot ke /config/manager_bot_name -- semua
-        // instance script (lewat syncConfig() tiap loop) baca nilai ini,
-        // jadi tidak perlu lagi isi MANAGER_BOT_NAME manual di script Lua.
-        // Pilih "— Tidak ada (nonaktif) —" buat mematikan fitur ini.
-        async function setManagerBot() {
-            const selected = document.getElementById("manager-bot-select").value;
-            await fetch(fbUrl(`/config.json`), {
-                method: 'PATCH',
-                body: JSON.stringify({ manager_bot_name: selected })
-            });
-            fetchDashboardData();
-        }
-
-        setInterval(fetchDashboardData, 3000);
-        fetchDashboardData();
-    </script>
 </body>
 </html>
