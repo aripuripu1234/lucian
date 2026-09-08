@@ -1,618 +1,521 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LUCIFER // CONTROL</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lucifer — Bot Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #060907;
-    --panel: #0e130e;
-    --panel-2: #131a12;
-    --line: #223122;
-    --green: #9FEF00;
-    --green-dim: #5c8a12;
-    --amber: #FF9F1C;
-    --red: #FF4136;
-    --text: #E9F2E1;
-    --muted: #7C8B74;
-    --mono: ui-monospace, "SF Mono", "Cascadia Code", "Courier New", monospace;
-    --sans: -apple-system, "Segoe UI", system-ui, sans-serif;
+    --bg: #0E2117;
+    --bg-card: #15301F;
+    --bg-card-hover: #1B3A26;
+    --bg-input: #0F241A;
+    --border: #2A4934;
+    --border-soft: #223d2c;
+    --gold: #E7B24C;
+    --gold-dim: #a9832f;
+    --coral: #E2643A;
+    --sage: #8FA695;
+    --text: #EDEAE0;
+    --text-dim: #A9BAAE;
+    --green-on: #6FBF7A;
   }
 
-  * { box-sizing: border-box; }
+  *{ box-sizing: border-box; }
 
   body{
     margin:0;
     background:
-      radial-gradient(circle at 15% 0%, rgba(159,239,0,0.05), transparent 40%),
-      radial-gradient(circle at 85% 100%, rgba(255,65,54,0.04), transparent 45%),
+      radial-gradient(1200px 500px at 15% -10%, #17371F 0%, transparent 60%),
       var(--bg);
     color: var(--text);
-    font-family: var(--sans);
+    font-family: 'Inter', sans-serif;
     min-height: 100vh;
   }
 
-  /* ---------- Top bar ---------- */
-  .topbar{
+  header{
+    padding: 40px 5vw 24px;
     display:flex;
-    align-items:center;
+    align-items:flex-end;
     justify-content:space-between;
-    padding: 18px 28px;
-    border-bottom: 1px solid var(--line);
-    background: linear-gradient(180deg, rgba(159,239,0,0.03), transparent);
+    flex-wrap:wrap;
+    gap: 16px;
+    border-bottom: 1px solid var(--border-soft);
   }
 
   .brand{
     display:flex;
-    align-items:center;
-    gap:12px;
+    flex-direction:column;
+    gap:6px;
   }
 
-  .brand-mark{
-    width:34px; height:34px;
-    border-radius:50%;
-    border: 2px solid var(--green);
-    display:flex; align-items:center; justify-content:center;
-    position:relative;
-    flex-shrink:0;
-  }
-  .brand-mark::before{
-    content:"";
-    position:absolute;
-    inset:6px;
-    border-radius:50%;
-    background: var(--green);
-    box-shadow: 0 0 12px 2px rgba(159,239,0,0.6);
-    animation: pulse 2.2s ease-in-out infinite;
-  }
-  @keyframes pulse{
-    0%,100%{ opacity:1; transform: scale(1); }
-    50%{ opacity:.55; transform: scale(0.82); }
-  }
-
-  .brand h1{
-    margin:0;
-    font-size: 17px;
-    letter-spacing: 0.14em;
-    font-weight: 700;
-  }
-  .brand p{
-    margin:2px 0 0;
-    font-size: 11.5px;
-    color: var(--muted);
-    font-family: var(--mono);
-  }
-
-  .fb-status{
-    display:flex; align-items:center; gap:8px;
-    font-family: var(--mono);
-    font-size: 12.5px;
-    color: var(--muted);
-    padding: 7px 14px;
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    background: var(--panel);
-  }
-  .dot{
-    width:8px; height:8px; border-radius:50%;
-    background: var(--muted);
-    flex-shrink:0;
-  }
-  .dot.live{ background: var(--green); box-shadow: 0 0 8px 1px rgba(159,239,0,.7); }
-  .dot.down{ background: var(--red); box-shadow: 0 0 8px 1px rgba(255,65,54,.7); }
-
-  /* ---------- Main ---------- */
-  main{
-    max-width: 1180px;
-    margin: 0 auto;
-    padding: 32px 24px 80px;
-  }
-
-  .section-head{
-    display:flex;
-    align-items:baseline;
-    justify-content:space-between;
-    margin-bottom: 18px;
-  }
-  .section-head h2{
-    font-size: 13px;
-    letter-spacing: 0.12em;
-    color: var(--muted);
-    font-weight: 600;
-    margin:0;
-  }
-  .count-pill{
-    font-family: var(--mono);
+  .brand .eyebrow{
+    font-family:'IBM Plex Mono', monospace;
     font-size: 12px;
-    color: var(--green);
+    letter-spacing: 0.08em;
+    color: var(--gold);
+  }
+
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(28px, 4vw, 42px);
+    margin: 0;
+    line-height: 1.05;
+  }
+
+  .conn-status{
+    display:flex;
+    align-items:center;
+    gap: 10px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border-radius: 999px;
+  }
+
+  .dot{
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--sage);
+    box-shadow: 0 0 0 3px rgba(143,166,149,0.15);
+  }
+
+  .dot.live{
+    background: var(--green-on);
+    box-shadow: 0 0 0 3px rgba(111,191,122,0.2);
+  }
+
+  main{
+    padding: 32px 5vw 80px;
   }
 
   .grid{
     display:grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
   }
 
   .empty{
-    border: 1px dashed var(--line);
-    border-radius: 10px;
+    grid-column: 1 / -1;
+    border: 1px dashed var(--border);
+    border-radius: 14px;
     padding: 48px 24px;
     text-align:center;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 13px;
-    line-height: 1.7;
+    color: var(--text-dim);
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 14px;
+    line-height:1.7;
   }
 
   .card{
-    background: linear-gradient(180deg, var(--panel-2), var(--panel));
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 18px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
     display:flex;
     flex-direction:column;
-    gap: 14px;
-    position: relative;
-    overflow:hidden;
+    gap: 16px;
+    transition: border-color .15s ease, background .15s ease;
   }
-  .card::before{
-    content:"";
-    position:absolute;
-    top:0; left:0; right:0; height:2px;
-    background: var(--muted);
+
+  .card:hover{
+    border-color: var(--gold-dim);
   }
-  .card.online::before{ background: var(--green); }
-  .card.offline::before{ background: var(--red); }
 
   .card-head{
     display:flex;
-    align-items:center;
+    align-items:flex-start;
     justify-content:space-between;
+    gap: 10px;
   }
-  .bot-name{
-    font-weight: 700;
-    font-size: 15px;
-    letter-spacing: 0.01em;
+
+  .growid{
+    font-family:'Fraunces', serif;
+    font-weight: 600;
+    font-size: 22px;
+    margin: 0;
+    word-break: break-word;
   }
-  .status-tag{
-    display:flex; align-items:center; gap:6px;
-    font-family: var(--mono);
+
+  .world-badge{
+    font-family:'IBM Plex Mono', monospace;
     font-size: 11px;
-    letter-spacing: 0.04em;
+    color: var(--sage);
+    letter-spacing: 0.03em;
+    margin-top: 4px;
   }
-  .status-tag.online{ color: var(--green); }
-  .status-tag.offline{ color: var(--red); }
+
+  .status-pill{
+    display:flex;
+    align-items:center;
+    gap: 6px;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    white-space: nowrap;
+    padding-top: 3px;
+  }
 
   .readout{
-    font-family: var(--mono);
-    font-size: 12.5px;
-    color: var(--muted);
+    display:flex;
+    gap: 20px;
+    padding: 12px 0;
+    border-top: 1px solid var(--border-soft);
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .readout .field{
     display:flex;
     flex-direction:column;
-    gap: 5px;
-    background: rgba(0,0,0,0.25);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 10px 12px;
+    gap: 2px;
   }
-  .readout .row{ display:flex; justify-content:space-between; gap:10px; }
-  .readout .row span:first-child{ color: #566152; }
-  .readout .row span:last-child{ color: var(--text); text-align:right; }
-  .readout .row.hunting span:last-child{ color: var(--amber); }
 
-  .toggle-row{
-    display:flex; align-items:center; justify-content:space-between;
-    font-size: 12.5px;
-    color: var(--muted);
+  .readout label{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--sage);
+    letter-spacing: 0.06em;
   }
-  .switch{
-    position:relative;
-    width: 38px; height: 20px;
-    border-radius: 999px;
-    background: #1c261a;
-    border: 1px solid var(--line);
-    cursor:pointer;
-    flex-shrink:0;
-  }
-  .switch::after{
-    content:"";
-    position:absolute;
-    top:2px; left:2px;
-    width:14px; height:14px;
-    border-radius:50%;
-    background: var(--muted);
-    transition: transform .15s ease, background .15s ease;
-  }
-  .switch.on{ border-color: var(--green-dim); background: rgba(159,239,0,0.12); }
-  .switch.on::after{ background: var(--green); transform: translateX(18px); }
 
-  .btn-row{
+  .readout .value{
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+  }
+
+  .last-seen{
+    margin-left:auto;
+    align-self:center;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+  }
+
+  .section{
+    display:flex;
+    flex-direction:column;
+    gap: 8px;
+  }
+
+  .section-label{
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+
+  .row{
     display:flex;
     gap: 8px;
   }
-  button{
-    font-family: var(--sans);
-    font-size: 12.5px;
-    font-weight: 600;
+
+  input{
+    background: var(--bg-input);
+    border: 1px solid var(--border);
     border-radius: 8px;
-    border: 1px solid var(--line);
-    background: var(--panel-2);
+    padding: 9px 11px;
     color: var(--text);
-    padding: 9px 10px;
-    cursor:pointer;
-    transition: filter .12s ease, transform .05s ease;
-    flex:1;
-  }
-  button:hover{ filter: brightness(1.25); }
-  button:active{ transform: scale(0.98); }
-
-  .btn-connect{ border-color: var(--green-dim); color: var(--green); }
-  .btn-disconnect{ border-color: rgba(255,65,54,0.4); color: var(--red); }
-  .btn-geiger{
-    flex: none;
-    width: 42px;
-    display:flex; align-items:center; justify-content:center;
-    border-color: var(--amber);
-    color: var(--amber);
-    font-size: 17px;
-    padding: 0;
-  }
-  .btn-geiger.active{
-    background: rgba(255,159,28,0.15);
-    box-shadow: 0 0 10px rgba(255,159,28,0.35);
-  }
-
-  /* ---------- Modal ---------- */
-  .overlay{
-    position: fixed; inset:0;
-    background: rgba(2,4,2,0.72);
-    backdrop-filter: blur(3px);
-    display:none;
-    align-items:center;
-    justify-content:center;
-    z-index: 50;
-    padding: 20px;
-  }
-  .overlay.show{ display:flex; }
-
-  .modal{
-    width: 100%;
-    max-width: 380px;
-    background: var(--panel);
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 22px;
-  }
-  .modal h3{
-    margin:0 0 4px;
-    font-size: 15px;
-    display:flex; align-items:center; gap:8px;
-  }
-  .modal p.sub{
-    margin: 0 0 18px;
-    font-size: 12px;
-    color: var(--muted);
-    font-family: var(--mono);
-  }
-  .field{ margin-bottom: 14px; }
-  .field label{
-    display:block;
-    font-size: 11px;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-    margin-bottom: 6px;
-    font-family: var(--mono);
-  }
-  .field input{
-    width:100%;
-    background: #0b100a;
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 10px 11px;
-    color: var(--text);
-    font-family: var(--mono);
+    font-family: 'Inter', sans-serif;
     font-size: 13px;
+    min-width: 0;
   }
-  .field input:focus{
-    outline:none;
-    border-color: var(--green-dim);
+
+  input:focus{
+    outline: none;
+    border-color: var(--gold-dim);
   }
-  .modal-actions{
-    display:flex;
-    gap:8px;
-    margin-top: 6px;
+
+  input.world-input{ flex: 2; }
+  input.door-input{ flex: 1; }
+  input.coord-input{ flex: 1; }
+
+  button{
+    border: none;
+    border-radius: 8px;
+    padding: 9px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: filter .12s ease, transform .05s ease;
   }
-  .btn-cancel{ color: var(--muted); }
-  .btn-start{
-    border-color: var(--green-dim);
-    color: var(--green);
+
+  button:active{ transform: translateY(1px); }
+
+  .btn-warp{
+    background: var(--gold);
+    color: #23180A;
   }
+
+  .btn-move{
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold-dim);
+  }
+
+  button:hover{ filter: brightness(1.08); }
+  button:disabled{ opacity: 0.5; cursor: default; filter:none; }
 
   .toast{
     position: fixed;
-    bottom: 24px; left: 50%;
-    transform: translateX(-50%) translateY(20px);
-    background: var(--panel-2);
-    border: 1px solid var(--line);
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-card);
+    border: 1px solid var(--gold-dim);
+    color: var(--text);
+    padding: 12px 20px;
     border-radius: 999px;
-    padding: 10px 18px;
-    font-family: var(--mono);
-    font-size: 12.5px;
-    opacity:0;
-    transition: opacity .2s ease, transform .2s ease;
+    font-family:'IBM Plex Mono', monospace;
+    font-size: 13px;
+    opacity: 0;
     pointer-events:none;
-    z-index: 60;
+    transition: opacity .2s ease, transform .2s ease;
   }
-  .toast.show{ opacity:1; transform: translateX(-50%) translateY(0); }
+
+  .toast.show{
+    opacity: 1;
+    transform: translateX(-50%) translateY(-6px);
+  }
+
+  .config-note{
+    max-width: 480px;
+    color: var(--text-dim);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .config-note code{
+    font-family:'IBM Plex Mono', monospace;
+    background: var(--bg-input);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: var(--sage);
+  }
 </style>
 </head>
 <body>
 
-<div class="topbar">
+<header>
   <div class="brand">
-    <div class="brand-mark"></div>
-    <div>
-      <h1>LUCIFER CONTROL</h1>
-      <p>multibot dashboard</p>
-    </div>
+    <span class="eyebrow">LUCIFER FLEET CONTROL</span>
+    <h1>Bot Dashboard</h1>
   </div>
-  <div class="fb-status" id="fbStatus">
-    <span class="dot" id="fbDot"></span>
-    <span id="fbLabel">connecting…</span>
+  <div class="conn-status">
+    <span class="dot" id="connDot"></span>
+    <span id="connText">Menghubungkan…</span>
   </div>
-</div>
+</header>
 
 <main>
-  <div class="section-head">
-    <h2>AKUN TERHUBUNG</h2>
-    <span class="count-pill" id="countPill">0 bot</span>
-  </div>
-
-  <div id="botGrid" class="grid"></div>
-  <div id="emptyState" class="empty">
-    Belum ada akun yang terhubung.<br>
-    Jalankan script Lua di Lucifer supaya bot muncul di sini secara otomatis.
+  <div class="grid" id="grid">
+    <div class="empty">Belum ada bot yang terhubung.<br/>Jalankan <code style="font-family:'IBM Plex Mono',monospace">dashboard_sync.lua</code> di script bot kamu untuk mulai mengirim data.</div>
   </div>
 </main>
-
-<!-- Modal Geiger -->
-<div class="overlay" id="overlay">
-  <div class="modal">
-    <h3>☢ Mulai Geiger Hunt</h3>
-    <p class="sub" id="modalTarget">bot: -</p>
-
-    <div class="field">
-      <label>World Geiger (ambil geiger)</label>
-      <input type="text" id="inputWorldGeiger" placeholder="worldgeiger" autocomplete="off">
-    </div>
-    <div class="field">
-      <label>World Hunt (cari sinyal)</label>
-      <input type="text" id="inputWorldHunt" placeholder="worldg" autocomplete="off">
-    </div>
-    <div class="field">
-      <label>World Storage (drop hasil)</label>
-      <input type="text" id="inputWorldStorage" placeholder="worldstorage" autocomplete="off">
-    </div>
-
-    <div class="modal-actions">
-      <button class="btn-cancel" id="btnCancel">Batal</button>
-      <button class="btn-start" id="btnStart">Mulai Berburu</button>
-    </div>
-  </div>
-</div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-const DB_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
-const BOTS_PATH = "/bots";
+  const DB_URL = "https://luci-44c7f-default-rtdb.asia-southeast1.firebasedatabase.app";
+  const POLL_INTERVAL = 2000;
 
-let bots = {};       // local mirror of /bots
-let activeKey = null; // bot targeted by the geiger modal
+  const grid = document.getElementById('grid');
+  const connDot = document.getElementById('connDot');
+  const connText = document.getElementById('connText');
+  const toastEl = document.getElementById('toast');
 
-const grid = document.getElementById('botGrid');
-const emptyState = document.getElementById('emptyState');
-const countPill = document.getElementById('countPill');
-const fbDot = document.getElementById('fbDot');
-const fbLabel = document.getElementById('fbLabel');
-const overlay = document.getElementById('overlay');
-const modalTarget = document.getElementById('modalTarget');
-const toast = document.getElementById('toast');
+  const cardEls = new Map(); // growid -> { root, els }
 
-function showToast(msg){
-  toast.textContent = msg;
-  toast.classList.add('show');
-  clearTimeout(showToast._t);
-  showToast._t = setTimeout(()=> toast.classList.remove('show'), 2400);
-}
-
-function setDeep(obj, path, value){
-  // path like "/botkey/field" or "/" or "/botkey"
-  const parts = path.split('/').filter(Boolean);
-  if(parts.length === 0){
-    return value === null ? {} : value;
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toastEl.classList.remove('show'), 2400);
   }
-  let cursor = obj;
-  for(let i=0;i<parts.length-1;i++){
-    const p = parts[i];
-    if(typeof cursor[p] !== 'object' || cursor[p] === null) cursor[p] = {};
-    cursor = cursor[p];
+
+  function timeAgo(ms){
+    if(!ms) return '—';
+    const diff = Math.max(0, Date.now() - ms);
+    const s = Math.floor(diff/1000);
+    if(s < 5) return 'baru saja';
+    if(s < 60) return s + ' detik lalu';
+    const m = Math.floor(s/60);
+    if(m < 60) return m + ' menit lalu';
+    const h = Math.floor(m/60);
+    return h + ' jam lalu';
   }
-  const last = parts[parts.length-1];
-  if(value === null){
-    delete cursor[last];
-  } else {
-    cursor[last] = value;
+
+  function statusLabel(code){
+    // Cocok dengan urutan enum BotStatus di enums.md
+    const names = [
+      'offline','online','wrong_password','account_banned','location_banned',
+      'version_update','advanced_account_protection','server_overload',
+      'too_many_login','maintenance','server_busy','guest_limit','http_block',
+      'bad_name_length','invalid_account','error_connecting','logon_fail',
+      'captcha_requested','mod_entered','high_load'
+    ];
+    return names[code] || 'unknown';
   }
-  return obj;
-}
 
-function connectStream(){
-  fbLabel.textContent = 'connecting…';
-  fbDot.className = 'dot';
-
-  const es = new EventSource(`${DB_URL}${BOTS_PATH}.json`);
-
-  es.addEventListener('put', (e) => {
-    const { path, data } = JSON.parse(e.data);
-    bots = setDeep(bots, path, data === null ? null : data) || {};
-    if(path === '/') bots = data || {};
-    render();
-    fbDot.className = 'dot live';
-    fbLabel.textContent = 'terhubung';
-  });
-
-  es.addEventListener('patch', (e) => {
-    const { path, data } = JSON.parse(e.data);
-    if(path === '/'){
-      Object.assign(bots, data);
-    } else {
-      setDeep(bots, path, data);
+  async function sendCommand(growid, payload, btn){
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = 'Mengirim…';
+    try{
+      const res = await fetch(`${DB_URL}/bots/${encodeURIComponent(growid)}/command.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      showToast(payload.action === 'warp'
+        ? `Perintah warp dikirim ke ${growid}`
+        : `Perintah pindah posisi dikirim ke ${growid}`);
+    }catch(err){
+      showToast('Gagal mengirim perintah: ' + err.message);
+    }finally{
+      btn.disabled = false;
+      btn.textContent = original;
     }
-    render();
-  });
+  }
 
-  es.onerror = () => {
-    fbDot.className = 'dot down';
-    fbLabel.textContent = 'terputus, reconnecting…';
-  };
-}
-
-function isOnline(bot){
-  return (bot && bot.status === 'online');
-}
-
-function render(){
-  const keys = Object.keys(bots || {});
-  countPill.textContent = `${keys.length} bot`;
-  emptyState.style.display = keys.length === 0 ? 'block' : 'none';
-  grid.style.display = keys.length === 0 ? 'none' : 'grid';
-
-  grid.innerHTML = '';
-  keys.sort().forEach(key => {
-    grid.appendChild(renderCard(key, bots[key] || {}));
-  });
-}
-
-function renderCard(key, bot){
-  const online = isOnline(bot);
-  const autoCollect = !!bot.auto_collect;
-  const geigerActive = !!bot.geiger_active;
-  const world = bot.world || '-';
-  const x = (bot.x !== undefined) ? bot.x : '-';
-  const y = (bot.y !== undefined) ? bot.y : '-';
-
-  const card = document.createElement('div');
-  card.className = `card ${online ? 'online' : 'offline'}`;
-
-  card.innerHTML = `
-    <div class="card-head">
-      <div class="bot-name">${escapeHtml(key)}</div>
-      <div class="status-tag ${online ? 'online' : 'offline'}">
-        <span class="dot ${online ? 'live' : 'down'}"></span>
-        ${online ? 'ONLINE' : 'OFFLINE'}
+  function buildCard(growid){
+    const root = document.createElement('div');
+    root.className = 'card';
+    root.innerHTML = `
+      <div class="card-head">
+        <div>
+          <p class="growid"></p>
+          <div class="world-badge"></div>
+        </div>
+        <div class="status-pill"><span class="dot"></span><span class="status-text"></span></div>
       </div>
-    </div>
 
-    <div class="readout">
-      <div class="row"><span>world</span><span>${escapeHtml(world)}</span></div>
-      <div class="row"><span>posisi</span><span>${x} , ${y}</span></div>
-      <div class="row ${geigerActive ? 'hunting' : ''}"><span>geiger</span><span>${geigerActive ? 'BERBURU…' : 'idle'}</span></div>
-    </div>
+      <div class="readout">
+        <div class="field"><label>X</label><span class="value x-val">—</span></div>
+        <div class="field"><label>Y</label><span class="value y-val">—</span></div>
+        <span class="last-seen"></span>
+      </div>
 
-    <div class="toggle-row">
-      <span>Auto Collect</span>
-      <div class="switch ${autoCollect ? 'on' : ''}" data-action="toggle_autocollect" data-key="${key}"></div>
-    </div>
+      <div class="section">
+        <div class="section-label">Warp ke world</div>
+        <div class="row">
+          <input class="world-input" type="text" placeholder="nama world" />
+          <input class="door-input" type="text" placeholder="door id" />
+          <button class="btn-warp">Warp</button>
+        </div>
+      </div>
 
-    <div class="btn-row">
-      ${online
-        ? `<button class="btn-disconnect" data-action="disconnect" data-key="${key}">Disconnect</button>`
-        : `<button class="btn-connect" data-action="connect" data-key="${key}">Connect</button>`
-      }
-      <button class="btn-geiger ${geigerActive ? 'active' : ''}" data-action="open_geiger" data-key="${key}" title="Geiger Hunt">☢</button>
-    </div>
-  `;
-  return card;
-}
+      <div class="section">
+        <div class="section-label">Gerakkan ke titik (tile)</div>
+        <div class="row">
+          <input class="coord-input" type="number" placeholder="x" />
+          <input class="coord-input" type="number" placeholder="y" />
+          <button class="btn-move">Gerakkan</button>
+        </div>
+      </div>
+    `;
 
-function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+    const els = {
+      growid: root.querySelector('.growid'),
+      world: root.querySelector('.world-badge'),
+      statusDot: root.querySelector('.status-pill .dot'),
+      statusText: root.querySelector('.status-text'),
+      x: root.querySelector('.x-val'),
+      y: root.querySelector('.y-val'),
+      lastSeen: root.querySelector('.last-seen'),
+      worldInput: root.querySelector('.world-input'),
+      doorInput: root.querySelector('.door-input'),
+      xInput: root.querySelectorAll('.coord-input')[0],
+      yInput: root.querySelectorAll('.coord-input')[1],
+      warpBtn: root.querySelector('.btn-warp'),
+      moveBtn: root.querySelector('.btn-move'),
+    };
 
-async function sendCommand(key, payload){
-  try{
-    await fetch(`${DB_URL}${BOTS_PATH}/${encodeURIComponent(key)}/command.json`, {
-      method: 'PUT',
-      body: JSON.stringify(payload)
+    els.warpBtn.addEventListener('click', () => {
+      const world = els.worldInput.value.trim();
+      const door_id = els.doorInput.value.trim();
+      if(!world){ showToast('Isi nama world dulu.'); return; }
+      sendCommand(growid, { action: 'warp', world, door_id, ts: Date.now() }, els.warpBtn);
     });
-  }catch(err){
-    showToast('Gagal mengirim perintah ke Firebase');
+
+    els.moveBtn.addEventListener('click', () => {
+      const x = parseInt(els.xInput.value, 10);
+      const y = parseInt(els.yInput.value, 10);
+      if(Number.isNaN(x) || Number.isNaN(y)){ showToast('Isi x dan y dulu.'); return; }
+      sendCommand(growid, { action: 'move', x, y, ts: Date.now() }, els.moveBtn);
+    });
+
+    grid.appendChild(root);
+    return { root, els };
   }
-}
 
-grid.addEventListener('click', (e) => {
-  const el = e.target.closest('[data-action]');
-  if(!el) return;
-  const action = el.dataset.action;
-  const key = el.dataset.key;
+  function renderBots(data){
+    const growids = data ? Object.keys(data) : [];
 
-  if(action === 'connect'){
-    sendCommand(key, { action: 'connect' });
-    showToast(`Mengirim perintah connect ke ${key}`);
+    // Hapus kartu untuk bot yang sudah tidak ada.
+    for(const [growid, entry] of cardEls){
+      if(!growids.includes(growid)){
+        entry.root.remove();
+        cardEls.delete(growid);
+      }
+    }
+
+    // Toggle empty state
+    const emptyEl = grid.querySelector('.empty');
+    if(growids.length === 0){
+      if(!emptyEl){
+        grid.innerHTML = `<div class="empty">Belum ada bot yang terhubung.<br/>Jalankan <code style="font-family:'IBM Plex Mono',monospace">dashboard_sync.lua</code> di script bot kamu untuk mulai mengirim data.</div>`;
+      }
+      return;
+    }else if(emptyEl){
+      emptyEl.remove();
+    }
+
+    for(const growid of growids){
+      const bot = data[growid] || {};
+      let entry = cardEls.get(growid);
+      if(!entry){
+        entry = buildCard(growid);
+        cardEls.set(growid, entry);
+      }
+
+      const { els } = entry;
+      els.growid.textContent = growid;
+      els.world.textContent = bot.world ? `📍 ${bot.world}` : 'belum masuk world';
+      els.x.textContent = (bot.x ?? '—');
+      els.y.textContent = (bot.y ?? '—');
+      els.lastSeen.textContent = timeAgo(bot.last_seen);
+
+      const online = bot.status === 1; // BotStatus.online
+      els.statusDot.style.background = online ? 'var(--green-on)' : 'var(--coral)';
+      els.statusText.textContent = statusLabel(bot.status);
+    }
   }
-  else if(action === 'disconnect'){
-    sendCommand(key, { action: 'disconnect' });
-    showToast(`Mengirim perintah disconnect ke ${key}`);
+
+  async function poll(){
+    try{
+      const res = await fetch(`${DB_URL}/bots.json`, { cache: 'no-store' });
+      if(!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      renderBots(data);
+      connDot.classList.add('live');
+      connText.textContent = 'Terhubung ke Firebase';
+    }catch(err){
+      connDot.classList.remove('live');
+      connText.textContent = 'Gagal konek: ' + err.message;
+    }
   }
-  else if(action === 'toggle_autocollect'){
-    const current = !!(bots[key] && bots[key].auto_collect);
-    el.classList.toggle('on', !current); // optimistic UI
-    sendCommand(key, { action: current ? 'disable_auto_collect' : 'enable_auto_collect' });
-  }
-  else if(action === 'open_geiger'){
-    openGeigerModal(key);
-  }
-});
 
-function openGeigerModal(key){
-  activeKey = key;
-  modalTarget.textContent = `bot: ${key}`;
-  const bot = bots[key] || {};
-  document.getElementById('inputWorldGeiger').value = bot.last_world_geiger || '';
-  document.getElementById('inputWorldHunt').value = bot.last_world_hunt || '';
-  document.getElementById('inputWorldStorage').value = bot.last_world_storage || '';
-  overlay.classList.add('show');
-}
-
-document.getElementById('btnCancel').addEventListener('click', () => {
-  overlay.classList.remove('show');
-});
-overlay.addEventListener('click', (e) => {
-  if(e.target === overlay) overlay.classList.remove('show');
-});
-
-document.getElementById('btnStart').addEventListener('click', () => {
-  const world_geiger = document.getElementById('inputWorldGeiger').value.trim();
-  const world_hunt = document.getElementById('inputWorldHunt').value.trim();
-  const world_storage = document.getElementById('inputWorldStorage').value.trim();
-
-  if(!world_geiger || !world_hunt || !world_storage){
-    showToast('Semua field world wajib diisi');
-    return;
-  }
-  if(!activeKey) return;
-
-  sendCommand(activeKey, {
-    action: 'start_geiger',
-    world_geiger, world_hunt, world_storage
-  });
-  showToast(`Perintah geiger hunt dikirim ke ${activeKey}`);
-  overlay.classList.remove('show');
-});
-
-connectStream();
+  poll();
+  setInterval(poll, POLL_INTERVAL);
 </script>
 
 </body>
